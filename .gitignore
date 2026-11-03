@@ -49,3 +49,6 @@ next-env.d.ts
 eval/slips-private/
 supabase/.temp/
 supabase/.branches/
+
+# local editor/agent config
+.claude/

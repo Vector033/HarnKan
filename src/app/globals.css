@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-thai), system-ui, sans-serif;
+}
+
+@theme {
+  --color-paper: #f6f4ef;
+  --color-ink: #1f1d19;
+  --color-muted: #6f6a60;
+  --color-line: #e4e0d6;
+  --color-brand: #12715b;
+  --color-brand-dark: #0c5444;
+  --color-brand-soft: #e3f1ec;
+  --color-owe: #b4412f;
+  --color-owe-soft: #fbeae6;
+  --color-wait: #a1620b;
+  --color-wait-soft: #fdf1dc;
+  --color-pp: #1b3f73;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+@layer components {
+  .label {
+    @apply mb-1 block text-sm font-medium text-muted;
+  }
+  .input {
+    @apply w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-base outline-none placeholder:text-stone-400 focus:border-brand focus:ring-4 focus:ring-brand/15;
+  }
+  .btn-primary {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-base font-semibold text-white active:bg-brand-dark disabled:opacity-50;
+  }
+  .btn {
+    @apply inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-line bg-white px-3.5 py-2 text-sm font-medium text-ink active:bg-stone-100 disabled:opacity-50;
+  }
+  .btn-ghost {
+    @apply inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-muted active:bg-stone-200/60;
+  }
+  .card {
+    @apply rounded-2xl border border-line bg-white;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium;
+  }
+}

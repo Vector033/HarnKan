@@ -1,6 +1,6 @@
 # HarnKan (หารกัน): หารค่าทริปแบบ realtime ถ่ายสลิปแล้วติ๊ก "จ่ายแล้ว" ให้อัตโนมัติ
 
-> สถานะ: ยังไม่เริ่ม (มีแค่ไฟล์นี้) · สร้างเมื่อ 2026-11-04 · ลำดับที่แนะนำ: **ตัวที่สาม** (ทำช่วงสหกิจหรือหลังจากนั้นได้)
+> สถานะ: **MVP ครบ 1–7 รันได้ในเครื่อง** (2026-11-04) · ยังไม่ deploy · ดูสิ่งที่เหลือใน README หัวข้อ Roadmap · ลำดับที่แนะนำ: **ตัวที่สาม**
 
 ## เจ้าของโปรเจกต์
 Nawat Wattanawong นักศึกษาวิทยาการคอมพิวเตอร์ มช. ปี 3 เป้าหมายคือสาย **full-stack**
@@ -54,9 +54,13 @@ SlipJot (`C:\Users\User\Desktop\SlipJot`) ก็ต้องอ่านสล�
 - Test: Vitest (อัลกอริทึมหาร) + Playwright (2 browser แก้พร้อมกัน)
 - Deploy: Vercel
 
-## สิ่งที่ต้องรู้ก่อนเริ่ม
-- **เครื่องนี้ยังไม่มี Node.js:** ขอผู้ใช้ติดตั้งก่อน (ต้องถามก่อนติดตั้ง)
-- ถ้ามี FactFit หรือ MorPlan แล้ว ให้ใช้โครง auth, DB และ CI จากโปรเจกต์นั้นเป็นแบบ
+## สิ่งที่ต้องรู้ก่อนเริ่ม (อัปเดต 2026-11-04)
+- Node 26 อยู่ที่ `C:\Program Files
+odejs`, Supabase local ใช้พอร์ต 544xx (`npm run db:start`) แยกจาก FactFit (543xx)
+- cookie session ชื่อ `sb-harnkan-auth` (ถ้าใช้ชื่อเดียวกับแอปอื่นบน localhost จะได้ session ผิดตัว)
+- dev server ในแอป preview ชื่อ `harnkan-dev` (port 3002) อยู่ใน `Desktop\.claude\launch.json`
+- `packages/slip-reader` คัดลอกมาจาก SlipJot (commit 8d6b93c) ถ้าแก้ contract ต้องแจ้ง SlipJot ด้วย
+- e2e ใช้ `SLIP_READER=fake` (ไฟล์ที่อัปโหลดเป็น JSON คำตอบของโมเดล) ห้ามเปิดใน production
 
 ## Milestones (ประมาณ 5–6 สัปดาห์)
 1. Schema, สร้างทริปหรือเข้าทริปผ่านลิงก์, เพิ่มรายจ่าย

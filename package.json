@@ -16,8 +16,8 @@
     "db:start": "supabase start -x studio,imgproxy,storage-api,edge-runtime,logflare,vector,supavisor,postgres-meta,mailpit",
     "db:reset": "supabase db reset",
     "db:types": "supabase gen types typescript --local > src/lib/supabase/database.types.ts",
-    "eval:slips": "node --env-file-if-exists=.env.local eval/run-slip-eval.mts",
-    "test:db": "node --env-file=.env.local node_modules/vitest/vitest.mjs run --config vitest.db.config.mts"
+    "test:db": "node --env-file=.env.local node_modules/vitest/vitest.mjs run --config vitest.db.config.mts",
+    "eval:match": "node --env-file-if-exists=.env.local node_modules/vitest/vitest.mjs run --config vitest.eval.config.mts"
   },
   "dependencies": {
     "@harnkan/slip-reader": "*",
@@ -46,5 +46,8 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^5.1.0"
+  },
+  "allowScripts": {
+    "tesseract.js@7.0.0": false
   }
 }

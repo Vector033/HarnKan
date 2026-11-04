@@ -134,21 +134,27 @@ test("a matching slip ticks the payment and the receiver confirms", async ({ bro
   // With SLIP_READER=fake the file's bytes are the model's answer.
   const now = new Date();
   const thai = `${now.getDate()} ${["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."][now.getMonth()]} ${(now.getFullYear() + 543) % 100} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  const party = (name: string, bank: string, account: string) => ({
+    name,
+    name_confidence: 0.95,
+    bank,
+    bank_confidence: 0.95,
+    account_masked: account,
+    account_confidence: 0.95,
+  });
   const answer = {
     is_transfer_slip: true,
-    amount_text: "1,200.00",
     amount: 1200,
-    datetime_text: thai,
+    amount_confidence: 0.98,
+    date_text: thai,
     datetime_iso: null,
-    sender_name: "นาย บี บี.",
-    sender_bank: "KBANK",
-    sender_account: "xxx-x-x1111-x",
-    receiver_name: "น.ส. สมหญิง ด.",
-    receiver_bank: "SCB",
-    receiver_account: "xxx-xxx-5678",
+    datetime_confidence: 0.95,
+    sender: party("นาย บี บี.", "KBANK", "xxx-x-x1111-x"),
+    receiver: party("น.ส. สมหญิง ด.", "SCB", "xxx-xxx-5678"),
     reference: `E2E${Date.now()}`,
+    reference_confidence: 0.95,
     memo: null,
-    confidence: { amount: 0.98, datetime: 0.95, receiver: 0.95, sender: 0.9 },
+    memo_confidence: 0,
   };
   await b.page.getByTestId("slip-input").setInputFiles({
     name: "slip.png",

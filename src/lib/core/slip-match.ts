@@ -1,5 +1,6 @@
-import { nameMatchScore, REVIEW_THRESHOLD, type SlipReadResult } from "@harnkan/slip-reader";
+import { REVIEW_THRESHOLD, type SlipReadResult } from "@harnkan/slip-reader";
 import { bahtToSatang } from "./money";
+import { nameMatchScore } from "./names";
 
 /** A transfer the uploader is expected to make. */
 export interface MatchCandidate {
@@ -35,7 +36,7 @@ export function matchSlip(
   const reasons: string[] = [];
   const duplicate = !!slip.reference.value && !!ctx.usedReferences?.has(slip.reference.value);
   if (duplicate) reasons.push("สลิปนี้เคยใช้บันทึกการจ่ายไปแล้ว");
-  if (slip.issues.includes("not_a_slip")) reasons.push("รูปนี้ไม่น่าใช่สลิปโอนเงิน");
+  reasons.push(...slip.issues); // the reader's own review reasons, already in Thai
 
   const time = timeCheck(slip, ctx.tripCreatedAt, now);
   if (time === "mismatch") reasons.push("วันที่บนสลิปไม่อยู่ในช่วงของทริปนี้");
@@ -66,7 +67,6 @@ export function matchSlip(
     (best.receiver === "match" || best.receiver === "unknown") &&
     time === "match" &&
     !duplicate &&
-    !slip.issues.includes("not_a_slip") &&
     slip.overallConfidence >= REVIEW_THRESHOLD;
 
   return {

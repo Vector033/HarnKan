@@ -1,6 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = Number(process.env.E2E_PORT ?? 3005);
+// E2E_PROD=1 runs against `next start` (after `npm run build`): the service
+// worker only registers in production builds, so the offline reload test needs it.
+const PROD = !!process.env.E2E_PROD;
+const PORT = Number(process.env.E2E_PORT ?? (PROD ? 3006 : 3005));
 
 // Needs the local Supabase stack running (npm run db:start).
 export default defineConfig({
@@ -13,7 +16,7 @@ export default defineConfig({
   reporter: process.env.CI ? "github" : "list",
   use: { baseURL: `http://localhost:${PORT}`, ...devices["Pixel 7"], locale: "th-TH", timezoneId: "Asia/Bangkok" },
   webServer: {
-    command: `npx next dev -p ${PORT}`,
+    command: PROD ? `npx next start -p ${PORT}` : `npx next dev -p ${PORT}`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,

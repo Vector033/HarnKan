@@ -1,144 +1,171 @@
-// Rule-based parsing used to cross-check what the model read. The model is
-// asked for the raw text it saw as well as its own interpretation; when the
-// two disagree the field's confidence drops and the slip goes to review.
+// Pure helpers for the messy text on Thai slips: Buddhist-era dates, Thai month
+// names, amounts with commas, masked account numbers and personal titles.
 
-const THAI_DIGITS = "๐๑๒๓๔๕๖๗๘๙";
-
-export function arabicDigits(s: string): string {
-  return s.replace(/[๐-๙]/g, (d) => String(THAI_DIGITS.indexOf(d)));
-}
-
-/** "1,250.00", "฿1,250.00 บาท", "THB 99" -> 1250 / 99. Null when unreadable. */
-export function parseAmountText(text: string): number | null {
-  const t = arabicDigits(text).replace(/(THB|บาท|฿|\s)/gi, "");
-  const m = t.match(/^(\d{1,3}(,\d{3})+|\d+)(\.\d{1,2})?$/);
-  if (!m) return null;
-  const n = Number(t.replace(/,/g, ""));
-  return Number.isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : null;
-}
-
-const MONTHS: [RegExp, number][] = [
-  [/^(ม\.?ค\.?|มกราคม|jan(uary)?)$/i, 1],
-  [/^(ก\.?พ\.?|กุมภาพันธ์|feb(ruary)?)$/i, 2],
-  [/^(มี\.?ค\.?|มีนาคม|mar(ch)?)$/i, 3],
-  [/^(เม\.?ย\.?|เมษายน|apr(il)?)$/i, 4],
-  [/^(พ\.?ค\.?|พฤษภาคม|may)$/i, 5],
-  [/^(มิ\.?ย\.?|มิถุนายน|jun(e)?)$/i, 6],
-  [/^(ก\.?ค\.?|กรกฎาคม|jul(y)?)$/i, 7],
-  [/^(ส\.?ค\.?|สิงหาคม|aug(ust)?)$/i, 8],
-  [/^(ก\.?ย\.?|กันยายน|sep(t|tember)?)$/i, 9],
-  [/^(ต\.?ค\.?|ตุลาคม|oct(ober)?)$/i, 10],
-  [/^(พ\.?ย\.?|พฤศจิกายน|nov(ember)?)$/i, 11],
-  [/^(ธ\.?ค\.?|ธันวาคม|dec(ember)?)$/i, 12],
+const THAI_MONTHS: [RegExp, number][] = [
+  [/^(ม\.?ค\.?|มกราคม)$/, 1],
+  [/^(ก\.?พ\.?|กุมภาพันธ์)$/, 2],
+  [/^(มี\.?ค\.?|มีนาคม)$/, 3],
+  [/^(เม\.?ย\.?|เมษายน)$/, 4],
+  [/^(พ\.?ค\.?|พฤษภาคม)$/, 5],
+  [/^(มิ\.?ย\.?|มิถุนายน)$/, 6],
+  [/^(ก\.?ค\.?|กรกฎาคม)$/, 7],
+  [/^(ส\.?ค\.?|สิงหาคม)$/, 8],
+  [/^(ก\.?ย\.?|กันยายน)$/, 9],
+  [/^(ต\.?ค\.?|ตุลาคม)$/, 10],
+  [/^(พ\.?ย\.?|พฤศจิกายน)$/, 11],
+  [/^(ธ\.?ค\.?|ธันวาคม)$/, 12],
 ];
 
-/**
- * Converts a slip year to the Gregorian year. Thai slips print the Buddhist
- * year, often as two digits ("69" = 2569 = 2026); English slips print "2026"
- * or "26". Two-digit years are read as Buddhist when that lands within a few
- * years of `now`, otherwise as Gregorian.
- */
-export function gregorianYear(raw: number, now = new Date()): number {
-  const current = now.getUTCFullYear();
-  if (raw >= 2400) return raw - 543;
-  if (raw >= 1900) return raw;
-  const be = 2500 + raw - 543;
-  const ce = 2000 + raw;
-  return Math.abs(be - current) <= Math.abs(ce - current) ? be : ce;
+const EN_MONTHS = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+
+// Latin letters tesseract outputs for Thai consonants in month abbreviations ("n.y." = ก.ย.).
+const OCR_LOOKALIKES: Record<string, string> = { n: "ก", u: "น", y: "ย", w: "พ", a: "ล" };
+
+export function monthFromName(name: string): number | null {
+  const n = name.trim().toLowerCase();
+  for (const [re, m] of THAI_MONTHS) if (re.test(n)) return m;
+  const en = EN_MONTHS.findIndex((m) => n.startsWith(m));
+  if (en >= 0) return en + 1;
+  // OCR repair: map lookalike Latin letters, drop below-vowels and tone marks that
+  // tesseract adds to abbreviations ("กุย." for ก.ย.), then try again.
+  const repaired = [...n]
+    .map((ch) => OCR_LOOKALIKES[ch] ?? ch)
+    .join("")
+    .replace(/[ุู่-์\s]/g, "");
+  if (/^[ก-๙.]+$/.test(repaired)) {
+    if (repaired !== n) for (const [re, m] of THAI_MONTHS) if (re.test(repaired)) return m;
+    // ค read for ก in the first letter ("ค.ย." for ก.ย.). Only a fallback: ค is real in ม.ค. etc.
+    const swapped = repaired.replace(/^ค/, "ก");
+    if (swapped !== repaired) for (const [re, m] of THAI_MONTHS) if (re.test(swapped)) return m;
+  }
+  return null;
 }
 
 /**
- * Parses the date/time line of a Thai bank slip into ISO 8601 (+07:00).
- * Handles "4 พ.ย. 69 14:32", "04 พฤศจิกายน 2569 - 14:32 น.", "04 Nov 26, 14:32",
- * "04/11/2569 14:32:05". Null if no full date and time can be found.
+ * Turns a printed year into a Gregorian year. 4-digit years above 2400 are Buddhist era.
+ * 2-digit years are ambiguous ("69" on a Thai slip is BE 2569, "26" on an English slip is
+ * CE 2026), so we pick whichever reading lands near `now`.
+ */
+export function resolveYear(printed: number, now = new Date()): number | null {
+  const thisYear = now.getUTCFullYear();
+  const plausible = (y: number) => y >= thisYear - 5 && y <= thisYear + 1;
+  if (printed >= 2400) return printed - 543;
+  if (printed >= 1900) return printed;
+  if (printed < 100) {
+    const be = 2500 + printed - 543;
+    const ce = 2000 + printed;
+    if (plausible(be)) return be;
+    if (plausible(ce)) return ce;
+  }
+  return null;
+}
+
+function pad(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+/** ISO 8601 in Thailand time (+07:00, no DST). */
+export function toBangkokIso(y: number, mo: number, d: number, h: number, mi: number, s = 0): string | null {
+  if (mo < 1 || mo > 12 || d < 1 || d > 31 || h > 23 || mi > 59 || s > 59) return null;
+  const check = new Date(Date.UTC(y, mo - 1, d));
+  if (check.getUTCDate() !== d) return null; // 31 Feb and friends
+  return `${y}-${pad(mo)}-${pad(d)}T${pad(h)}:${pad(mi)}:${pad(s)}+07:00`;
+}
+
+const TIME_RE = /(\d{1,2})\s*[:.]\s*(\d{2})(?:\s*[:.]\s*(\d{2}))?|(?<!\d)([01]\d|2[0-3])([0-5]\d)(?!\d)/;
+
+/** HH:MM(:SS) from text, also "1756" when OCR drops the colon. */
+function findTime(text: string): [number, number, number] | null {
+  const m = TIME_RE.exec(text);
+  if (!m) return null;
+  return m[1] !== undefined ? [Number(m[1]), Number(m[2]), Number(m[3] ?? 0)] : [Number(m[4]), Number(m[5]), 0];
+}
+
+/**
+ * Finds a date and time in free text. Handles "4 พ.ย. 69 12:34 น.", "04 พ.ย. 2569 - 12:34",
+ * "04 Nov 26, 12:34", "04/11/2569 12:34:56" and "2026-11-04 12:34".
  */
 export function parseThaiDateTime(text: string, now = new Date()): string | null {
-  const t = arabicDigits(text).replace(/,/g, " ").replace(/\s+/g, " ").trim();
-  const time = t.match(/(\d{1,2})[:.](\d{2})(?:[:.](\d{2}))?(?!\d)/);
-  if (!time) return null;
-  const [h, mi, s] = [Number(time[1]), Number(time[2]), Number(time[3] ?? 0)];
-  if (h > 23 || mi > 59 || s > 59) return null;
-  const datePart = t.replace(time[0], " ");
+  const t = text.replace(/\s+/g, " ");
 
-  let day: number, month: number, year: number;
-  const numeric = datePart.match(/(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})/);
-  if (numeric) {
-    [day, month, year] = [Number(numeric[1]), Number(numeric[2]), Number(numeric[3])];
-  } else {
-    const named = datePart.match(/(\d{1,2})\s*([^\d\s]+(?:\s?[^\d\s]+)?)\s*(\d{2,4})/);
-    if (!named) return null;
-    const word = named[2].replace(/\s/g, "");
-    const found = MONTHS.find(([re]) => re.test(word));
-    if (!found) return null;
-    [day, month, year] = [Number(named[1]), found[1], Number(named[3])];
+  // Day, month name, year.
+  const named = /(\d{1,2})\s*([ก-๙a-zA-Z.]{2,12}?)\.?\s*(\d{2}|\d{4})(?!\d)/g;
+  for (const m of t.matchAll(named)) {
+    const month = monthFromName(m[2]);
+    if (!month) continue;
+    const year = resolveYear(Number(m[3]), now);
+    if (!year) continue;
+    const time = findTime(t.slice((m.index ?? 0) + m[0].length));
+    if (!time) continue;
+    const iso = toBangkokIso(year, month, Number(m[1]), ...time);
+    if (iso) return iso;
   }
-  year = gregorianYear(year, now);
-  if (month < 1 || month > 12 || day < 1 || day > daysIn(year, month)) return null;
 
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${year}-${p(month)}-${p(day)}T${p(h)}:${p(mi)}:${p(s)}+07:00`;
+  // ISO-ish year first.
+  const ymd = /(\d{4})-(\d{1,2})-(\d{1,2})[ T,]+(\d{1,2}):(\d{2})(?::(\d{2}))?/.exec(t);
+  if (ymd) {
+    const year = resolveYear(Number(ymd[1]), now);
+    if (year) {
+      const iso = toBangkokIso(year, Number(ymd[2]), Number(ymd[3]), Number(ymd[4]), Number(ymd[5]), Number(ymd[6] ?? 0));
+      if (iso) return iso;
+    }
+  }
+
+  // Numeric day/month/year.
+  const dmy = /(\d{1,2})[/.-](\d{1,2})[/.-](\d{2}|\d{4})(?!\d)/.exec(t);
+  if (dmy) {
+    const year = resolveYear(Number(dmy[3]), now);
+    const time = findTime(t.slice((dmy.index ?? 0) + dmy[0].length));
+    if (year && time) {
+      const iso = toBangkokIso(year, Number(dmy[2]), Number(dmy[1]), ...time);
+      if (iso) return iso;
+    }
+  }
+  return null;
 }
 
-function daysIn(year: number, month: number) {
-  return new Date(Date.UTC(year, month, 0)).getUTCDate();
+/** "1,234.50 บาท" → 1234.5. Requires exactly two decimals, the way every slip prints amounts. */
+export function parseAmount(text: string): number | null {
+  const m = /(\d{1,3}(?:[,\s]\d{3})+|\d+)\.(\d{2})(?!\d)/.exec(text);
+  if (!m) return null;
+  const value = Number(m[1].replace(/[,\s]/g, "") + "." + m[2]);
+  return Number.isFinite(value) ? Math.round(value * 100) / 100 : null;
 }
-
-const TITLES = [
-  "นางสาว",
-  "น\\.ส\\.",
-  "นาย",
-  "นาง",
-  "ด\\.ช\\.",
-  "ด\\.ญ\\.",
-  "คุณ",
-  "mrs\\.?",
-  "mr\\.?",
-  "ms\\.?",
-  "miss",
-];
-const TITLE_RE = new RegExp(`^(${TITLES.join("|")})\\s*`, "i");
 
 /**
- * A comparable form of a name printed on a slip or typed by a user: titles
- * removed, case and spacing folded, masked parts ("xxx", "***") dropped.
- * "นาย ณวัฒน์ ว." -> "ณวัฒน์ ว", "MR. NAWAT W" -> "nawat w".
+ * Last 4 visible digits of a masked account or phone number ("xxx-x-x1234-x" → "1234",
+ * "XXX-XXX-5678" → "5678"). Returns null when fewer than 4 digits are visible, so we
+ * never invent digits. Anything longer is cut to 4: we only ever keep the tail.
+ */
+export function accountLast4(masked: string): string | null {
+  const digits = masked.replace(/[^0-9]/g, "");
+  return digits.length >= 4 ? digits.slice(-4) : null;
+}
+
+/** Text that looks like a masked account or phone number. */
+export const MASKED_ACCOUNT_RE = /[xX*•#\d]{1,4}(?:[-\s][xX*•#\d]{1,7}){1,4}/;
+
+const TITLE_RE =
+  /^(นางสาว|น\.ส\.?|นาง|นาย|ด\.ช\.?|ด\.ญ\.?|เด็กชาย|เด็กหญิง|คุณ|mrs\.?|mr\.?|ms\.?|miss|dr\.?)\s*/i;
+
+/**
+ * Canonical form of a person's or shop's name for matching across slips: no title
+ * (นาย/นาง/น.ส./MR/MS…), no trailing initials ("สมชาย ใ." / "SOMCHAI J"), single spaces,
+ * Latin lowercased. Shared with HarnKan so both apps match names the same way.
  */
 export function normalizeThaiName(name: string): string {
-  return name
-    .normalize("NFC")
-    .replace(/[*xX]{2,}/g, " ")
-    .trim()
-    .replace(TITLE_RE, "")
-    .replace(/[.,]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
-}
-
-/**
- * How well a slip name matches a known name, 0..1. Slips usually show the
- * first name in full and the surname cut to an initial, so a first name match
- * plus a consistent initial counts as a strong match.
- */
-export function nameMatchScore(slipName: string, known: string): number {
-  const a = normalizeThaiName(slipName).split(" ").filter(Boolean);
-  const b = normalizeThaiName(known).split(" ").filter(Boolean);
-  if (!a.length || !b.length) return 0;
-  if (a.join(" ") === b.join(" ")) return 1;
-  if (a[0] !== b[0]) {
-    // A cut-off first name ("ณวัฒ") still says something.
-    const [short, long] = a[0].length < b[0].length ? [a[0], b[0]] : [b[0], a[0]];
-    return short.length >= 3 && long.startsWith(short) ? 0.5 : 0;
+  let n = name.normalize("NFC").replace(/\s+/g, " ").trim();
+  for (let i = 0; i < 2; i++) n = n.replace(TITLE_RE, "");
+  const parts = n.split(" ").filter(Boolean);
+  while (parts.length > 1) {
+    const last = parts[parts.length - 1];
+    const isInitial =
+      last.endsWith(".") ||
+      /^[a-zA-Z]$/.test(last) ||
+      (/[ก-๙]/.test(last) && [...last].length <= 2) ||
+      /^[xX*]+$/.test(last);
+    if (!isInitial) break;
+    parts.pop();
   }
-  const [sa, sb] = [a[1], b[1]];
-  if (!sa || !sb) return 0.8;
-  if (sa.startsWith(sb) || sb.startsWith(sa)) return 0.95;
-  return 0.6;
-}
-
-/** Keeps only the last 4 digits of whatever account text the model returned. */
-export function last4(text: string | null | undefined): string | null {
-  if (!text) return null;
-  const digits = arabicDigits(text).replace(/\D/g, "");
-  return digits.length >= 4 ? digits.slice(-4) : null;
+  return parts.join(" ").toLowerCase();
 }

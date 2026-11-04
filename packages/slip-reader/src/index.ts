@@ -1,40 +1,55 @@
-import { GeminiVision } from "./gemini";
-import { readSlipWith, SlipReadError, type ModelSlip, type VisionModel } from "./read";
-import type { SlipReadResult } from "./types";
+// @harnkan/slip-reader: Thai transfer slip image in, validated JSON with per-field
+// confidence out. Gemini when a key is available, local Thai OCR + rules otherwise.
+//
+// The Gemini path uses only web APIs. Node-only pieces (tesseract, sharp, jsQR) are
+// imported lazily, so bundling this for an edge route only fails if you ask for OCR or QR.
 
-export * from "./types";
-export * from "./normalize";
-export { finalize, readSlipWith, ModelSlipSchema, SlipReadError, REVIEW_THRESHOLD, type ModelSlip, type VisionModel } from "./read";
-export { GeminiVision } from "./gemini";
+import { readWithGemini, SlipReaderError } from "./gemini.ts";
+import { parseSlipText } from "./parse.ts";
+import type { ReadSlipOptions, RawSlip, SlipReadResult } from "./types.ts";
+import { finalize } from "./validate.ts";
 
-/** Returns a fixed model answer; for tests and for running the app without an API key. */
-export class FakeVision implements VisionModel {
-  readonly source = "fake" as const;
-  constructor(private answer: ModelSlip | ((image: Uint8Array) => ModelSlip)) {}
-  async read(image: Uint8Array) {
-    return { slip: typeof this.answer === "function" ? this.answer(image) : this.answer };
+export * from "./types.ts";
+export { BANK_NAMES_TH, detectBank } from "./banks.ts";
+export { accountLast4, normalizeThaiName, parseAmount, parseThaiDateTime } from "./normalize.ts";
+export { parseSlipQr } from "./qr-payload.ts";
+export { parseSlipText, type OcrLine } from "./parse.ts";
+export { DEFAULT_GEMINI_MODEL, SlipReaderError, fromGemini } from "./gemini.ts";
+export { REVIEW_THRESHOLD, finalize } from "./validate.ts";
+
+function envKey(): string | undefined {
+  return typeof process !== "undefined" ? process.env.GEMINI_API_KEY || undefined : undefined;
+}
+
+async function tryDecodeQr(image: Uint8Array): Promise<string | null> {
+  try {
+    const { decodeQr } = await import("./node/image.ts");
+    return await decodeQr(image);
+  } catch {
+    return null;
   }
 }
 
-export const ACCEPTED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"];
-export const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
-
-/**
- * Reads one slip image. The image is only held in memory for the duration of
- * the call and is never written anywhere by this package.
- */
 export async function readSlip(
   image: Uint8Array,
   mimeType: string,
-  opts: { provider?: "auto" | "gemini"; apiKey?: string; model?: string; vision?: VisionModel } = {},
+  opts: ReadSlipOptions = {},
 ): Promise<SlipReadResult> {
-  if (!ACCEPTED_MIME_TYPES.includes(mimeType)) throw new SlipReadError(`Unsupported image type ${mimeType}`);
-  if (image.byteLength > MAX_IMAGE_BYTES) throw new SlipReadError("Image is too large");
-  let vision = opts.vision;
-  if (!vision) {
-    const key = opts.apiKey ?? globalThis.process?.env?.GEMINI_API_KEY;
-    if (!key) throw new SlipReadError("No vision provider configured (set GEMINI_API_KEY)");
-    vision = new GeminiVision(key, opts.model ?? globalThis.process?.env?.GEMINI_MODEL ?? undefined);
+  const started = Date.now();
+  const now = opts.now ?? new Date();
+  const apiKey = opts.apiKey ?? envKey();
+  const provider = opts.provider ?? "auto";
+  const useGemini = provider === "gemini" || (provider === "auto" && !!apiKey);
+
+  let raw: RawSlip;
+  if (useGemini) {
+    if (!apiKey) throw new SlipReaderError("GEMINI_API_KEY is not set");
+    const qrPayload = opts.decodeQr ? await tryDecodeQr(image) : null;
+    raw = await readWithGemini(image, mimeType, { apiKey, model: opts.model, now, qrPayload });
+  } else {
+    const { ocrLines } = await import("./node/ocr.ts");
+    const qrPayload = opts.decodeQr === false ? null : await tryDecodeQr(image);
+    raw = parseSlipText(await ocrLines(image), { now, qrPayload });
   }
-  return readSlipWith(vision, image, mimeType);
+  return { ...finalize(raw, now), elapsedMs: Date.now() - started };
 }

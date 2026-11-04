@@ -1,4 +1,4 @@
-import { FakeVision, readSlip, SlipReadError, type ModelSlip, type SlipReadResult } from "@harnkan/slip-reader";
+import { finalize, fromGemini, readSlip, SlipReaderError, type SlipReadResult } from "@harnkan/slip-reader";
 import { randomUUID } from "node:crypto";
 import { matchSlip, type SlipMatch } from "@/lib/core/slip-match";
 import { balances, settle } from "@/lib/core/settle";
@@ -49,17 +49,17 @@ export async function POST(req: Request) {
   // You can upload your own slip, or one for a friend who has not joined yet.
   if (!from || !me || (from.id !== me.id && from.user_id !== null)) return json({ error: "not_allowed" }, 403);
 
-  const vision = fakeVision();
-  if (!vision && !process.env.GEMINI_API_KEY) return json({ error: "not_configured" }, 503);
+  if (process.env.SLIP_READER === "off") return json({ error: "not_configured" }, 503);
   const limit = await sb.rpc("note_slip_read", {});
   if (limit.error) return json({ error: /rate_limited/.test(limit.error.message) ? "rate_limited" : "error" }, 429);
 
   let slip: SlipReadResult;
   try {
     const image = new Uint8Array(await file.arrayBuffer());
-    slip = await readSlip(image, normalizeMime(file.type), vision ? { vision } : {});
+    // Gemini when GEMINI_API_KEY is set, otherwise local Thai OCR.
+    slip = fakeReaderEnabled() ? fakeRead(image) : await readSlip(image, normalizeMime(file.type));
   } catch (e) {
-    console.error("slip read failed", e instanceof SlipReadError ? e.message : e);
+    console.error("slip read failed", e instanceof SlipReaderError ? e.message : e);
     return json({ error: "read_failed" }, 502);
   }
 
@@ -133,11 +133,15 @@ function normalizeMime(type: string) {
 }
 
 /**
- * For end-to-end tests and demos without an API key: with SLIP_READER=fake
- * (never in production) the uploaded file's bytes are treated as the model's
- * JSON answer.
+ * For end-to-end tests: with SLIP_READER=fake (never in production) the
+ * uploaded file's bytes are taken as the vision model's JSON answer.
  */
-function fakeVision() {
-  if (process.env.SLIP_READER !== "fake" || process.env.NODE_ENV === "production") return null;
-  return new FakeVision((image) => JSON.parse(new TextDecoder().decode(image)) as ModelSlip);
+function fakeReaderEnabled() {
+  return process.env.SLIP_READER === "fake" && process.env.NODE_ENV !== "production";
+}
+
+function fakeRead(image: Uint8Array): SlipReadResult {
+  const now = new Date();
+  const raw = fromGemini(JSON.parse(new TextDecoder().decode(image)), now);
+  return finalize({ ...raw, source: "fake" }, now);
 }

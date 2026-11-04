@@ -59,9 +59,9 @@ export function TripView({ tripId }: { tripId: string }) {
         <div className="mx-auto grid max-w-lg grid-cols-3">
           {(
             [
-              ["expenses", "รายจ่าย", "🧾"],
-              ["settle", "สรุปยอด", "💸"],
-              ["members", "สมาชิก", "👥"],
+              ["expenses", "รายจ่าย", ICONS.expenses],
+              ["settle", "สรุปยอด", ICONS.settle],
+              ["members", "สมาชิก", ICONS.members],
             ] as const
           ).map(([key, label, icon]) => (
             <button
@@ -70,9 +70,9 @@ export function TripView({ tripId }: { tripId: string }) {
               aria-current={tab === key ? "page" : undefined}
               className={`relative flex flex-col items-center gap-0.5 py-2.5 text-xs font-medium ${tab === key ? "text-brand" : "text-muted"}`}
             >
-              <span className="text-xl leading-none" aria-hidden>
+              <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                 {icon}
-              </span>
+              </svg>
               {label}
               {key === "settle" && badge > 0 && (
                 <span className="absolute right-[calc(50%-1.6rem)] top-1.5 min-w-5 rounded-full bg-owe px-1 text-[11px] leading-5 text-white">
@@ -88,6 +88,31 @@ export function TripView({ tripId }: { tripId: string }) {
     </div>
   );
 }
+
+const ICONS = {
+  // receipt
+  expenses: (
+    <>
+      <path d="M6 3h12v18l-3-2-3 2-3-2-3 2z" />
+      <path d="M9 8h6M9 12h6M9 16h3" />
+    </>
+  ),
+  // two arrows swapping
+  settle: (
+    <>
+      <path d="M4 8h13l-3-3M20 16H7l3 3" />
+    </>
+  ),
+  // two people
+  members: (
+    <>
+      <circle cx="9" cy="8" r="3" />
+      <path d="M3.5 19a5.5 5.5 0 0 1 11 0" />
+      <circle cx="17" cy="9" r="2.5" />
+      <path d="M15.5 14.2A4.5 4.5 0 0 1 21 18.5" />
+    </>
+  ),
+};
 
 function SyncPill({ state }: { state: TripState }) {
   if (!state.online)

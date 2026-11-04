@@ -98,7 +98,7 @@ npx supabase link --project-ref <ref>
 npx supabase db push --remote                                    # schema, RLS, functions
 npx supabase config push --workdir deploy --remote=<ref>         # anonymous sign-in, site URL (deploy/supabase/config.toml)
 npx vercel env add NEXT_PUBLIC_SUPABASE_URL production           # and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-npx vercel deploy --prod
+npx vercel deploy --prod                                         # or just push to main: Vercel deploys it
 E2E_BASE_URL=https://harnkan-ten.vercel.app npx playwright test live   # smoke test on the live site
 ```
 

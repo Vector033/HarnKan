@@ -55,8 +55,7 @@ SlipJot (`C:\Users\User\Desktop\SlipJot`) ก็ต้องอ่านสล�
 - Deploy: Vercel
 
 ## สิ่งที่ต้องรู้ก่อนเริ่ม (อัปเดต 2026-11-04)
-- Node 26 อยู่ที่ `C:\Program Files
-odejs`, Supabase local ใช้พอร์ต 544xx (`npm run db:start`) แยกจาก FactFit (543xx)
+- Node 26 อยู่ที่ `C:\Program Files\nodejs`, Supabase local ใช้พอร์ต 544xx (`npm run db:start`) แยกจาก FactFit (543xx)
 - cookie session ชื่อ `sb-harnkan-auth` (ถ้าใช้ชื่อเดียวกับแอปอื่นบน localhost จะได้ session ผิดตัว)
 - dev server ในแอป preview ชื่อ `harnkan-dev` (port 3002) อยู่ใน `Desktop\.claude\launch.json`
 - `packages/slip-reader` คัดลอกมาจาก SlipJot (commit 8d6b93c) ถ้าแก้ contract ต้องแจ้ง SlipJot ด้วย

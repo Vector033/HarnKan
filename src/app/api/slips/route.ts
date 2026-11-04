@@ -13,6 +13,10 @@ export interface SlipResponse {
 }
 
 const MAX_BYTES = 6 * 1024 * 1024;
+const READ_TIMEOUT_MS = 50_000;
+
+// Local OCR on a cold start downloads language data first; leave it room.
+export const maxDuration = 60;
 
 /**
  * Reads a transfer slip and, when it clearly pays one of the uploader's
@@ -57,7 +61,9 @@ export async function POST(req: Request) {
   try {
     const image = new Uint8Array(await file.arrayBuffer());
     // Gemini when GEMINI_API_KEY is set, otherwise local Thai OCR.
-    slip = fakeReaderEnabled() ? fakeRead(image) : await readSlip(image, normalizeMime(file.type));
+    slip = fakeReaderEnabled()
+      ? fakeRead(image)
+      : await withTimeout(readSlip(image, normalizeMime(file.type)), READ_TIMEOUT_MS);
   } catch (e) {
     console.error("slip read failed", e instanceof SlipReaderError ? e.message : e);
     return json({ error: "read_failed" }, 502);
@@ -126,6 +132,14 @@ export async function POST(req: Request) {
 
 function json(body: unknown, status: number) {
   return Response.json(body, { status, headers: { "cache-control": "no-store" } });
+}
+
+/** A stuck OCR worker must not hold the request open until the platform kills it. */
+function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new SlipReaderError(`slip read took over ${ms} ms`)), ms);
+    p.then(resolve, reject).finally(() => clearTimeout(t));
+  });
 }
 
 function normalizeMime(type: string) {

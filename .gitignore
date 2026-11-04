@@ -52,3 +52,7 @@ supabase/.branches/
 
 # local editor/agent config
 .claude/
+
+.vercel
+.env*
+deploy/supabase/.temp/

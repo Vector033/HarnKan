@@ -4,6 +4,8 @@ import { defineConfig, devices } from "@playwright/test";
 // worker only registers in production builds, so the offline reload test needs it.
 const PROD = !!process.env.E2E_PROD;
 const PORT = Number(process.env.E2E_PORT ?? (PROD ? 3006 : 3005));
+// E2E_BASE_URL points the smoke test (e2e/live.spec.ts) at a deployed site; no local server then.
+const LIVE = process.env.E2E_BASE_URL;
 
 // Needs the local Supabase stack running (npm run db:start).
 export default defineConfig({
@@ -14,8 +16,8 @@ export default defineConfig({
   workers: 1,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? "github" : "list",
-  use: { baseURL: `http://localhost:${PORT}`, ...devices["Pixel 7"], locale: "th-TH", timezoneId: "Asia/Bangkok" },
-  webServer: {
+  use: { baseURL: LIVE ?? `http://localhost:${PORT}`, ...devices["Pixel 7"], locale: "th-TH", timezoneId: "Asia/Bangkok" },
+  webServer: LIVE ? undefined : {
     command: PROD ? `npx next start -p ${PORT}` : `npx next dev -p ${PORT}`,
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,

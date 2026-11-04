@@ -1,6 +1,6 @@
 # HarnKan (หารกัน): หารค่าทริปแบบ realtime ถ่ายสลิปแล้วติ๊ก "จ่ายแล้ว" ให้อัตโนมัติ
 
-> สถานะ: **MVP ครบ 1–7 รันได้ในเครื่อง** (2026-11-04) · ยังไม่ deploy · ดูสิ่งที่เหลือใน README หัวข้อ Roadmap · ลำดับที่แนะนำ: **ตัวที่สาม**
+> สถานะ: **MVP ครบ 1–7, deploy แล้ว** ที่ https://harnkan-ten.vercel.app (2026-11-04) · Supabase project `harnkan` ref `ddyjypurrrzasbtfwncs` (Singapore, org "Vector033's Org") · ที่เหลือดู README หัวข้อ Roadmap
 
 ## เจ้าของโปรเจกต์
 Nawat Wattanawong นักศึกษาวิทยาการคอมพิวเตอร์ มช. ปี 3 เป้าหมายคือสาย **full-stack**
@@ -59,6 +59,7 @@ SlipJot (`C:\Users\User\Desktop\SlipJot`) ก็ต้องอ่านสล�
 - cookie session ชื่อ `sb-harnkan-auth` (ถ้าใช้ชื่อเดียวกับแอปอื่นบน localhost จะได้ session ผิดตัว)
 - dev server ในแอป preview ชื่อ `harnkan-dev` (port 3002) อยู่ใน `Desktop\.claude\launch.json`
 - `packages/slip-reader` คัดลอกมาจาก SlipJot (commit 8d6b93c) ถ้าแก้ contract ต้องแจ้ง SlipJot ด้วย
+- deploy: `npx vercel deploy --prod` (ยังไม่ได้เชื่อม Git ให้ deploy อัตโนมัติ), auth config ของ production อยู่ที่ `deploy/supabase/config.toml`, รหัส DB อยู่ใน `.env.local` (`SUPABASE_DB_PASSWORD`) เท่านั้น
 - e2e ใช้ `SLIP_READER=fake` (ไฟล์ที่อัปโหลดเป็น JSON คำตอบของโมเดล) ห้ามเปิดใน production
 
 ## Milestones (ประมาณ 5–6 สัปดาห์)

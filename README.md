@@ -1,5 +1,7 @@
 # หารกัน · HarnKan
 
+**Live:** https://harnkan-ten.vercel.app (open it on your phone; "Add to Home Screen" installs it)
+
 Split trip costs with friends in real time. Everyone in the group adds expenses from their own phone and sees each other's changes straight away. HarnKan then works out who pays whom using the **fewest possible transfers**. It makes a PromptPay QR with the amount already filled in, and reads the transfer slip to tick the debt as paid. The receiver confirms with one tap.
 
 Thai first: PromptPay QR (EMVCo) and Thai bank slip reading are the parts that overseas splitters like Splitwise don't have.
@@ -87,6 +89,21 @@ npm run dev
 
 Slip reading uses local OCR with no key. Add `GEMINI_API_KEY` to `.env.local` to use Gemini.
 
+## Deploy
+
+Vercel (region `sin1`) + hosted Supabase (Singapore), both close to Thai users.
+
+```bash
+npx supabase link --project-ref <ref>
+npx supabase db push --remote                                    # schema, RLS, functions
+npx supabase config push --workdir deploy --remote=<ref>         # anonymous sign-in, site URL (deploy/supabase/config.toml)
+npx vercel env add NEXT_PUBLIC_SUPABASE_URL production           # and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+npx vercel deploy --prod
+E2E_BASE_URL=https://harnkan-ten.vercel.app npx playwright test live   # smoke test on the live site
+```
+
+`next.config.ts` lists tesseract.js's worker files for output tracing. Without that, the OCR worker crashes on Vercel because it is started from a file path the tracer cannot follow.
+
 ## Tests
 
 | command | what |
@@ -96,12 +113,14 @@ Slip reading uses local OCR with no key. Add `GEMINI_API_KEY` to `.env.local` to
 | `npm run test:e2e` | Playwright with 2 browsers: live sync, concurrent edit → conflict dialog, offline add → sync, slip → auto-tick → receiver confirms |
 | `npm run build && E2E_PROD=1 npx playwright test pwa` | reload with no network still opens the trip and queues changes |
 | `npm run eval:match` | slip matching accuracy (above) |
+| `E2E_BASE_URL=… npx playwright test live` | smoke test on a deployed site: 2 phones, realtime, settlement, slip read by server-side OCR |
 
 CI runs all of these except the eval.
 
 ## Roadmap
 
-- [ ] Deploy (Vercel + hosted Supabase) and use it on a real trip
+- [x] Deploy (Vercel + hosted Supabase)
+- [ ] Use it on a real trip with friends
 - [ ] Eval with Gemini and on real, consented, redacted slips (kept outside git)
 - [ ] Move to another device (link an anonymous user to a new phone)
 - [ ] Presence ("Bam is editing this item")

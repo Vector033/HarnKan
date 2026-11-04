@@ -1,0 +1,14 @@
+# Production auth settings for the hosted project. Only the keys declared here
+# are pushed; everything else stays as set in the dashboard.
+#   npx supabase config push --workdir deploy --remote=<project ref>
+project_id = "harnkan"
+
+[auth]
+site_url = "https://harnkan-ten.vercel.app"
+additional_redirect_urls = ["https://harnkan-ten.vercel.app"]
+# Trip members never make an account: each browser is an anonymous user.
+enable_anonymous_sign_ins = true
+
+[auth.rate_limit]
+# Anonymous sign-ins per hour per IP. A whole trip on one café Wi-Fi fits easily.
+anonymous_users = 60

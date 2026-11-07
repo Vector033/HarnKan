@@ -129,11 +129,9 @@ function Stub({ label, serial, satang, tint }: { label: string; serial: string; 
     <div className="coupon flex" style={tint ? { background: tint } : undefined}>
       <span className="perf-y my-2.5 ml-2.5 border-ink/25" aria-hidden />
       <div className="min-w-0 flex-1 px-3 py-3">
-        <div className="flex items-start justify-between gap-1">
-          <span className="text-meta font-medium">{label}</span>
-          <span className="serial pt-0.5">{serial}</span>
-        </div>
-        <Baht satang={satang} className="mt-1 block text-title font-semibold leading-tight" />
+        <span className="block whitespace-nowrap text-meta font-medium">{label}</span>
+        <Baht satang={satang} className="mt-0.5 block text-title font-semibold leading-tight" />
+        <span className="serial mt-1 block whitespace-nowrap">{serial}</span>
       </div>
     </div>
   );

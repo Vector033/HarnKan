@@ -111,7 +111,7 @@ a {
     border-top: 2px dashed var(--color-perf);
   }
   .serial {
-    @apply text-[13px] font-semibold tracking-[0.06em] text-serial;
+    @apply whitespace-nowrap text-[13px] font-semibold tracking-[0.06em] text-serial;
     font-family: var(--font-num);
     font-variant-numeric: tabular-nums;
   }

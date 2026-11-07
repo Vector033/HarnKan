@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "หารค่าทริปกับเพื่อน สรุปยอดโอนน้อยที่สุด พร้อม QR พร้อมเพย์",
     start_url: "/",
     display: "standalone",
-    background_color: "#f6f4ef",
-    theme_color: "#12715b",
+    background_color: "#eef1ef",
+    theme_color: "#14302b",
     lang: "th",
     icons: [
       { src: "/icons/192", sizes: "192x192", type: "image/png" },

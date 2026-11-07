@@ -37,6 +37,14 @@ test("review captures", async ({ browser }) => {
   await a.getByRole("button", { name: /สรุปยอด/ }).click();
   await expect(a.getByTestId("claim")).toBeVisible();
   await a.screenshot({ path: ".impeccable/review/mobile-confirm.png", fullPage: true });
+  // History: one cancelled claim and one confirmed payment.
+  await b.getByRole("button", { name: "ยกเลิกการแจ้ง" }).click();
+  await expect(a.getByTestId("claim")).toHaveCount(0);
+  await b.getByRole("button", { name: "โอนแล้ว (ไม่มีสลิป)" }).click();
+  await a.getByTestId("confirm-payment").click();
+  await expect(a.getByText("ประวัติการโอน")).toBeVisible();
+  await expect(a.getByText("ยืนยันแล้ว")).toBeVisible();
+  await a.screenshot({ path: ".impeccable/review/mobile-history.png", fullPage: true });
   await a.getByRole("button", { name: /สมาชิก/ }).click();
   await a.screenshot({ path: ".impeccable/review/mobile-members.png", fullPage: true });
   await b.getByRole("button", { name: /รายจ่าย/ }).click();

@@ -1,0 +1,546 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-07T00:00:00Z",
+  "title": "Design System: หารกัน (HarnKan)",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "primary",
+        "displayName": "Coupon Ink",
+        "canonical": "oklch(28.5% 0.035 181)",
+        "tonalRamp": [
+          "oklch(15% 0.018 181)",
+          "oklch(26% 0.035 181)",
+          "oklch(37% 0.035 181)",
+          "oklch(48% 0.035 181)",
+          "oklch(60% 0.035 181)",
+          "oklch(72% 0.035 181)",
+          "oklch(84% 0.035 181)",
+          "oklch(95% 0.018 181)"
+        ]
+      },
+      "ink-2": {
+        "role": "primary",
+        "displayName": "Ink Press",
+        "canonical": "oklch(35.7% 0.045 180)",
+        "tonalRamp": [
+          "oklch(15% 0.022 180)",
+          "oklch(26% 0.045 180)",
+          "oklch(37% 0.045 180)",
+          "oklch(48% 0.045 180)",
+          "oklch(60% 0.045 180)",
+          "oklch(72% 0.045 180)",
+          "oklch(84% 0.045 180)",
+          "oklch(95% 0.022 180)"
+        ]
+      },
+      "serial": {
+        "role": "secondary",
+        "displayName": "Serial Red",
+        "canonical": "oklch(47.3% 0.162 29)",
+        "tonalRamp": [
+          "oklch(15% 0.081 29)",
+          "oklch(26% 0.162 29)",
+          "oklch(37% 0.162 29)",
+          "oklch(48% 0.162 29)",
+          "oklch(60% 0.162 29)",
+          "oklch(72% 0.162 29)",
+          "oklch(84% 0.162 29)",
+          "oklch(95% 0.081 29)"
+        ]
+      },
+      "t0": {
+        "role": "tertiary",
+        "displayName": "Rose Coupon",
+        "canonical": "oklch(88.6% 0.048 3)",
+        "tonalRamp": [
+          "oklch(15% 0.024 3)",
+          "oklch(26% 0.048 3)",
+          "oklch(37% 0.048 3)",
+          "oklch(48% 0.048 3)",
+          "oklch(60% 0.048 3)",
+          "oklch(72% 0.048 3)",
+          "oklch(84% 0.048 3)",
+          "oklch(95% 0.024 3)"
+        ]
+      },
+      "t1": {
+        "role": "tertiary",
+        "displayName": "Mint Coupon",
+        "canonical": "oklch(90.0% 0.045 164)",
+        "tonalRamp": [
+          "oklch(15% 0.022 164)",
+          "oklch(26% 0.045 164)",
+          "oklch(37% 0.045 164)",
+          "oklch(48% 0.045 164)",
+          "oklch(60% 0.045 164)",
+          "oklch(72% 0.045 164)",
+          "oklch(84% 0.045 164)",
+          "oklch(95% 0.022 164)"
+        ]
+      },
+      "t2": {
+        "role": "tertiary",
+        "displayName": "Sky Coupon",
+        "canonical": "oklch(88.5% 0.040 248)",
+        "tonalRamp": [
+          "oklch(15% 0.020 248)",
+          "oklch(26% 0.040 248)",
+          "oklch(37% 0.040 248)",
+          "oklch(48% 0.040 248)",
+          "oklch(60% 0.040 248)",
+          "oklch(72% 0.040 248)",
+          "oklch(84% 0.040 248)",
+          "oklch(95% 0.020 248)"
+        ]
+      },
+      "t3": {
+        "role": "tertiary",
+        "displayName": "Lemon Coupon",
+        "canonical": "oklch(90.8% 0.092 96)",
+        "tonalRamp": [
+          "oklch(15% 0.046 96)",
+          "oklch(26% 0.092 96)",
+          "oklch(37% 0.092 96)",
+          "oklch(48% 0.092 96)",
+          "oklch(60% 0.092 96)",
+          "oklch(72% 0.092 96)",
+          "oklch(84% 0.092 96)",
+          "oklch(95% 0.046 96)"
+        ]
+      },
+      "t4": {
+        "role": "tertiary",
+        "displayName": "Lilac Coupon",
+        "canonical": "oklch(87.2% 0.052 304)",
+        "tonalRamp": [
+          "oklch(15% 0.026 304)",
+          "oklch(26% 0.052 304)",
+          "oklch(37% 0.052 304)",
+          "oklch(48% 0.052 304)",
+          "oklch(60% 0.052 304)",
+          "oklch(72% 0.052 304)",
+          "oklch(84% 0.052 304)",
+          "oklch(95% 0.026 304)"
+        ]
+      },
+      "t5": {
+        "role": "tertiary",
+        "displayName": "Apricot Coupon",
+        "canonical": "oklch(88.9% 0.059 60)",
+        "tonalRamp": [
+          "oklch(15% 0.029 60)",
+          "oklch(26% 0.059 60)",
+          "oklch(37% 0.059 60)",
+          "oklch(48% 0.059 60)",
+          "oklch(60% 0.059 60)",
+          "oklch(72% 0.059 60)",
+          "oklch(84% 0.059 60)",
+          "oklch(95% 0.029 60)"
+        ]
+      },
+      "pp": {
+        "role": "tertiary",
+        "displayName": "PromptPay Navy",
+        "canonical": "oklch(37.1% 0.099 258)",
+        "tonalRamp": [
+          "oklch(15% 0.049 258)",
+          "oklch(26% 0.099 258)",
+          "oklch(37% 0.099 258)",
+          "oklch(48% 0.099 258)",
+          "oklch(60% 0.099 258)",
+          "oklch(72% 0.099 258)",
+          "oklch(84% 0.099 258)",
+          "oklch(95% 0.049 258)"
+        ]
+      },
+      "ground": {
+        "role": "neutral",
+        "displayName": "Cool Ground",
+        "canonical": "oklch(95.5% 0.004 157)",
+        "tonalRamp": [
+          "oklch(15% 0.002 157)",
+          "oklch(26% 0.004 157)",
+          "oklch(37% 0.004 157)",
+          "oklch(48% 0.004 157)",
+          "oklch(60% 0.004 157)",
+          "oklch(72% 0.004 157)",
+          "oklch(84% 0.004 157)",
+          "oklch(95% 0.002 157)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Coupon Paper",
+        "canonical": "oklch(100.0% 0.000 90)",
+        "tonalRamp": [
+          "oklch(15% 0.000 90)",
+          "oklch(26% 0.000 90)",
+          "oklch(37% 0.000 90)",
+          "oklch(48% 0.000 90)",
+          "oklch(60% 0.000 90)",
+          "oklch(72% 0.000 90)",
+          "oklch(84% 0.000 90)",
+          "oklch(95% 0.000 90)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted Ink",
+        "canonical": "oklch(47.9% 0.024 177)",
+        "tonalRamp": [
+          "oklch(15% 0.012 177)",
+          "oklch(26% 0.024 177)",
+          "oklch(37% 0.024 177)",
+          "oklch(48% 0.024 177)",
+          "oklch(60% 0.024 177)",
+          "oklch(72% 0.024 177)",
+          "oklch(84% 0.024 177)",
+          "oklch(95% 0.012 177)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Rule Line",
+        "canonical": "oklch(88.6% 0.011 168)",
+        "tonalRamp": [
+          "oklch(15% 0.006 168)",
+          "oklch(26% 0.011 168)",
+          "oklch(37% 0.011 168)",
+          "oklch(48% 0.011 168)",
+          "oklch(60% 0.011 168)",
+          "oklch(72% 0.011 168)",
+          "oklch(84% 0.011 168)",
+          "oklch(95% 0.006 168)"
+        ]
+      },
+      "perf": {
+        "role": "neutral",
+        "displayName": "Perforation Grey",
+        "canonical": "oklch(76.9% 0.019 170)",
+        "tonalRamp": [
+          "oklch(15% 0.009 170)",
+          "oklch(26% 0.019 170)",
+          "oklch(37% 0.019 170)",
+          "oklch(48% 0.019 170)",
+          "oklch(60% 0.019 170)",
+          "oklch(72% 0.019 170)",
+          "oklch(84% 0.019 170)",
+          "oklch(95% 0.009 170)"
+        ]
+      },
+      "owe": {
+        "role": "status",
+        "displayName": "Owe",
+        "canonical": "oklch(47.3% 0.162 29)",
+        "tonalRamp": [
+          "oklch(15% 0.081 29)",
+          "oklch(26% 0.162 29)",
+          "oklch(37% 0.162 29)",
+          "oklch(48% 0.162 29)",
+          "oklch(60% 0.162 29)",
+          "oklch(72% 0.162 29)",
+          "oklch(84% 0.162 29)",
+          "oklch(95% 0.081 29)"
+        ]
+      },
+      "owe-soft": {
+        "role": "status",
+        "displayName": "Owe Wash",
+        "canonical": "oklch(94.1% 0.023 27)",
+        "tonalRamp": [
+          "oklch(15% 0.012 27)",
+          "oklch(26% 0.023 27)",
+          "oklch(37% 0.023 27)",
+          "oklch(48% 0.023 27)",
+          "oklch(60% 0.023 27)",
+          "oklch(72% 0.023 27)",
+          "oklch(84% 0.023 27)",
+          "oklch(95% 0.012 27)"
+        ]
+      },
+      "ok": {
+        "role": "status",
+        "displayName": "OK",
+        "canonical": "oklch(47.2% 0.092 161)",
+        "tonalRamp": [
+          "oklch(15% 0.046 161)",
+          "oklch(26% 0.092 161)",
+          "oklch(37% 0.092 161)",
+          "oklch(48% 0.092 161)",
+          "oklch(60% 0.092 161)",
+          "oklch(72% 0.092 161)",
+          "oklch(84% 0.092 161)",
+          "oklch(95% 0.046 161)"
+        ]
+      },
+      "ok-soft": {
+        "role": "status",
+        "displayName": "OK Wash",
+        "canonical": "oklch(93.5% 0.024 163)",
+        "tonalRamp": [
+          "oklch(15% 0.012 163)",
+          "oklch(26% 0.024 163)",
+          "oklch(37% 0.024 163)",
+          "oklch(48% 0.024 163)",
+          "oklch(60% 0.024 163)",
+          "oklch(72% 0.024 163)",
+          "oklch(84% 0.024 163)",
+          "oklch(95% 0.012 163)"
+        ]
+      },
+      "wait": {
+        "role": "status",
+        "displayName": "Wait",
+        "canonical": "oklch(49.4% 0.109 67)",
+        "tonalRamp": [
+          "oklch(15% 0.055 67)",
+          "oklch(26% 0.109 67)",
+          "oklch(37% 0.109 67)",
+          "oklch(48% 0.109 67)",
+          "oklch(60% 0.109 67)",
+          "oklch(72% 0.109 67)",
+          "oklch(84% 0.109 67)",
+          "oklch(95% 0.055 67)"
+        ]
+      },
+      "wait-soft": {
+        "role": "status",
+        "displayName": "Wait Wash",
+        "canonical": "oklch(95.5% 0.035 85)",
+        "tonalRamp": [
+          "oklch(15% 0.018 85)",
+          "oklch(26% 0.035 85)",
+          "oklch(37% 0.035 85)",
+          "oklch(48% 0.035 85)",
+          "oklch(60% 0.035 85)",
+          "oklch(72% 0.035 85)",
+          "oklch(84% 0.035 85)",
+          "oklch(95% 0.018 85)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Home app name, the you-owe balance, the PromptPay amount (amounts in Kanit semibold)."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Trip name in the header band; stub and coupon amounts in Kanit semibold."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text, buttons, inputs, and bold section headings."
+      },
+      "meta": {
+        "displayName": "Meta",
+        "purpose": "Labels, hints, chips, tab labels, day-guide rows. The floor for readable text."
+      },
+      "amount": {
+        "displayName": "Coupon Numerals",
+        "purpose": "Every amount and count; size follows the step it sits in."
+      },
+      "serial": {
+        "displayName": "Serial",
+        "purpose": "Coupon and booklet numbers only, in serial red."
+      }
+    },
+    "shadows": [
+      {
+        "name": "floating-button",
+        "value": "0 6px 18px -6px rgb(20 48 43 / 0.55)",
+        "purpose": "Only the fixed add-expense button."
+      },
+      {
+        "name": "tile-edge",
+        "value": "inset 0 0 0 1.5px rgb(20 48 43 / 0.16)",
+        "purpose": "Inner hairline on member tiles."
+      },
+      {
+        "name": "sheet-backdrop",
+        "value": "rgb(20 48 43 / 0.45)",
+        "purpose": "Dialog backdrop behind sheets."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Easing for every entrance and the tear."
+      },
+      {
+        "name": "tear-stub",
+        "value": "280ms ease-out-expo; translate(24px, 10px) rotate(6deg), opacity 1 to 0",
+        "purpose": "Confirmed payment: the stub tears along its perforation. Reduced motion: 200ms linear fade, no travel."
+      },
+      {
+        "name": "sheet-up",
+        "value": "240ms ease-out-expo; translateY(24px) to none",
+        "purpose": "Sheet opening."
+      },
+      {
+        "name": "rise-in",
+        "value": "220ms ease-out-expo; translateY(6px), opacity 0.4 to 1",
+        "purpose": "A history coupon arriving."
+      },
+      {
+        "name": "control-transition",
+        "value": "150ms color transitions",
+        "purpose": "Button hover and press."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px",
+        "purpose": "Sheets become centred dialogs; the tab bar gains side borders."
+      },
+      {
+        "name": "column",
+        "value": "512px",
+        "purpose": "Maximum content width on every screen."
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The ink action: create trip, confirm received, save expense.",
+      "html": "<button class=\"ds-btn-primary\">ได้รับแล้ว</button>",
+      "css": ":host,:root{--color-ink:#14302b;--color-ink-2:#1f443d;--color-ground:#eef1ef;--color-paper:#fff;--color-muted:#4f625d;--color-line:#d3dcd8;--color-perf:#a9b8b2;--color-serial:#a3271f;--color-owe:#a3271f;--color-wait:#8a5300;--color-wait-soft:#fbefd6;--color-ok:#1d6b4a;--color-pp:#1b3f73;--color-t0:#f6cdd6;--color-t1:#c4e8d6;--radius-coupon:10px;--ease-out-expo:cubic-bezier(0.16,1,0.3,1)} .ds-btn-primary{font-family:Anuphan,system-ui,sans-serif;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 20px;border:0;border-radius:8px;background:var(--color-ink);color:#fff;font-size:16px;font-weight:600;cursor:pointer;transition:background-color 150ms}.ds-btn-primary:hover,.ds-btn-primary:active{background:var(--color-ink-2)}.ds-btn-primary:focus-visible{outline:2px solid var(--color-ink);outline-offset:2px}.ds-btn-primary:disabled{opacity:.45;cursor:not-allowed}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Paper button with a soft ink border for the second choice.",
+      "html": "<button class=\"ds-btn\">ยังไม่ได้รับ</button>",
+      "css": ":host,:root{--color-ink:#14302b;--color-ink-2:#1f443d;--color-ground:#eef1ef;--color-paper:#fff;--color-muted:#4f625d;--color-line:#d3dcd8;--color-perf:#a9b8b2;--color-serial:#a3271f;--color-owe:#a3271f;--color-wait:#8a5300;--color-wait-soft:#fbefd6;--color-ok:#1d6b4a;--color-pp:#1b3f73;--color-t0:#f6cdd6;--color-t1:#c4e8d6;--radius-coupon:10px;--ease-out-expo:cubic-bezier(0.16,1,0.3,1)} .ds-btn{font-family:Anuphan,system-ui,sans-serif;display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 16px;border:1px solid rgb(20 48 43 / .25);border-radius:8px;background:var(--color-paper);color:var(--color-ink);font-size:16px;font-weight:600;cursor:pointer;transition:border-color 150ms}.ds-btn:hover{border-color:rgb(20 48 43 / .5)}.ds-btn:active{background:var(--color-ground)}.ds-btn:focus-visible{outline:2px solid var(--color-ink);outline-offset:2px}"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Underlined text action for low-stakes or undo actions.",
+      "html": "<button class=\"ds-btn-quiet\">ยกเลิกการแจ้ง</button>",
+      "css": ":host,:root{--color-ink:#14302b;--color-ink-2:#1f443d;--color-ground:#eef1ef;--color-paper:#fff;--color-muted:#4f625d;--color-line:#d3dcd8;--color-perf:#a9b8b2;--color-serial:#a3271f;--color-owe:#a3271f;--color-wait:#8a5300;--color-wait-soft:#fbefd6;--color-ok:#1d6b4a;--color-pp:#1b3f73;--color-t0:#f6cdd6;--color-t1:#c4e8d6;--radius-coupon:10px;--ease-out-expo:cubic-bezier(0.16,1,0.3,1)} .ds-btn-quiet{font-family:Anuphan,system-ui,sans-serif;min-height:44px;padding:10px 12px;border:0;border-radius:8px;background:none;color:var(--color-ink);font-size:16px;font-weight:600;text-decoration:underline;text-decoration-color:rgb(20 48 43 / .3);text-underline-offset:4px;cursor:pointer}.ds-btn-quiet:hover{text-decoration-color:var(--color-ink)}.ds-btn-quiet:active{background:rgb(20 48 43 / .05)}.ds-btn-quiet:focus-visible{outline:2px solid var(--color-ink);outline-offset:2px}"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Destructive action in owe text on paper.",
+      "html": "<button class=\"ds-btn-danger\">ลบทริป</button>",
+      "css": ":host,:root{--color-ink:#14302b;--color-ink-2:#1f443d;--color-ground:#eef1ef;--color-paper:#fff;--color-muted:#4f625d;--color-line:#d3dcd8;--color-perf:#a9b8b2;--color-serial:#a3271f;--color-owe:#a3271f;--color-wait:#8a5300;--color-wait-soft:#fbefd6;--color-ok:#1d6b4a;--color-pp:#1b3f73;--color-t0:#f6cdd6;--color-t1:#c4e8d6;--radius-coupon:10px;--ease-out-expo:cubic-bezier(0.16,1,0.3,1)} .ds-btn-danger{font-family:Anuphan,system-ui,sans-serif;min-height:44px;padding:10px 16px;border:1px solid rgb(163 39 31 / .4);border-radius:8px;background:var(--color-paper);color:var(--color-owe);font-size:16px;font-weight:600;cursor:pointer}.ds-btn-danger:hover{border-color:var(--color-owe)}.ds-btn-danger:focus-visible{outline:2px solid var(--color-ink);outline-offset:2px}"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Labelled paper field with an ink focus ring.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-label\">ชื่อทริป</span><input class=\"ds-input\" placeholder=\"เช่น เชียงดาว ปีใหม่\"></label>",
+      "css": ":host,:root{--color-ink:#14302b;--color-ink-2:#1f443d;--color-ground:#eef1ef;--color-paper:#fff;--color-muted:#4f625d;--color-line:#d3dcd8;--color-perf:#a9b8b2;--color-serial:#a3271f;--color-owe:#a3271f;--color-wait:#8a5300;--color-wait-soft:#fbefd6;--color-ok:#1d6b4a;--color-pp:#1b3f73;--color-t0:#f6cdd6;--color-t1:#c4e8d6;--radius-coupon:10px;--ease-out-expo:cubic-bezier(0.16,1,0.3,1)} .ds-field{display:block;font-family:Anuphan,system-ui,sans-serif;}.ds-label{display:block;margin-bottom:6px;font-size:14px;font-weight:600;color:var(--color-ink)}.ds-input{font-family:Anuphan,system-ui,sans-serif;width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid var(--color-line);border-radius:8px;background:var(--color-paper);color:var(--color-ink);font-size:16px;outline:none}.ds-input::placeholder{color:#6b7c77}.ds-input:focus{border-color:var(--color-ink);box-shadow:0 0 0 2px rgb(20 48 43 / .15)}"
+    },
+    {
+      "name": "Pending Chip",
+      "kind": "chip",
+      "refersTo": "chip-pending",
+      "description": "Dashed wait chip for changes not yet on the server.",
+      "html": "<span class=\"ds-chip-pending\">รอส่ง</span>",
+      "css": ":host,:root{--color-ink:#14302b;--color-ink-2:#1f443d;--color-ground:#eef1ef;--color-paper:#fff;--color-muted:#4f625d;--color-line:#d3dcd8;--color-perf:#a9b8b2;--color-serial:#a3271f;--color-owe:#a3271f;--color-wait:#8a5300;--color-wait-soft:#fbefd6;--color-ok:#1d6b4a;--color-pp:#1b3f73;--color-t0:#f6cdd6;--color-t1:#c4e8d6;--radius-coupon:10px;--ease-out-expo:cubic-bezier(0.16,1,0.3,1)} .ds-chip-pending{font-family:Anuphan,system-ui,sans-serif;display:inline-flex;align-items:center;padding:2px 8px;border:1px dashed var(--color-wait);border-radius:6px;background:var(--color-wait-soft);color:var(--color-wait);font-size:14px;font-weight:600}"
+    },
+    {
+      "name": "Coupon Stub",
+      "kind": "card",
+      "refersTo": "coupon",
+      "description": "Signature coupon: body with names and serial, perforated stub with the amount; the stub tears off when a payment is confirmed (previewed on hover/focus).",
+      "html": "<div class=\"ds-coupon\" tabindex=\"0\"><div class=\"ds-coupon-body\"><span class=\"ds-coupon-label\">คุณ → มิ้นต์</span><span class=\"ds-serial\">No. 2116-61</span></div><div class=\"ds-coupon-stub\">1,800<small>฿</small></div></div>",
+      "css": ":host,:root{--color-ink:#14302b;--color-ink-2:#1f443d;--color-ground:#eef1ef;--color-paper:#fff;--color-muted:#4f625d;--color-line:#d3dcd8;--color-perf:#a9b8b2;--color-serial:#a3271f;--color-owe:#a3271f;--color-wait:#8a5300;--color-wait-soft:#fbefd6;--color-ok:#1d6b4a;--color-pp:#1b3f73;--color-t0:#f6cdd6;--color-t1:#c4e8d6;--radius-coupon:10px;--ease-out-expo:cubic-bezier(0.16,1,0.3,1)} .ds-coupon{font-family:Anuphan,system-ui,sans-serif;display:flex;align-items:stretch;overflow:hidden;border-radius:var(--radius-coupon);background:var(--color-t0);color:var(--color-ink);max-width:340px}.ds-coupon-body{flex:1;padding:12px 14px}.ds-coupon-label{display:block;font-size:16px;font-weight:600}.ds-serial{display:block;margin-top:4px;font-family:Kanit,Anuphan,system-ui,sans-serif;font-variant-numeric:tabular-nums;font-size:13px;font-weight:600;letter-spacing:.06em;color:var(--color-serial)}.ds-coupon-stub{display:flex;align-items:center;justify-content:flex-end;min-width:88px;padding:0 14px;border-left:2px dashed rgb(20 48 43 / .3);font-family:Kanit,Anuphan,system-ui,sans-serif;font-variant-numeric:tabular-nums;font-size:22px;font-weight:600;transform-origin:left top;transition:transform 280ms var(--ease-out-expo),opacity 280ms var(--ease-out-expo)}.ds-coupon-stub small{margin-left:4px;font-size:.72em;font-weight:500}.ds-coupon:hover .ds-coupon-stub,.ds-coupon:focus-visible .ds-coupon-stub{transform:translate(24px,10px) rotate(6deg);opacity:0}.ds-coupon:focus-visible{outline:2px solid var(--color-ink);outline-offset:2px}@media (prefers-reduced-motion:reduce){.ds-coupon-stub{transform:none!important;transition:opacity 200ms linear}}"
+    },
+    {
+      "name": "Trip Header and Tab Bar",
+      "kind": "nav",
+      "refersTo": "header-band",
+      "description": "Ink header band with trip name and live chip; paper three-tab bar with an ink bar on the active tab.",
+      "html": "<div class=\"ds-nav\"><header class=\"ds-band\"><div><div class=\"ds-band-title\">เชียงดาว ปีใหม่</div><div class=\"ds-band-meta\">2 คน</div></div><span class=\"ds-live\"><i></i>สด</span></header><nav class=\"ds-tabs\"><button>รายจ่าย</button><button aria-current=\"page\">สรุปยอด</button><button>สมาชิก</button></nav></div>",
+      "css": ":host,:root{--color-ink:#14302b;--color-ink-2:#1f443d;--color-ground:#eef1ef;--color-paper:#fff;--color-muted:#4f625d;--color-line:#d3dcd8;--color-perf:#a9b8b2;--color-serial:#a3271f;--color-owe:#a3271f;--color-wait:#8a5300;--color-wait-soft:#fbefd6;--color-ok:#1d6b4a;--color-pp:#1b3f73;--color-t0:#f6cdd6;--color-t1:#c4e8d6;--radius-coupon:10px;--ease-out-expo:cubic-bezier(0.16,1,0.3,1)} .ds-nav{font-family:Anuphan,system-ui,sans-serif;max-width:360px;background:var(--color-ground)}.ds-band{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 16px;background:var(--color-ink);color:#fff}.ds-band-title{font-size:22px;font-weight:700;line-height:1.25}.ds-band-meta{font-size:14px;color:#b9d0c9}.ds-live{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:6px;background:var(--color-t1);color:var(--color-ink);font-size:14px;font-weight:600}.ds-live i{width:6px;height:6px;border-radius:50%;background:var(--color-ok)}.ds-tabs{display:grid;grid-template-columns:repeat(3,1fr);margin-top:48px;border-top:1px solid var(--color-line);background:var(--color-paper)}.ds-tabs button{font-family:Anuphan,system-ui,sans-serif;position:relative;min-height:64px;border:0;background:none;color:var(--color-muted);font-size:14px;font-weight:600;cursor:pointer}.ds-tabs button:hover,.ds-tabs button[aria-current]{color:var(--color-ink)}.ds-tabs button[aria-current]::before{content:'';position:absolute;left:24px;right:24px;top:0;height:3px;border-radius:0 0 4px 4px;background:var(--color-ink)}.ds-tabs button:focus-visible{outline:2px solid var(--color-ink);outline-offset:2px}"
+    },
+    {
+      "name": "PromptPay Panel",
+      "kind": "custom",
+      "refersTo": "promptpay-panel",
+      "description": "QR panel in PromptPay's own navy, amount in display Kanit.",
+      "html": "<div class=\"ds-pp\"><div class=\"ds-pp-name\">PromptPay · พร้อมเพย์</div><div class=\"ds-pp-qr\"></div><div class=\"ds-pp-amt\">1,800.00 ฿</div><div class=\"ds-pp-to\">มิ้นต์ · 081-xxx-5678</div></div>",
+      "css": ":host,:root{--color-ink:#14302b;--color-ink-2:#1f443d;--color-ground:#eef1ef;--color-paper:#fff;--color-muted:#4f625d;--color-line:#d3dcd8;--color-perf:#a9b8b2;--color-serial:#a3271f;--color-owe:#a3271f;--color-wait:#8a5300;--color-wait-soft:#fbefd6;--color-ok:#1d6b4a;--color-pp:#1b3f73;--color-t0:#f6cdd6;--color-t1:#c4e8d6;--radius-coupon:10px;--ease-out-expo:cubic-bezier(0.16,1,0.3,1)} .ds-pp{font-family:Anuphan,system-ui,sans-serif;max-width:300px;padding:14px 16px 20px;border-radius:var(--radius-coupon);background:var(--color-pp);color:#fff;text-align:center}.ds-pp-name{font-size:14px;font-weight:600}.ds-pp-qr{width:160px;aspect-ratio:1;margin:12px auto 0;border:8px solid #fff;border-radius:8px;background:#fff repeating-conic-gradient(#14302b 0 25%,#fff 0 50%) 0 0/16px 16px}.ds-pp-amt{margin-top:16px;font-family:Kanit,Anuphan,system-ui,sans-serif;font-variant-numeric:tabular-nums;font-size:34px;font-weight:600;line-height:1}.ds-pp-to{margin-top:8px;font-size:16px;color:#d6e2f3}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Food-Court Coupon Booklet",
+    "overview": "Every amount owed is a numbered coupon torn from the trip's own booklet. The world is the coupon stock of a Thai food court: white paper slips on a cool pale ground, a deep ink green-black for the shell and all text, one pastel coupon tint per member, and small red serial numbers printed in a corner. Perforations are dashed lines, and a payment that is confirmed tears off along its perforation.\n\nThe density is phone-first and single column, at most 512px wide, built for one hand and mixed-age eyes. Rank comes from weight before size: a four-step type scale, with section headings at body size in bold rather than in a larger size. State is carried by line form instead of colour: dashed means pending, solid means settled, struck through means the money did not move.\n\nThe world rejects the fintech dashboard (white cards, a green accent, charts) and the green/red money ledger. Balances are ink amounts with words (\"คุณต้องโอนรวม\", \"เพื่อนต้องโอนให้คุณรวม\"), never a sign colour.",
+    "keyCharacteristics": [
+      "Ink green-black shell and text on a cool pale ground; white coupons on top.",
+      "One coupon tint per member, by join order, reused for their tile, their payer chip and coupons they are owed.",
+      "Red only for serial numbers (and, through the owe tokens, error and destructive text).",
+      "Amounts and serials in Kanit with tabular figures; every other word in Anuphan.",
+      "Dashed perforations as both decoration and state.",
+      "Small coupon corners (10px); no pills."
+    ],
+    "rules": [
+      {
+        "name": "The Serial Red Rule",
+        "body": "Red is for serial numbers. Errors and destructive actions use the owe tokens. No other surface, icon or amount is red.",
+        "section": "colors"
+      },
+      {
+        "name": "The No Ledger Rule",
+        "body": "Balances are ink amounts with words that say which way the money goes. Never use green for money in and red for money out.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Tint Per Member Rule",
+        "body": "A member keeps the same tint everywhere for the whole trip, assigned by join order. Tints mark people, not states.",
+        "section": "colors"
+      },
+      {
+        "name": "The Four Steps Rule",
+        "body": "The scale has four steps: meta 14, body 16, title 22, display 34. Rank comes from weight first, then size. Nothing readable is below 14px; the 13px serial is the only exception, and it is a mark, not a sentence.",
+        "section": "typography"
+      },
+      {
+        "name": "The Coupon Numerals Rule",
+        "body": "Every amount, serial and count is set in Kanit with tabular figures. Words are never set in Kanit.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Paper Rule",
+        "body": "Coupons and cards lie flat. The only cast shadow belongs to the one control that floats over content.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Line Form Rule",
+        "body": "Dashed means pending or not settled, solid means settled, struck through means cancelled or rejected. Pending chips, pending notices and claims awaiting confirmation always carry a dashed edge.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "Do give every coupon a serial number in serial red, 13px Kanit semibold.",
+      "Do show which way money goes with words and an ink amount, never with a sign colour.",
+      "Do keep each member on one tint for the whole trip, assigned by join order.",
+      "Do use dashed edges for pending, solid for settled, and strikethrough for cancelled.",
+      "Do keep to the four type steps (14, 16, 22, 34) and build rank with weight first.",
+      "Do keep touch targets at least 44px tall (48px for primary actions).",
+      "Do keep PromptPay's own navy (#1b3f73) on the QR panel."
+    ],
+    "donts": [
+      "Don't use red for anything except serial numbers; errors and destructive actions use the owe tokens.",
+      "Don't colour balances green and red like a bank ledger.",
+      "Don't set readable text below 14px.",
+      "Don't use pill-shaped buttons, chips or badges.",
+      "Don't add drop shadows to coupons or cards.",
+      "Don't build a fintech dashboard of white cards, a green accent and charts."
+    ]
+  }
+}

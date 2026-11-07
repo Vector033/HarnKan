@@ -77,7 +77,9 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
         <h2 id="transfers-h" className="text-body font-bold">
           ใครโอนให้ใคร
         </h2>
-        <p className="mb-3 mt-0.5 text-meta text-muted">จัดให้โอนน้อยครั้งที่สุดแล้ว รวม {settlement.transfers.length} ครั้ง</p>
+        {transfers.length > 0 && (
+          <p className="mb-3 mt-0.5 text-meta text-muted">จัดให้โอนน้อยครั้งที่สุดแล้ว รวม {settlement.transfers.length} ครั้ง</p>
+        )}
         {transfers.length === 0 ? (
           settlement.transfers.length > 0 ? (
             <Empty title="ไม่มียอดอื่นที่ค้างอยู่">รายการที่เหลือรอคุณยืนยันด้านบน</Empty>

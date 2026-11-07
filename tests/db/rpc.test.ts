@@ -71,16 +71,28 @@ describe("trips and members", () => {
     expect(members).toEqual([]);
   });
 
-  it("lets a placeholder be added and then claimed", async () => {
+  it("claiming a placeholder waits for the creator, who approves it", async () => {
     const { data, error } = await a.from("members").insert({ trip_id: trip.trip_id, nickname: "ซี" }).select().single();
     expect(error).toBeNull();
     const c = await user();
-    const claimed = await rpc<{ member_id: string }>(c, "join_trip", { p_code: trip.invite_code, p_member_id: data!.id });
-    expect(claimed.member_id).toBe(data!.id);
+    const claimed = await rpc<{ member_id: string; status: string }>(c, "join_trip", {
+      p_code: trip.invite_code,
+      p_member_id: data!.id,
+    });
+    expect(claimed).toMatchObject({ member_id: data!.id, status: "pending" });
+    // Not a member yet: sees nothing.
+    const { data: before } = await c.from("trips").select("id").eq("id", trip.trip_id);
+    expect(before).toEqual([]);
+    // Someone else cannot take the same name while it is pending.
     const d = await user();
     await expect(rpc(d, "join_trip", { p_code: trip.invite_code, p_member_id: data!.id })).rejects.toThrow(
       /member_already_claimed/,
     );
+    // Only the creator decides.
+    await expect(rpc(b, "decide_claim", { p_member: data!.id, p_accept: true })).rejects.toThrow(/not_creator/);
+    await rpc(a, "decide_claim", { p_member: data!.id, p_accept: true });
+    const { data: after } = await c.from("trips").select("id").eq("id", trip.trip_id);
+    expect(after).toHaveLength(1);
   });
 
   it("only lets people edit their own PromptPay id", async () => {
@@ -191,5 +203,171 @@ describe("note_slip_read", () => {
     const c = await user();
     for (let i = 0; i < 3; i++) await rpc(c, "note_slip_read", { p_limit: 3 });
     await expect(rpc(c, "note_slip_read", { p_limit: 3 })).rejects.toThrow(/rate_limited/);
+  });
+});
+
+describe("trip owner controls (2026-11-05 hardening)", () => {
+  async function freshTrip() {
+    const owner = await user();
+    const t = await rpc<{ trip_id: string; member_id: string; invite_code: string }>(owner, "create_trip", {
+      p_name: "ล็อกได้",
+      p_nickname: "เจ้าของ",
+    });
+    return { owner, t };
+  }
+
+  it("a locked trip hides its members and refuses new joiners, but not existing members", async () => {
+    const { owner, t } = await freshTrip();
+    const friend = await user();
+    await rpc(friend, "join_trip", { p_code: t.invite_code, p_nickname: "เพื่อน" });
+    await rpc(owner, "set_trip_locked", { p_trip: t.trip_id, p_locked: true });
+
+    const stranger = await user();
+    const p = await rpc<{ locked: boolean; members: unknown[] }>(stranger, "trip_preview", { p_code: t.invite_code });
+    expect(p.locked).toBe(true);
+    expect(p.members).toEqual([]);
+    await expect(rpc(stranger, "join_trip", { p_code: t.invite_code, p_nickname: "แปลกหน้า" })).rejects.toThrow(/trip_locked/);
+    // Already a member: still fine.
+    const again = await rpc<{ trip_id: string }>(friend, "join_trip", { p_code: t.invite_code });
+    expect(again.trip_id).toBe(t.trip_id);
+  });
+
+  it("only the creator can lock, rotate the link or remove members", async () => {
+    const { t } = await freshTrip();
+    const friend = await user();
+    const f = await rpc<{ member_id: string }>(friend, "join_trip", { p_code: t.invite_code, p_nickname: "เพื่อน" });
+    await expect(rpc(friend, "set_trip_locked", { p_trip: t.trip_id, p_locked: true })).rejects.toThrow(/not_creator/);
+    await expect(rpc(friend, "rotate_invite", { p_trip: t.trip_id })).rejects.toThrow(/not_creator/);
+    await expect(rpc(friend, "remove_member", { p_member: t.member_id })).rejects.toThrow(/not_creator/);
+    expect(f.member_id).toBeTruthy();
+  });
+
+  it("rotating the link makes the old one useless", async () => {
+    const { owner, t } = await freshTrip();
+    const fresh = await rpc<string>(owner, "rotate_invite", { p_trip: t.trip_id });
+    expect(fresh).not.toBe(t.invite_code);
+    const late = await user();
+    await expect(rpc(late, "join_trip", { p_code: t.invite_code, p_nickname: "มาช้า" })).rejects.toThrow(/trip_not_found/);
+    await rpc(late, "join_trip", { p_code: fresh, p_nickname: "มาช้า" });
+  });
+
+  it("a removed member loses access; with history they stay as a placeholder without payment details", async () => {
+    const { owner, t } = await freshTrip();
+    const friend = await user();
+    const f = await rpc<{ member_id: string }>(friend, "join_trip", { p_code: t.invite_code, p_nickname: "เพื่อน" });
+    await friend.from("members").update({ promptpay_id: "0811111111" }).eq("id", f.member_id);
+    await rpc(owner, "save_expense", {
+      p_expense: { id: randomUUID(), trip_id: t.trip_id, title: "ข้าว", amount: 1000, paid_by: f.member_id, split_mode: "equal", split: { [f.member_id]: 1, [t.member_id]: 1 } },
+    });
+
+    await rpc(owner, "remove_member", { p_member: f.member_id });
+    const { data: seen } = await friend.from("trips").select("id").eq("id", t.trip_id);
+    expect(seen).toEqual([]);
+    const { data: row } = await owner.from("members").select("user_id,promptpay_id").eq("id", f.member_id).single();
+    expect(row).toEqual({ user_id: null, promptpay_id: null });
+    await expect(rpc(owner, "remove_member", { p_member: t.member_id })).rejects.toThrow(/cannot_remove_self/);
+  });
+
+  it("nobody can set a placeholder's PromptPay to their own number", async () => {
+    const { owner, t } = await freshTrip();
+    const { data: ph } = await owner.from("members").insert({ trip_id: t.trip_id, nickname: "ยังไม่มา" }).select().single();
+    const { error } = await owner.from("members").update({ promptpay_id: "0899999999" }).eq("id", ph!.id);
+    expect(error?.message).toMatch(/row-level security/);
+    const { error: insertErr } = await owner
+      .from("members")
+      .insert({ trip_id: t.trip_id, nickname: "ปลอม", promptpay_id: "0899999999" });
+    expect(insertErr?.message).toMatch(/row-level security/);
+  });
+
+  it("only the creator can delete the trip", async () => {
+    const { owner, t } = await freshTrip();
+    const friend = await user();
+    await rpc(friend, "join_trip", { p_code: t.invite_code, p_nickname: "เพื่อน" });
+    const { count: none } = await friend.from("trips").delete({ count: "exact" }).eq("id", t.trip_id);
+    expect(none).toBe(0);
+    const { count } = await owner.from("trips").delete({ count: "exact" }).eq("id", t.trip_id);
+    expect(count).toBe(1);
+  });
+});
+
+describe("size limits", () => {
+  it("refuses an oversized slip blob even from the server", async () => {
+    const admin = createClient<Database>(url, process.env.SUPABASE_SECRET_KEY!, { auth: { persistSession: false } });
+    const { data: who } = await b.auth.getUser();
+    const { error } = await admin.rpc("record_slip_payment", {
+      p_user: who.user!.id,
+      p_payment: { id: randomUUID(), trip_id: trip.trip_id, from_member: bMember, to_member: trip.member_id, amount: 100 },
+      p_slip: { junk: "x".repeat(5000) },
+    });
+    expect(error?.message).toMatch(/payments_slip_size/);
+  });
+});
+
+describe("second-pass hardening (independent review, 2026-11-07)", () => {
+  async function freshTrip() {
+    const owner = await user();
+    const t = await rpc<{ trip_id: string; member_id: string; invite_code: string }>(owner, "create_trip", {
+      p_name: "ทดสอบรอบสอง",
+      p_nickname: "เจ้าของ",
+    });
+    return { owner, t };
+  }
+
+  it("a removed member cannot rejoin, with the old link or a new one", async () => {
+    const { owner, t } = await freshTrip();
+    const friend = await user();
+    const f = await rpc<{ member_id: string }>(friend, "join_trip", { p_code: t.invite_code, p_nickname: "เพื่อน" });
+    await rpc(owner, "remove_member", { p_member: f.member_id });
+    await expect(rpc(friend, "join_trip", { p_code: t.invite_code, p_nickname: "เพื่อน2" })).rejects.toThrow(/trip_not_found/);
+    const fresh = await rpc<string>(owner, "rotate_invite", { p_trip: t.trip_id });
+    await expect(rpc(friend, "join_trip", { p_code: fresh, p_nickname: "เพื่อน3" })).rejects.toThrow(/trip_locked/);
+  });
+
+  it("clients cannot record a slip-backed payment; only the service role can", async () => {
+    const { owner, t } = await freshTrip();
+    const friend = await user();
+    const f = await rpc<{ member_id: string }>(friend, "join_trip", { p_code: t.invite_code, p_nickname: "เพื่อน" });
+    const forged = await rpc<{ row: { source: string; slip: unknown } }>(friend, "record_payment", {
+      p_payment: {
+        id: randomUUID(),
+        trip_id: t.trip_id,
+        from_member: f.member_id,
+        to_member: t.member_id,
+        amount: 100,
+        source: "slip",
+        slip: { amount: 1, receiverName: "ปลอม" },
+      },
+    });
+    expect(forged.row).toMatchObject({ source: "manual", slip: null });
+    await expect(
+      rpc(friend, "record_slip_payment", { p_user: (await friend.auth.getUser()).data.user!.id, p_payment: {}, p_slip: {} }),
+    ).rejects.toThrow();
+    void owner;
+  });
+
+  it("nobody confirms a payment they recorded themselves", async () => {
+    const { owner, t } = await freshTrip();
+    const { data: ph } = await owner.from("members").insert({ trip_id: t.trip_id, nickname: "ยังไม่มา" }).select().single();
+    const p = { id: randomUUID(), trip_id: t.trip_id, from_member: t.member_id, to_member: ph!.id, amount: 500 };
+    await rpc(owner, "record_payment", { p_payment: p });
+    await expect(rpc(owner, "decide_payment", { p_id: p.id, p_decision: "confirmed" })).rejects.toThrow(/not_allowed/);
+  });
+
+  it("a placeholder that appears in an expense cannot be deleted", async () => {
+    const { owner, t } = await freshTrip();
+    const { data: ph } = await owner.from("members").insert({ trip_id: t.trip_id, nickname: "อยู่ในบิล" }).select().single();
+    await rpc(owner, "save_expense", {
+      p_expense: { id: randomUUID(), trip_id: t.trip_id, title: "น้ำ", amount: 200, paid_by: t.member_id, split_mode: "equal", split: { [t.member_id]: 1, [ph!.id]: 1 } },
+    });
+    const { count } = await owner.from("members").delete({ count: "exact" }).eq("id", ph!.id);
+    expect(count).toBe(0);
+  });
+
+  it("weights are bounded", async () => {
+    const { owner, t } = await freshTrip();
+    const { data: ph } = await owner.from("members").insert({ trip_id: t.trip_id, nickname: "น้ำหนัก" }).select().single();
+    const base = { id: randomUUID(), trip_id: t.trip_id, title: "x", amount: 100, paid_by: t.member_id, split_mode: "weights" };
+    await expect(rpc(owner, "save_expense", { p_expense: { ...base, split: { [t.member_id]: 5000, [ph!.id]: 1 } } })).rejects.toThrow(/weights are 0 to 1000/);
+    await expect(rpc(owner, "save_expense", { p_expense: { ...base, split: { [t.member_id]: 0.0001, [ph!.id]: 1 } } })).rejects.toThrow(/weights are 0 to 1000/);
   });
 });

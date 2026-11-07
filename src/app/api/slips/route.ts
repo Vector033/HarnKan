@@ -1,8 +1,11 @@
 import { finalize, fromGemini, readSlip, SlipReaderError, type SlipReadResult } from "@harnkan/slip-reader";
 import { randomUUID } from "node:crypto";
+import { referenceHash, shortName, sniffImage } from "@/lib/core/privacy";
 import { matchSlip, type SlipMatch } from "@/lib/core/slip-match";
 import { balances, settle } from "@/lib/core/settle";
+import { adminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { signSlipClaim } from "@/lib/slip-token";
 import type { Json } from "@/lib/supabase/database.types";
 import type { Expense, Member, Payment, SlipSummary } from "@/lib/trip/types";
 
@@ -10,9 +13,12 @@ export interface SlipResponse {
   summary: SlipSummary;
   match: Pick<SlipMatch, "auto" | "checks" | "reasons"> & { toMemberId: string | null };
   payment: Payment | null;
+  /** Signed receipt for "the data is right, record it" when the match was not automatic. */
+  claimToken: string | null;
 }
 
-const MAX_BYTES = 6 * 1024 * 1024;
+// Vercel caps request bodies at 4.5 MB; the client downsizes photos well below this.
+const MAX_BYTES = 4 * 1024 * 1024;
 const READ_TIMEOUT_MS = 50_000;
 
 // Local OCR on a cold start downloads language data first; leave it room.
@@ -27,6 +33,12 @@ export const maxDuration = 60;
  * model and dropped; only the fields in SlipSummary are kept (PDPA).
  */
 export async function POST(req: Request) {
+  // Cookies are SameSite=Lax already; refusing foreign origins outright also
+  // covers browsers and embeds that treat that differently.
+  const origin = req.headers.get("origin");
+  if (origin && origin !== new URL(req.url).origin) return json({ error: "bad_origin" }, 403);
+  if (Number(req.headers.get("content-length") ?? 0) > MAX_BYTES + 64 * 1024) return json({ error: "bad_image" }, 413);
+
   const sb = await createClient();
   const { data: auth } = await sb.auth.getUser();
   if (!auth.user) return json({ error: "not_signed_in" }, 401);
@@ -35,7 +47,16 @@ export async function POST(req: Request) {
   const file = form?.get("slip");
   const tripId = String(form?.get("trip_id") ?? "");
   const fromMember = String(form?.get("from_member") ?? "");
-  if (!(file instanceof File) || !file.type.startsWith("image/") || file.size > MAX_BYTES || !tripId || !fromMember)
+  const toMember = String(form?.get("to_member") ?? "");
+  const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (
+    !(file instanceof File) ||
+    file.size === 0 ||
+    file.size > MAX_BYTES ||
+    !UUID.test(tripId) ||
+    !UUID.test(fromMember) ||
+    (toMember && !UUID.test(toMember))
+  )
     return json({ error: "bad_image" }, 400);
 
   // Everything below is read with the caller's own session, so RLS decides
@@ -57,16 +78,21 @@ export async function POST(req: Request) {
   const limit = await sb.rpc("note_slip_read", {});
   if (limit.error) return json({ error: /rate_limited/.test(limit.error.message) ? "rate_limited" : "error" }, 429);
 
+  let image: Uint8Array | null = new Uint8Array(await file.arrayBuffer());
+  // Trust the bytes, not the file name or the type the browser sent.
+  const mime = sniffImage(image.subarray(0, 16));
+  if (!mime && !fakeReaderEnabled()) return json({ error: "bad_image" }, 400);
+
   let slip: SlipReadResult;
   try {
-    const image = new Uint8Array(await file.arrayBuffer());
     // Gemini when GEMINI_API_KEY is set, otherwise local Thai OCR.
-    slip = fakeReaderEnabled()
-      ? fakeRead(image)
-      : await withTimeout(readSlip(image, normalizeMime(file.type)), READ_TIMEOUT_MS);
+    slip = fakeReaderEnabled() ? fakeRead(image) : await withTimeout(readSlip(image, mime!), READ_TIMEOUT_MS);
   } catch (e) {
-    console.error("slip read failed", e instanceof SlipReaderError ? e.message : e);
+    // Log the failure kind only: never the image or anything read from it.
+    console.error("slip read failed:", e instanceof SlipReaderError ? e.message.slice(0, 120) : (e as Error)?.name);
     return json({ error: "read_failed" }, 502);
+  } finally {
+    image = null; // drop the only reference to the slip image
   }
 
   const ps = (payments.data ?? []) as unknown as Payment[];
@@ -90,42 +116,61 @@ export async function POST(req: Request) {
       };
     })
     .filter((c) => c.amount > 0);
-  const usedReferences = new Set(
-    ps.filter((p) => p.status === "claimed" || p.status === "confirmed").map((p) => p.slip?.reference).filter((r): r is string => !!r),
+  const usedHashes = new Set(
+    ps
+      .filter((p) => p.status === "claimed" || p.status === "confirmed")
+      .map((p) => p.slip?.referenceHash)
+      .filter((r): r is string => !!r),
   );
+  const refHash = await referenceHash(tripId, slip.reference.value);
 
-  const match = matchSlip(slip, candidates, { tripCreatedAt: trip.data.created_at, usedReferences });
+  const match = matchSlip(
+    { ...slip, reference: { value: refHash, confidence: slip.reference.confidence } },
+    candidates,
+    { tripCreatedAt: trip.data.created_at, usedReferences: usedHashes },
+  );
   const summary: SlipSummary = {
     amount: slip.amount.value,
     dateTime: slip.dateTime.value,
-    receiverName: slip.receiver.name.value,
+    receiverName: shortName(slip.receiver.name.value),
     receiverLast4: slip.receiver.accountLast4.value,
     bank: slip.sender.bank.value,
-    reference: slip.reference.value,
+    referenceHash: refHash,
     confidence: slip.overallConfidence,
     reasons: match.reasons,
   };
 
+  // Recorded with the service role: clients can only ever record manual
+  // payments, so a "slip" payment always means this route read a slip.
   let payment: Payment | null = null;
   if (match.auto && match.candidate) {
-    const { data, error } = await sb.rpc("record_payment", {
+    const { data, error } = await adminClient().rpc("record_slip_payment", {
+      p_user: auth.user.id,
       p_payment: {
         id: randomUUID(),
         trip_id: tripId,
         from_member: fromMember,
         to_member: match.candidate.toMemberId,
         amount: match.candidate.amount,
-        source: "slip",
-        slip: summary,
-      } as unknown as Json,
+      },
+      p_slip: summary as unknown as Json,
     });
     if (!error) payment = (data as unknown as { row: Payment }).row;
   }
+
+  // Not automatic but plausible: hand back a signed receipt so the payer can
+  // confirm the reading and record it, without being able to alter it.
+  const target = candidates.find((c) => c.toMemberId === (match.candidate?.toMemberId ?? toMember));
+  const claimToken =
+    !payment && target && match.checks.amount !== "mismatch" && !match.checks.duplicate
+      ? signSlipClaim({ userId: auth.user.id, tripId, from: fromMember, to: target.toMemberId, amount: target.amount, slip: summary })
+      : null;
 
   const body: SlipResponse = {
     summary,
     match: { auto: match.auto, checks: match.checks, reasons: match.reasons, toMemberId: match.candidate?.toMemberId ?? null },
     payment,
+    claimToken,
   };
   return json(body, 200);
 }
@@ -140,10 +185,6 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
     const t = setTimeout(() => reject(new SlipReaderError(`slip read took over ${ms} ms`)), ms);
     p.then(resolve, reject).finally(() => clearTimeout(t));
   });
-}
-
-function normalizeMime(type: string) {
-  return type === "image/jpg" ? "image/jpeg" : type;
 }
 
 /**

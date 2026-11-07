@@ -17,6 +17,7 @@ export type SplitProblem =
   | { kind: "negative"; memberId: string }
   | { kind: "not_whole"; memberId: string }
   | { kind: "unknown_member"; memberId: string }
+  | { kind: "weight_range"; memberId: string }
   | { kind: "exact_mismatch"; total: number; amount: number };
 
 /** Client-side twin of the validate_split SQL function. */
@@ -30,6 +31,8 @@ export function validateSplit(e: ExpenseLike, memberIds?: Iterable<string>): Spl
     if ((e.split_mode === "exact" || e.split_mode === "equal") && !Number.isInteger(v))
       return { kind: "not_whole", memberId: id };
     if (e.split_mode === "equal" && v > 1) return { kind: "not_whole", memberId: id };
+    // Same bounds as the server: no Infinity, no runaway decimals.
+    if (e.split_mode === "weights" && (v > 1000 || Math.round(v * 1000) / 1000 !== v)) return { kind: "weight_range", memberId: id };
     total += v;
     if (v > 0) positive++;
   }

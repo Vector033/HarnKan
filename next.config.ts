@@ -25,8 +25,23 @@ const nextConfig: NextConfig = {
       "./node_modules/{whatwg-url,tr46,webidl-conversions}/**/*",
     ],
   },
+  poweredByHeader: false,
   async headers() {
     return [
+      {
+        // Baseline for every response, API routes included. The CSP itself is
+        // set per request in src/proxy.ts because it carries a nonce.
+        source: "/:path*",
+        headers: [
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          // Invite codes live in /join/ URLs; never leak them to other sites.
+          { key: "Referrer-Policy", value: "same-origin" },
+          { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()" },
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+        ],
+      },
       {
         source: "/sw.js",
         headers: [

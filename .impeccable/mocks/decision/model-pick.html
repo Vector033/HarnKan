@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1d2433;--ground:#f6f5f0;--red:#b23a3a;--indigo:#2f3e8f;--leaf:#3f7d4e;--turmeric:#e0a526;--muted:#626a78;--line:#dedcd3}
+*{box-sizing:border-box;margin:0}
+body{width:390px;height:844px;overflow:hidden;background:var(--ground);color:var(--ink);font-family:Anuphan,sans-serif}
+.weave{height:150px;position:relative;background:
+ repeating-linear-gradient(90deg,var(--red) 0 28px,var(--indigo) 28px 56px,var(--leaf) 56px 84px,var(--turmeric) 84px 112px),var(--red)}
+.weave:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.0) 0 14px,rgba(255,255,255,.28) 14px 28px)}
+.title{position:absolute;left:16px;right:16px;bottom:-34px;background:#fff;border-radius:14px;padding:14px 16px;z-index:2;box-shadow:0 1px 0 var(--line)}
+.title small{font:500 12px Anuphan;color:var(--muted)}.title h1{font:700 24px Anuphan}
+.title .live{position:absolute;right:14px;top:14px;font:600 12px Anuphan;color:var(--leaf)}
+.sum{display:flex;gap:24px;padding:56px 20px 10px}
+.sum span{font:500 12px Anuphan;color:var(--muted)}.sum b{display:block;font:700 26px Anuphan}
+.bar{display:flex;height:10px;margin:4px 20px 16px;border-radius:3px;overflow:hidden}
+.bar i{display:block}
+.day{padding:8px 20px;font:600 12px Anuphan;color:var(--muted)}
+ul{list-style:none;padding:0 20px}
+li{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:12px 0;border-bottom:1px solid var(--line)}
+li b{font:600 16px Anuphan}li .amt{font:700 17px Anuphan;text-align:right}
+li span{font:400 13px Anuphan;color:var(--muted)}
+.split{grid-column:1/3;display:flex;gap:2px;height:6px}.split i{flex:1;border-radius:2px}
+.fab{position:absolute;right:20px;bottom:96px;background:var(--ink);color:#fff;font:600 16px Anuphan;padding:15px 20px;border-radius:999px}
+nav{position:absolute;left:0;right:0;bottom:0;height:78px;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,1fr);padding-top:12px;text-align:center;font:600 12px Anuphan;color:var(--muted)}
+nav i{display:block;width:22px;height:22px;margin:0 auto 4px;border:2px solid currentColor;border-radius:50%}
+nav .on{color:var(--red)}
+</style></head><body>
+<div class="weave"><div class="title"><small>ทริป · 4 คน</small><h1>เชียงดาว ปีใหม่</h1><span class="live">● สด</span></div></div>
+<div class="sum"><div><span>ทั้งทริปจ่ายไป</span><b>5,635 ฿</b></div><div><span>ส่วนของคุณ</span><b>1,460 ฿</b></div></div>
+<div class="bar"><i style="flex:36;background:var(--red)"></i><i style="flex:12;background:var(--indigo)"></i><i style="flex:5;background:var(--leaf)"></i><i style="flex:3;background:var(--turmeric)"></i></div>
+<div class="day">อ. 31 ธ.ค.</div>
+<ul>
+ <li><b>ที่พักบ้านดิน 2 คืน</b><div class="amt">3,600</div><span>มิ้นต์ จ่าย · หารเท่า 4 คน</span><span></span><div class="split"><i style="background:var(--red)"></i><i style="background:var(--indigo)"></i><i style="background:var(--leaf)"></i><i style="background:var(--turmeric)"></i></div></li>
+ <li><b>หมูกระทะ</b><div class="amt">1,240</div><span>ต้น จ่าย · หารเท่า 4 คน</span><span></span><div class="split"><i style="background:var(--red)"></i><i style="background:var(--indigo)"></i><i style="background:var(--leaf)"></i><i style="background:var(--turmeric)"></i></div></li>
+ <li><b>ค่ารถสองแถว</b><div class="amt">480</div><span>แบม จ่าย · หาร 3 คน</span><span></span><div class="split"><i style="background:var(--red)"></i><i style="background:var(--indigo)"></i><i style="background:var(--leaf)"></i></div></li>
+</ul>
+<div class="day">ศ. 1 ม.ค.</div>
+<ul><li><b>กาแฟดอยหลวง</b><div class="amt">315</div><span>โอ๊ต จ่าย · ระบุยอดเอง</span><span></span><div class="split"><i style="background:var(--red);flex:.8"></i><i style="background:var(--indigo);flex:1.1"></i><i style="background:var(--leaf)"></i><i style="background:var(--turmeric)"></i></div></li></ul>
+<div class="fab">+ เพิ่มรายจ่าย</div>
+<nav><div class="on"><i></i>รายจ่าย</div><div><i></i>สรุปยอด</div><div><i></i>สมาชิก</div></nav>
+</body></html>

@@ -83,7 +83,7 @@ test("two people editing the same expense get a conflict instead of a silent ove
   await expect(b.page.getByTestId("changed-underneath")).toBeVisible();
   await b.page.getByLabel("จำนวนเงิน (บาท)").fill("700");
   await b.page.getByTestId("save-expense").click();
-  await expect(b.page.getByText("มีคนแก้รายการเดียวกัน")).toBeVisible();
+  await expect(b.page.getByText("มีคนแก้ไขรายการเดียวกัน")).toBeVisible();
   await b.page.getByTestId("keep-mine").click();
 
   await expect(a.page.getByText("700").first()).toBeVisible();
@@ -100,12 +100,12 @@ test("expenses added offline sync when the connection returns", async ({ browser
   await expect(b.page.getByText("ออฟไลน์", { exact: false }).first()).toBeVisible();
   await addExpense(b.page, "ค่าเรือ", "300");
   await expect(b.page.getByText("ค่าเรือ")).toBeVisible();
-  await expect(b.page.getByText("รอซิงก์")).toBeVisible();
+  await expect(b.page.getByText("รอส่ง", { exact: true })).toBeVisible();
   await expect(a.page.getByText("ค่าเรือ")).toHaveCount(0);
 
   await b.context.setOffline(false);
   await expect(a.page.getByText("ค่าเรือ")).toBeVisible({ timeout: 30_000 });
-  await expect(b.page.getByText("รอซิงก์")).toHaveCount(0);
+  await expect(b.page.getByText("รอส่ง", { exact: true })).toHaveCount(0);
 });
 
 test("a matching slip ticks the payment and the receiver confirms", async ({ browser }) => {

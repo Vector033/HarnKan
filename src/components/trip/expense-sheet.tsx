@@ -1,11 +1,18 @@
 "use client";
 
+import { Check, Trash2, TriangleAlert } from "lucide-react";
 import { useMemo, useState } from "react";
 import { formatBaht, parseBaht } from "@/lib/core/money";
 import { shares, validateSplit, type Split, type SplitMode } from "@/lib/core/split";
 import type { TripState, TripStore } from "@/lib/trip/store";
 import type { Expense, ExpenseDraft } from "@/lib/trip/types";
-import { Baht, Sheet } from "../ui";
+import { Baht, MemberTile, Sheet, memberTint } from "../ui";
+
+const MODES = [
+  ["equal", "เท่ากัน"],
+  ["weights", "ตามสัดส่วน"],
+  ["exact", "ระบุยอดเอง"],
+] as const;
 
 /**
  * Add or edit one expense. Edits remember the version they started from, so
@@ -66,6 +73,7 @@ export function ExpenseSheet({
   const problem = draft ? validateSplit(draft) : null;
   const preview = draft && !problem ? shares(draft) : null;
   const exactTotal = mode === "exact" ? Object.values(split).reduce((s, v) => s + v, 0) : 0;
+  const amountInvalid = amountText.trim() !== "" && amount === null;
 
   // Someone else changed this expense while the sheet was open.
   const live = base ? view.expenses.find((e) => e.id === base.id) : null;
@@ -84,23 +92,23 @@ export function ExpenseSheet({
     onClose();
   }
 
-  const names = new Map(members.map((m) => [m.id, m.nickname]));
+  const editor = live ? members.find((m) => m.user_id === live.updated_by)?.nickname : null;
 
   return (
     <Sheet
       open
       onClose={onClose}
-      title={base ? "แก้รายจ่าย" : "เพิ่มรายจ่าย"}
+      title={base ? "แก้ไขรายจ่าย" : "เพิ่มรายจ่าย"}
       footer={
         <div className="flex gap-2">
           {base &&
             (confirmDelete ? (
-              <button className="btn border-owe text-owe" onClick={remove}>
-                ยืนยันลบ
+              <button className="btn-danger" onClick={remove}>
+                <Trash2 className="size-4" aria-hidden /> ยืนยันการลบ
               </button>
             ) : (
-              <button className="btn" onClick={() => setConfirmDelete(true)}>
-                ลบ
+              <button className="btn" onClick={() => setConfirmDelete(true)} aria-label="ลบรายการนี้">
+                <Trash2 className="size-4" aria-hidden /> ลบ
               </button>
             ))}
           <button
@@ -109,25 +117,28 @@ export function ExpenseSheet({
             disabled={!draft || !!problem || !title.trim() || deletedUnderneath}
             data-testid="save-expense"
           >
-            บันทึก
+            <Check className="size-5" aria-hidden /> บันทึก
           </button>
         </div>
       }
     >
       {(changedUnderneath || deletedUnderneath) && (
-        <div className="mb-4 rounded-xl bg-wait-soft px-3.5 py-3 text-sm text-wait" role="alert" data-testid="changed-underneath">
-          {deletedUnderneath ? (
-            <>มีคนลบรายการนี้ไปแล้วระหว่างที่คุณแก้</>
-          ) : (
-            <>
-              {names.get(members.find((m) => m.user_id === live!.updated_by)?.id ?? "") ?? "เพื่อน"} เพิ่งแก้รายการนี้
-              ({live!.title}, {formatBaht(live!.amount)} ฿). ถ้าบันทึก แอปจะให้เลือกว่าจะเก็บของใคร
-            </>
-          )}
+        <div className="mb-5 flex gap-2.5 rounded-lg border border-dashed border-wait bg-wait-soft px-3.5 py-3 text-body text-wait" role="alert" data-testid="changed-underneath">
+          <TriangleAlert className="mt-0.5 size-5 shrink-0" aria-hidden />
+          <p>
+            {deletedUnderneath ? (
+              <>รายการนี้ถูกลบไปแล้วระหว่างที่คุณกำลังแก้ไข</>
+            ) : (
+              <>
+                {editor ?? "สมาชิกอีกคน"} เพิ่งแก้ไขรายการนี้ ({live!.title} {formatBaht(live!.amount)} ฿) หากบันทึก
+                ระบบจะให้คุณเลือกว่าจะเก็บฉบับใด
+              </>
+            )}
+          </p>
         </div>
       )}
 
-      <div className="space-y-4">
+      <div className="space-y-5">
         <div>
           <label className="label" htmlFor="title">
             รายการ
@@ -136,7 +147,7 @@ export function ExpenseSheet({
             id="title"
             className="input"
             maxLength={80}
-            placeholder="เช่น ค่าที่พัก, หมูกระทะ"
+            placeholder="เช่น ค่าที่พัก หมูกระทะ"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             autoFocus={!base}
@@ -149,16 +160,23 @@ export function ExpenseSheet({
             </label>
             <input
               id="amount"
-              className="input num"
+              className="input num text-body"
               inputMode="decimal"
               placeholder="0.00"
               value={amountText}
+              aria-invalid={amountInvalid}
+              aria-describedby={amountInvalid ? "amount-error" : undefined}
               onChange={(e) => setAmountText(e.target.value)}
             />
+            {amountInvalid && (
+              <p id="amount-error" className="mt-1.5 text-meta text-owe">
+                ใส่ตัวเลข ทศนิยมไม่เกิน 2 ตำแหน่ง
+              </p>
+            )}
           </div>
           <div>
             <label className="label" htmlFor="paid-by">
-              ใครจ่าย
+              ผู้จ่าย
             </label>
             <select id="paid-by" className="input" value={paidBy} onChange={(e) => setPaidBy(e.target.value)}>
               {members.map((m) => (
@@ -170,75 +188,75 @@ export function ExpenseSheet({
           </div>
         </div>
 
-        <div>
-          <span className="label">หารยังไง</span>
-          <div className="grid grid-cols-3 rounded-xl bg-stone-100 p-1 text-sm" role="radiogroup">
-            {(
-              [
-                ["equal", "เท่ากัน"],
-                ["weights", "ตามสัดส่วน"],
-                ["exact", "ระบุยอดเอง"],
-              ] as const
-            ).map(([k, label]) => (
+        <fieldset>
+          <legend className="label">วิธีหาร</legend>
+          <div className="grid grid-cols-3 gap-1 rounded-lg bg-paper p-1 ring-1 ring-line" role="radiogroup" aria-label="วิธีหาร">
+            {MODES.map(([k, label]) => (
               <button
                 key={k}
+                type="button"
                 role="radio"
                 aria-checked={mode === k}
                 onClick={() => setMode(k)}
-                className={`rounded-lg py-2 font-medium ${mode === k ? "bg-white shadow-sm" : "text-muted"}`}
+                className={`min-h-11 rounded-md text-body font-semibold transition-colors duration-150 ${mode === k ? "bg-ink text-white" : "text-ink hover:bg-ground"}`}
               >
                 {label}
               </button>
             ))}
           </div>
-        </div>
+        </fieldset>
 
-        <ul className="divide-y divide-line rounded-xl border border-line">
-          {members.map((m) => (
-            <li key={m.id} className="flex items-center gap-3 px-3.5 py-2.5">
-              {mode === "equal" ? (
-                <label className="flex flex-1 items-center gap-3">
-                  <input
-                    type="checkbox"
-                    className="h-5 w-5 accent-brand"
-                    checked={!!equal[m.id]}
-                    onChange={(e) => setEqual({ ...equal, [m.id]: e.target.checked })}
-                  />
-                  <span className="flex-1">{m.nickname}</span>
-                </label>
-              ) : (
-                <>
-                  <span className="flex-1">{m.nickname}</span>
-                  <input
-                    aria-label={`${mode === "weights" ? "สัดส่วน" : "ยอด"}ของ ${m.nickname}`}
-                    className="input num w-24 py-1.5 text-right"
-                    inputMode="decimal"
-                    placeholder="0"
-                    value={mode === "weights" ? weights[m.id] : exact[m.id]}
-                    onChange={(e) =>
-                      mode === "weights"
-                        ? setWeights({ ...weights, [m.id]: e.target.value })
-                        : setExact({ ...exact, [m.id]: e.target.value })
-                    }
-                  />
-                </>
-              )}
-              <span className="num w-20 text-right text-sm text-muted">
-                {preview?.get(m.id) ? formatBaht(preview.get(m.id)!, { always2dp: true }) : "–"}
-              </span>
-            </li>
-          ))}
+        <ul className="coupon divide-y divide-line">
+          {members.map((m) => {
+            const share = preview?.get(m.id);
+            return (
+              <li key={m.id} className="flex min-h-14 items-center gap-3 px-3.5 py-2">
+                {mode === "equal" ? (
+                  <label className="flex flex-1 cursor-pointer items-center gap-3">
+                    <input
+                      type="checkbox"
+                      className="size-5 accent-[#14302b]"
+                      checked={!!equal[m.id]}
+                      onChange={(e) => setEqual({ ...equal, [m.id]: e.target.checked })}
+                    />
+                    <MemberTile name={m.nickname} tint={memberTint(members, m.id)} size={30} />
+                    <span className="flex-1 text-body">{m.nickname}</span>
+                  </label>
+                ) : (
+                  <>
+                    <MemberTile name={m.nickname} tint={memberTint(members, m.id)} size={30} />
+                    <span className="flex-1 text-body">{m.nickname}</span>
+                    <input
+                      aria-label={`${mode === "weights" ? "สัดส่วน" : "ยอด"}ของ ${m.nickname}`}
+                      className="input num w-24 py-2 text-right"
+                      inputMode="decimal"
+                      placeholder="0"
+                      value={mode === "weights" ? weights[m.id] : exact[m.id]}
+                      onChange={(e) =>
+                        mode === "weights"
+                          ? setWeights({ ...weights, [m.id]: e.target.value })
+                          : setExact({ ...exact, [m.id]: e.target.value })
+                      }
+                    />
+                  </>
+                )}
+                <span className={`num w-20 text-right text-body ${share ? "text-ink" : "text-muted"}`}>
+                  {share ? formatBaht(share, { always2dp: true }) : "–"}
+                </span>
+              </li>
+            );
+          })}
         </ul>
 
         {mode === "exact" && amount !== null && (
-          <p className={`text-sm ${exactTotal === amount ? "text-brand" : "text-owe"}`}>
+          <p className={`text-body font-medium ${exactTotal === amount ? "text-ok" : "text-owe"}`} role="status">
             รวม <Baht satang={exactTotal} /> จาก <Baht satang={amount} />
             {exactTotal !== amount && ` (${exactTotal < amount ? "ขาด" : "เกิน"} ${formatBaht(Math.abs(amount - exactTotal))} ฿)`}
           </p>
         )}
-        {problem?.kind === "empty" && <p className="text-sm text-owe">เลือกอย่างน้อย 1 คนที่หารรายการนี้</p>}
+        {problem?.kind === "empty" && <p className="text-body text-owe">โปรดเลือกอย่างน้อย 1 คนที่ร่วมจ่ายรายการนี้</p>}
         {mode !== "exact" && preview && amount !== null && amount % Math.max(1, preview.size) !== 0 && (
-          <p className="text-xs text-muted">เศษสตางค์ที่หารไม่ลงตัวจะไปอยู่กับคนจ่ายก่อน ยอดรวมจึงตรงเป๊ะเสมอ</p>
+          <p className="hint">เศษสตางค์ที่หารไม่ลงตัวจะไปอยู่กับผู้จ่ายก่อน ยอดรวมจึงตรงทุกสตางค์</p>
         )}
       </div>
     </Sheet>

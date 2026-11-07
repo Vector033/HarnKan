@@ -58,8 +58,10 @@ SlipJot (`C:\Users\User\Desktop\SlipJot`) ก็ต้องอ่านสล�
 - Node 26 อยู่ที่ `C:\Program Files\nodejs`, Supabase local ใช้พอร์ต 544xx (`npm run db:start`) แยกจาก FactFit (543xx)
 - cookie session ชื่อ `sb-harnkan-auth` (ถ้าใช้ชื่อเดียวกับแอปอื่นบน localhost จะได้ session ผิดตัว)
 - dev server ในแอป preview ชื่อ `harnkan-dev` (port 3002) อยู่ใน `Desktop\.claude\launch.json`
-- `packages/slip-reader` คัดลอกมาจาก SlipJot (ล่าสุด commit 211a0bc) ถ้าแก้ contract ต้องแจ้ง SlipJot ด้วย
+- `packages/slip-reader` คัดลอกมาจาก SlipJot (ล่าสุด commit 211a0bc; HarnKan เพิ่ม limitInputPixels ใน node/image.ts) ถ้าแก้ contract ต้องแจ้ง SlipJot ด้วย
 - deploy: push เข้า main แล้ว Vercel deploy production ให้อัตโนมัติ (เชื่อม Git แล้ว 2026-11-04) หรือ `npx vercel deploy --prod`, auth config ของ production อยู่ที่ `deploy/supabase/config.toml`, รหัส DB อยู่ใน `.env.local` (`SUPABASE_DB_PASSWORD`) เท่านั้น
+- ดีไซน์ (2026-11-05): โลก "คูปองศูนย์อาหาร" ข้อมูลสินค้าอยู่ใน `PRODUCT.md` สัญญาทิศทางอยู่ใน `.impeccable/surfaces/src-app.md` และ token อยู่ใน `src/app/globals.css` (ไม่มี DESIGN.md เป็นทางการจนกว่าจะรัน documenter) สเกลตัวอักษรมี 4 ขั้นเท่านั้น (text-meta/body/title/display) ห้ามต่ำกว่า 14px สีแดงใช้กับเลขคูปองเท่านั้น
+- ความปลอดภัย: route อ่านสลิปใช้ `SUPABASE_SECRET_KEY` (server only) เพื่อเรียก `record_slip_payment` ต้องตั้งทั้งใน `.env.local` และ Vercel การเปลี่ยน policy ให้เพิ่ม test ใน `tests/db/rpc.test.ts` ทุกครั้ง
 - e2e ใช้ `SLIP_READER=fake` (ไฟล์ที่อัปโหลดเป็น JSON คำตอบของโมเดล) ห้ามเปิดใน production
 
 ## Milestones (ประมาณ 5–6 สัปดาห์)

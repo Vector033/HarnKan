@@ -1,12 +1,12 @@
 "use client";
 
+import { Camera, Check, CircleHelp, LoaderCircle, ShieldCheck, X } from "lucide-react";
 import { useState } from "react";
+import type { SlipResponse } from "@/app/api/slips/route";
 import { formatBaht } from "@/lib/core/money";
 import type { PlannedTransfer } from "@/lib/trip/derive";
 import type { TripState, TripStore } from "@/lib/trip/store";
-import type { SlipSummary } from "@/lib/trip/types";
 import { Sheet } from "../ui";
-import type { SlipResponse } from "@/app/api/slips/route";
 
 export function SlipSheet({
   transfer,
@@ -24,14 +24,16 @@ export function SlipSheet({
   const [phase, setPhase] = useState<"pick" | "reading" | "done" | "error">("pick");
   const [result, setResult] = useState<SlipResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const owed = transfer.amount - transfer.claimedAmount;
 
   async function upload(file: File) {
     setPhase("reading");
     setError(null);
     const form = new FormData();
-    form.set("slip", file);
+    form.set("slip", await shrinkImage(file));
     form.set("trip_id", view.trip.id);
     form.set("from_member", transfer.from);
+    form.set("to_member", transfer.to);
     try {
       const res = await fetch("/api/slips", { method: "POST", body: form });
       const body = (await res.json()) as SlipResponse | { error: string };
@@ -45,56 +47,67 @@ export function SlipSheet({
       // The server recorded it; pull it in now rather than wait for the realtime echo.
       if (body.payment) void store.refresh();
     } catch {
-      setError("ต้องต่ออินเทอร์เน็ตเพื่ออ่านสลิป ไม่ต้องห่วง รูปไม่ได้ถูกเก็บไว้ที่ไหน");
+      setError("ต้องเชื่อมต่ออินเทอร์เน็ตเพื่ออ่านสลิป รูปของคุณไม่ได้ถูกเก็บไว้ที่ใด");
       setPhase("error");
     }
   }
 
-  function recordAnyway(summary: SlipSummary) {
-    void store.do({
-      kind: "record_payment",
-      payment: {
-        id: crypto.randomUUID(),
-        trip_id: view.trip.id,
-        from_member: transfer.from,
-        to_member: transfer.to,
-        amount: transfer.amount - transfer.claimedAmount,
-        source: "slip",
-        slip: summary,
-      },
-    });
-    onClose();
+  async function recordAnyway(token: string) {
+    try {
+      const res = await fetch("/api/slips/record", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+      if (!res.ok) throw new Error(String(res.status));
+      void store.refresh();
+      onClose();
+    } catch {
+      setError("บันทึกไม่สำเร็จ โปรดลองอีกครั้ง หรือใช้ปุ่ม “โอนแล้ว (ไม่มีสลิป)”");
+      setPhase("error");
+    }
   }
 
   return (
     <Sheet open onClose={onClose} title={`แนบสลิปที่โอนให้ ${to.nickname}`}>
       {phase === "pick" && (
         <div className="space-y-4">
-          <p className="text-sm text-muted">
-            AI จะอ่านยอด เวลา และชื่อผู้รับจากสลิป ถ้าตรงกับยอดที่ต้องโอน ({formatBaht(transfer.amount - transfer.claimedAmount)} ฿)
-            แอปจะติ๊กว่าจ่ายแล้วให้ แล้ว {to.nickname} กดยืนยันอีกที
+          <p className="text-body">
+            ระบบจะอ่านยอดเงิน เวลา และชื่อผู้รับจากสลิป หากตรงกับยอดที่ต้องโอน (
+            <span className="num font-semibold">{formatBaht(owed)} ฿</span>) ระบบจะบันทึกว่าโอนแล้ว และให้ {to.nickname}{" "}
+            ยืนยันอีกครั้ง
           </p>
           <label className="btn-primary w-full cursor-pointer">
-            เลือกรูปสลิป / ถ่ายรูป
+            <Camera className="size-5" aria-hidden /> เลือกรูปสลิปหรือถ่ายรูป
             <input
               type="file"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
               className="sr-only"
               data-testid="slip-input"
               onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])}
             />
           </label>
-          <p className="text-xs text-muted">
-            รูปสลิปถูกอ่านแล้วทิ้งทันที ไม่ถูกเก็บไว้ เก็บแค่ยอด เวลา และชื่อย่อผู้รับ · แอปไม่ได้ตรวจสอบสลิปกับธนาคาร
-          </p>
+          <div className="flex gap-2.5 rounded-lg bg-paper px-3.5 py-3 text-meta text-muted ring-1 ring-line">
+            <ShieldCheck className="mt-0.5 size-5 shrink-0 text-ok" aria-hidden />
+            <p>
+              รูปสลิปถูกอ่านแล้วลบทันที ไม่มีการเก็บรูปไว้ เก็บเพียงยอดเงิน เวลา ชื่อย่อผู้รับ และเลขบัญชี 4 หลักท้าย
+              · ระบบไม่ได้ตรวจสอบสลิปกับธนาคาร
+            </p>
+          </div>
         </div>
       )}
 
-      {phase === "reading" && <p className="py-10 text-center text-muted">กำลังอ่านสลิป…</p>}
+      {phase === "reading" && (
+        <p className="flex items-center justify-center gap-2 py-12 text-muted" role="status">
+          <LoaderCircle className="size-5 animate-spin" aria-hidden /> กำลังอ่านสลิป…
+        </p>
+      )}
 
       {phase === "error" && (
         <div className="space-y-3">
-          <p className="rounded-xl bg-owe-soft px-3.5 py-3 text-sm text-owe">{error}</p>
+          <p className="rounded-lg bg-owe-soft px-3.5 py-3 text-body text-owe" role="alert">
+            {error}
+          </p>
           <button className="btn w-full" onClick={() => setPhase("pick")}>
             ลองอีกครั้ง
           </button>
@@ -103,12 +116,15 @@ export function SlipSheet({
 
       {phase === "done" && result && (
         <div className="space-y-4" data-testid="slip-result">
-          <div className={`rounded-xl px-4 py-3 ${result.payment ? "bg-brand-soft text-brand-dark" : "bg-wait-soft text-wait"}`}>
-            <p className="font-semibold">
+          <div
+            className={`rounded-lg px-4 py-3 ${result.payment ? "bg-ok-soft text-ok" : "border border-dashed border-wait bg-wait-soft text-wait"}`}
+            role="status"
+          >
+            <p className="font-bold">
               {result.payment ? `ติ๊กว่าจ่ายแล้ว รอ ${to.nickname} ยืนยัน` : "ยังติ๊กให้อัตโนมัติไม่ได้"}
             </p>
             {result.match.reasons.length > 0 && (
-              <ul className="mt-1 list-disc pl-5 text-sm">
+              <ul className="mt-1 list-disc pl-5 text-meta">
                 {result.match.reasons.map((r) => (
                   <li key={r}>{r}</li>
                 ))}
@@ -116,9 +132,21 @@ export function SlipSheet({
             )}
           </div>
 
-          <dl className="grid grid-cols-[auto_1fr_auto] gap-x-3 gap-y-2 text-sm">
-            <Row label="ยอดเงิน" value={result.summary.amount !== null ? `${result.summary.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })} บาท` : "อ่านไม่ได้"} check={result.match.checks.amount} />
-            <Row label="วันเวลา" value={result.summary.dateTime ? new Date(result.summary.dateTime).toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short" }) : "อ่านไม่ได้"} check={result.match.checks.time} />
+          <dl className="coupon grid grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-2.5 p-4 text-body">
+            <Row
+              label="ยอดเงิน"
+              value={result.summary.amount !== null ? `${result.summary.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })} บาท` : "อ่านไม่ได้"}
+              check={result.match.checks.amount}
+            />
+            <Row
+              label="วันเวลา"
+              value={
+                result.summary.dateTime
+                  ? new Date(result.summary.dateTime).toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short" })
+                  : "อ่านไม่ได้"
+              }
+              check={result.match.checks.time}
+            />
             <Row
               label="ผู้รับ"
               value={[result.summary.receiverName, result.summary.receiverLast4 && `…${result.summary.receiverLast4}`].filter(Boolean).join(" ") || "อ่านไม่ได้"}
@@ -126,14 +154,14 @@ export function SlipSheet({
             />
             {result.summary.bank && <Row label="ธนาคาร" value={result.summary.bank} />}
           </dl>
-          <p className="text-xs text-muted">ความมั่นใจของ AI {Math.round(result.summary.confidence * 100)}%</p>
+          <p className="hint">ความมั่นใจในการอ่าน {Math.round(result.summary.confidence * 100)}%</p>
 
-          {!result.payment && result.match.checks.amount !== "mismatch" && !result.match.checks.duplicate && (
-            <button className="btn w-full" onClick={() => recordAnyway(result.summary)}>
-              ข้อมูลถูกแล้ว บันทึกว่าจ่ายแล้ว (ให้ {to.nickname} ตรวจ)
+          {!result.payment && result.claimToken && (
+            <button className="btn w-full" onClick={() => recordAnyway(result.claimToken!)}>
+              ข้อมูลถูกต้อง บันทึกว่าโอนแล้ว (ให้ {to.nickname} ตรวจ)
             </button>
           )}
-          <button className={result.payment ? "btn-primary w-full" : "btn-ghost w-full"} onClick={onClose}>
+          <button className={result.payment ? "btn-primary w-full" : "btn-quiet w-full"} onClick={onClose}>
             {result.payment ? "เสร็จ" : "ปิด"}
           </button>
         </div>
@@ -142,25 +170,49 @@ export function SlipSheet({
   );
 }
 
-function Row({ label, value, check }: { label: string; value: string; check?: string }) {
-  const icon = check === "match" ? "✓" : check === "mismatch" ? "✕" : check === "partial" ? "≈" : check ? "?" : "";
-  const color = check === "match" ? "text-brand" : check === "mismatch" ? "text-owe" : "text-wait";
+const CHECK = {
+  match: { Icon: Check, cls: "text-ok", text: "ตรง" },
+  partial: { Icon: CircleHelp, cls: "text-wait", text: "ตรงบางส่วน" },
+  mismatch: { Icon: X, cls: "text-owe", text: "ไม่ตรง" },
+  unknown: { Icon: CircleHelp, cls: "text-muted", text: "ไม่ทราบ" },
+} as const;
+
+function Row({ label, value, check }: { label: string; value: string; check?: keyof typeof CHECK }) {
+  const c = check ? CHECK[check] : null;
   return (
     <>
       <dt className="text-muted">{label}</dt>
-      <dd className="font-medium">{value}</dd>
-      <dd className={`font-bold ${color}`} aria-label={check ? `${label}: ${check}` : undefined}>
-        {icon}
-      </dd>
+      <dd className="font-semibold">{value}</dd>
+      <dd className={c?.cls}>{c && <c.Icon className="size-5" aria-label={`${label}${c.text}`} />}</dd>
     </>
   );
 }
 
-function errorText(code: string) {
-  if (code === "not_configured") return "ยังไม่ได้ตั้งค่าตัวอ่านสลิปบนเซิร์ฟเวอร์ ใช้ปุ่ม “โอนแล้ว (ไม่มีสลิป)” แทนได้";
-  if (code === "rate_limited") return "อ่านสลิปครบโควตาต่อชั่วโมงแล้ว ลองใหม่ภายหลัง";
-  if (code === "bad_image") return "ไฟล์นี้ใช้ไม่ได้ ใช้รูป JPG/PNG ขนาดไม่เกิน 6 MB";
-  if (code === "read_failed") return "อ่านสลิปไม่สำเร็จ ลองถ่ายให้ชัดขึ้น หรือใช้ภาพแคปหน้าจอจากแอปธนาคาร";
-  return "เกิดข้อผิดพลาด ลองใหม่อีกครั้ง";
+/**
+ * Re-encodes a photo to at most 2000px JPEG before upload. Keeps uploads under
+ * the server's limit and drops EXIF data (location, device) along the way.
+ * Falls back to the original file if the browser cannot decode it (e.g. HEIC).
+ */
+async function shrinkImage(file: File): Promise<Blob> {
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, 2000 / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+    const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/jpeg", 0.88));
+    return blob ?? file;
+  } catch {
+    return file;
+  }
 }
 
+function errorText(code: string) {
+  if (code === "not_configured") return "ยังไม่ได้ตั้งค่าตัวอ่านสลิป โปรดใช้ปุ่ม “โอนแล้ว (ไม่มีสลิป)” แทน";
+  if (code === "rate_limited") return "อ่านสลิปครบจำนวนต่อชั่วโมงแล้ว โปรดลองใหม่ภายหลัง";
+  if (code === "bad_image") return "ไฟล์นี้ใช้ไม่ได้ โปรดใช้รูปภาพ JPG, PNG, WebP หรือ HEIC ขนาดไม่เกิน 4 MB";
+  if (code === "read_failed") return "อ่านสลิปไม่สำเร็จ โปรดถ่ายให้ชัดขึ้น หรือใช้ภาพหน้าจอจากแอปธนาคาร";
+  return "เกิดข้อผิดพลาด โปรดลองอีกครั้ง";
+}

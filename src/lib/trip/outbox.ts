@@ -64,6 +64,7 @@ export function overlay(snap: Snapshot, queue: QueuedOp[]): TripView {
       case "add_member":
         members.set(op.member.id, {
           user_id: null,
+          pending_user_id: null,
           promptpay_id: null,
           payee_name: null,
           created_at: now,

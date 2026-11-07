@@ -1,0 +1,26 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "undersized-ui-text",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/assigned.html"
+        ],
+        "createdAt": "2026-11-04T17:36:14.634Z",
+        "reason": "Claude: spent direction-round sketch (decision artifact), not shipped UI; shipped serials use 11px"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/model-pick.html"
+        ],
+        "createdAt": "2026-11-04T17:36:15.043Z",
+        "reason": "Claude: unchosen direction-round sketch, not shipped UI"
+      }
+    ]
+  }
+}

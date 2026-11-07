@@ -137,8 +137,11 @@ export class TripStore {
       const err = trip.error ?? members.error ?? expenses.error ?? payments.error;
       if (err) throw err.code ? err : new NetworkError(err.message);
       if (!trip.data) {
-        // RLS hides trips you are not in, so "missing" and "not a member" look the same.
-        this.set({ status: this.snap ? "ready" : "no-access" });
+        // RLS hides trips you are not in, so "missing" and "not a member" look the
+        // same. Either way this device must not keep a copy: a member who was
+        // removed loses the cached expenses, payments and PromptPay numbers too.
+        await this.forget();
+        this.set({ status: "no-access", view: null, me: null });
         return;
       }
       this.snap = {
@@ -170,7 +173,11 @@ export class TripStore {
         this.applyRow("payments", p.new as Payment),
       )
       .on("postgres_changes", { event: "*", schema: "public", table: "members", filter }, (p) =>
-        this.applyRow("members", p.new as Member),
+        // A delete carries no row under RLS; refetch to drop the member (or find we were removed).
+        p.eventType === "DELETE"
+          ? // DELETE events are not filtered per trip by Realtime; only act on our own members.
+            this.snap?.members.some((m) => m.id === (p.old as { id?: string }).id) && void this.refresh()
+          : this.applyRow("members", p.new as Member),
       )
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "trips", filter: `id=eq.${this.tripId}` }, (p) => {
         if (this.snap) this.snap = { ...this.snap, trip: p.new as Trip };
@@ -210,6 +217,37 @@ export class TripStore {
     this.recompute();
     await idb.saveQueue(this.tripId, this.queue);
     void this.flush();
+  }
+
+  /**
+   * Owner actions that must reach the server now (lock, new link, remove a
+   * member). They are not queued offline: acting on stale membership would be
+   * worse than refusing. Returns an error code, or null on success.
+   */
+  async admin(fn: "set_trip_locked" | "rotate_invite" | "remove_member" | "decide_claim", args: Record<string, unknown>) {
+    try {
+      await this.rpc(fn, args);
+      await this.refresh();
+      return null;
+    } catch (e) {
+      return e instanceof NetworkError || e instanceof TypeError ? "offline" : e instanceof Error ? e.message : "error";
+    }
+  }
+
+  /** Creator only (RLS): deletes the trip and, by cascade, everything in it. */
+  async deleteTrip() {
+    const { error, count } = await supabase().from("trips").delete({ count: "exact" }).eq("id", this.tripId);
+    if (error) return error.code ? error.message : "offline";
+    if (!count) return "not_creator";
+    await this.forget();
+    return null;
+  }
+
+  /** Deletes this trip's cached copy and unsent changes from this device. */
+  async forget() {
+    this.snap = null;
+    this.queue = [];
+    await idb.forgetTrip(this.tripId);
   }
 
   dismissConflict(id: string) {

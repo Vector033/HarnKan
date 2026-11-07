@@ -6,12 +6,16 @@ export interface Trip {
   invite_code: string;
   created_by: string;
   created_at: string;
+  locked: boolean;
+  invite_expires_at: string;
 }
 
 export interface Member {
   id: string;
   trip_id: string;
   user_id: string | null;
+  /** Someone asked to be this placeholder; waits for the trip creator. */
+  pending_user_id: string | null;
   nickname: string;
   promptpay_id: string | null;
   payee_name: string | null;
@@ -41,10 +45,12 @@ export type PaymentStatus = "claimed" | "confirmed" | "rejected" | "cancelled";
 export interface SlipSummary {
   amount: number | null; // baht as printed
   dateTime: string | null;
+  /** First name and surname initial only, e.g. "สมหญิง ด." */
   receiverName: string | null;
   receiverLast4: string | null;
   bank: string | null;
-  reference: string | null;
+  /** SHA-256 of the slip's transaction reference, for spotting a reused slip without keeping the reference. */
+  referenceHash: string | null;
   confidence: number;
   reasons: string[];
 }

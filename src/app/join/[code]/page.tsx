@@ -1,15 +1,23 @@
 "use client";
 
+import { Clock, Lock } from "lucide-react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { MemberTile } from "@/components/ui";
 import { ensureUser, supabase } from "@/lib/supabase/client";
 
 interface Preview {
   trip_id: string;
   name: string;
+  locked: boolean;
   already_member: boolean;
+  pending_member: string | null;
   members: { id: string; nickname: string; claimed: boolean }[];
 }
+
+const TINTS = ["--color-t0", "--color-t1", "--color-t2", "--color-t3", "--color-t4", "--color-t5"];
+const PENDING_POLL_MS = 5000;
 
 export default function JoinPage() {
   const { code } = useParams<{ code: string }>();
@@ -20,18 +28,29 @@ export default function JoinPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      const user = await ensureUser();
-      if (!user) return setPreview("offline");
-      const { data, error } = await supabase().rpc("trip_preview", { p_code: code });
-      if (error) return setPreview(error.code ? "missing" : "offline");
-      if (!data) return setPreview("missing");
-      const p = data as unknown as Preview;
-      if (p.already_member) return router.replace(`/t/${p.trip_id}`);
-      setPreview(p);
-    })();
+  const load = useCallback(async () => {
+    const user = await ensureUser();
+    if (!user) return setPreview("offline");
+    const { data, error } = await supabase().rpc("trip_preview", { p_code: code });
+    if (error) return setPreview(error.code ? "missing" : "offline");
+    if (!data) return setPreview("missing");
+    const p = data as unknown as Preview;
+    if (p.already_member) return router.replace(`/t/${p.trip_id}`);
+    setPreview(p);
   }, [code, router]);
+
+  useEffect(() => {
+    const t = setTimeout(() => void load(), 0);
+    return () => clearTimeout(t);
+  }, [load]);
+
+  // While a claim waits for the owner, check back until it is approved or turned down.
+  const waiting = typeof preview === "object" && preview?.pending_member;
+  useEffect(() => {
+    if (!waiting) return;
+    const t = setInterval(() => void load(), PENDING_POLL_MS);
+    return () => clearInterval(t);
+  }, [waiting, load]);
 
   async function join(e: React.FormEvent) {
     e.preventDefault();
@@ -45,73 +64,128 @@ export default function JoinPage() {
     if (error) {
       setError(
         /nickname_taken/.test(error.message)
-          ? "ชื่อเล่นนี้มีในทริปแล้ว ถ้าเป็นคุณให้เลือกชื่อด้านบน หรือใช้ชื่ออื่น"
+          ? "ชื่อเล่นนี้มีอยู่ในทริปแล้ว หากเป็นคุณ โปรดเลือกชื่อด้านบน หรือใช้ชื่ออื่น"
           : /already_claimed/.test(error.message)
-            ? "มีคนเลือกชื่อนี้ไปแล้ว"
-            : "เข้าทริปไม่สำเร็จ ลองใหม่อีกครั้ง",
+            ? "มีผู้เลือกชื่อนี้ไปแล้ว"
+            : /trip_locked/.test(error.message)
+              ? "ทริปนี้ปิดรับสมาชิกใหม่แล้ว โปรดติดต่อเจ้าของทริป"
+              : /trip_full/.test(error.message)
+                ? "ทริปนี้มีสมาชิกครบ 50 คนแล้ว"
+                : "เข้าทริปไม่สำเร็จ โปรดลองอีกครั้ง",
       );
       return;
     }
-    router.replace(`/t/${(data as { trip_id: string }).trip_id}`);
+    const r = data as { trip_id: string; status: string };
+    if (r.status === "pending") return void load();
+    router.replace(`/t/${r.trip_id}`);
   }
 
   if (preview === null) return <Shell>กำลังเปิดลิงก์…</Shell>;
-  if (preview === "missing") return <Shell>ไม่พบทริปนี้ ลิงก์อาจพิมพ์ผิด</Shell>;
-  if (preview === "offline") return <Shell>ต้องต่ออินเทอร์เน็ตเพื่อเข้าทริปครั้งแรก</Shell>;
+  if (preview === "missing")
+    return <Shell>ไม่พบทริปนี้ ลิงก์อาจไม่ถูกต้อง หรือเจ้าของทริปสร้างลิงก์ใหม่แล้ว</Shell>;
+  if (preview === "offline") return <Shell>ต้องเชื่อมต่ออินเทอร์เน็ตเพื่อเข้าทริปครั้งแรก</Shell>;
 
+  const tint = (id: string) => `var(${TINTS[Math.max(0, preview.members.findIndex((m) => m.id === id)) % TINTS.length]})`;
   const unclaimed = preview.members.filter((m) => !m.claimed);
+  const pendingName = preview.members.find((m) => m.id === preview.pending_member)?.nickname;
 
   return (
-    <main className="mx-auto min-h-dvh max-w-lg px-5 pb-10 pt-[max(2rem,env(safe-area-inset-top))]">
-      <p className="text-sm font-medium text-brand">หารกัน · คำชวนเข้าทริป</p>
-      <h1 className="mt-1 text-3xl font-bold">{preview.name}</h1>
-      <p className="mt-2 text-muted">
-        ในทริปมี {preview.members.map((m) => m.nickname).join(", ")}
-      </p>
+    <div className="mx-auto min-h-dvh max-w-lg">
+      <header className="bg-ink px-5 pb-7 pt-[max(2.5rem,env(safe-area-inset-top))] text-white">
+        <h1 className="text-display font-bold">{preview.name}</h1>
+        <p className="mt-2 text-body text-[#cfe0da]">คุณได้รับเชิญเข้าทริปนี้</p>
+        {!preview.locked && preview.members.length > 0 && (
+          <ul className="mt-4 flex flex-wrap gap-2" aria-label="สมาชิกในทริป">
+            {preview.members.map((m) => (
+              <li key={m.id} className="flex items-center gap-1.5 rounded-lg bg-white/10 py-1 pl-1 pr-2.5 text-meta">
+                <MemberTile name={m.nickname} tint={tint(m.id)} size={24} />
+                {m.nickname}
+              </li>
+            ))}
+          </ul>
+        )}
+      </header>
 
-      <form onSubmit={join} className="card mt-6 space-y-4 p-5">
-        {unclaimed.length > 0 && (
-          <fieldset>
-            <legend className="label">เพื่อนเพิ่มชื่อคุณไว้แล้วหรือยัง?</legend>
-            <div className="flex flex-wrap gap-2">
-              {unclaimed.map((m) => (
-                <button
-                  type="button"
-                  key={m.id}
-                  onClick={() => setClaim(claim === m.id ? null : m.id)}
-                  className={`btn ${claim === m.id ? "border-brand bg-brand-soft text-brand" : ""}`}
-                  aria-pressed={claim === m.id}
-                >
-                  ฉันคือ {m.nickname}
-                </button>
-              ))}
+      <main className="px-4 pt-5">
+        {preview.pending_member ? (
+          <div className="coupon flex gap-3 p-4" role="status">
+            <Clock className="mt-0.5 size-5 shrink-0" aria-hidden />
+            <div>
+              <p className="font-bold">ส่งคำขอเป็น “{pendingName}” แล้ว</p>
+              <p className="mt-1 text-body text-muted">
+                เพื่อความปลอดภัย เจ้าของทริปต้องยืนยันก่อนว่าคุณคือ {pendingName} หน้านี้จะเปิดทริปให้เองเมื่อได้รับการยืนยัน
+              </p>
             </div>
-          </fieldset>
-        )}
-        {!claim && (
-          <div>
-            <label className="label" htmlFor="nickname">
-              ชื่อเล่นของคุณ
-            </label>
-            <input
-              id="nickname"
-              className="input"
-              required
-              maxLength={30}
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-            />
           </div>
+        ) : preview.locked ? (
+          <div className="coupon flex gap-3 p-4">
+            <Lock className="mt-0.5 size-5 shrink-0" aria-hidden />
+            <div>
+              <p className="font-bold">ทริปนี้ปิดรับสมาชิกใหม่แล้ว</p>
+              <p className="mt-1 text-body text-muted">
+                ลิงก์อาจหมดอายุ (ลิงก์ใช้ได้ 7 วัน) หรือเจ้าของทริปล็อกไว้ โปรดขอลิงก์ใหม่จากเจ้าของทริป
+              </p>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={join} className="coupon space-y-5 p-4">
+            {unclaimed.length > 0 && (
+              <fieldset>
+                <legend className="label">เพื่อนเพิ่มชื่อคุณไว้แล้วหรือยัง</legend>
+                <div className="flex flex-wrap gap-2">
+                  {unclaimed.map((m) => (
+                    <button
+                      type="button"
+                      key={m.id}
+                      onClick={() => setClaim(claim === m.id ? null : m.id)}
+                      className={`btn pl-2 ${claim === m.id ? "border-ink ring-2 ring-ink" : ""}`}
+                      aria-pressed={claim === m.id}
+                    >
+                      <MemberTile name={m.nickname} tint={tint(m.id)} size={28} />
+                      ฉันคือ {m.nickname}
+                    </button>
+                  ))}
+                </div>
+                {claim && <p className="hint">เจ้าของทริปจะยืนยันก่อน แล้วคุณจะเข้าทริปได้</p>}
+              </fieldset>
+            )}
+            {!claim && (
+              <div>
+                <label className="label" htmlFor="nickname">
+                  ชื่อเล่นของคุณ
+                </label>
+                <input
+                  id="nickname"
+                  className="input"
+                  required
+                  maxLength={30}
+                  value={nickname}
+                  onChange={(e) => setNickname(e.target.value)}
+                />
+              </div>
+            )}
+            {error && (
+              <p className="text-body text-owe" role="alert">
+                {error}
+              </p>
+            )}
+            <button className="btn-primary w-full" disabled={busy || (!claim && !nickname.trim())}>
+              {busy ? "กำลังส่ง…" : claim ? "ขอเข้าทริปด้วยชื่อนี้" : "เข้าทริป"}
+            </button>
+          </form>
         )}
-        {error && <p className="text-sm text-owe">{error}</p>}
-        <button className="btn-primary w-full" disabled={busy || (!claim && !nickname.trim())}>
-          {busy ? "กำลังเข้า…" : "เข้าทริป"}
-        </button>
-      </form>
-    </main>
+        <p className="mt-4 text-center text-meta text-muted">
+          <Link href="/privacy" className="underline">
+            ข้อมูลที่เราเก็บ
+          </Link>
+        </p>
+      </main>
+    </div>
   );
 }
 
 function Shell({ children }: { children: React.ReactNode }) {
-  return <main className="mx-auto flex min-h-dvh max-w-lg items-center justify-center px-5 text-muted">{children}</main>;
+  return (
+    <main className="mx-auto flex min-h-dvh max-w-lg items-center justify-center px-6 text-center text-body text-muted">{children}</main>
+  );
 }

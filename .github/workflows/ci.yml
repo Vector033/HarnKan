@@ -32,8 +32,8 @@ jobs:
       - run: npm run db:start
       - name: Write .env.local from the local stack
         run: |
-          eval "$(npx supabase status -o env | grep -E '^(API_URL|PUBLISHABLE_KEY)=')"
-          printf 'NEXT_PUBLIC_SUPABASE_URL=%s\nNEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=%s\n' "$API_URL" "$PUBLISHABLE_KEY" > .env.local
+          eval "$(npx supabase status -o env | grep -E '^(API_URL|PUBLISHABLE_KEY|SECRET_KEY)=')"
+          printf 'NEXT_PUBLIC_SUPABASE_URL=%s\nNEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=%s\nSUPABASE_SECRET_KEY=%s\n' "$API_URL" "$PUBLISHABLE_KEY" "$SECRET_KEY" > .env.local
       - run: npm run test:db
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e

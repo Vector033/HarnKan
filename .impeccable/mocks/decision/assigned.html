@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="th"><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=Kanit:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#14302b;--ground:#eef1ef;--rose:#f2c9d2;--mint:#bfe5d2;--sky:#bdd8f1;--lemon:#f1df8f;--serial:#c7352c;--muted:#5d6f6a;--line:#cfd8d4}
+*{box-sizing:border-box;margin:0}
+body{width:390px;height:844px;overflow:hidden;background:var(--ground);color:var(--ink);font-family:Anuphan,sans-serif}
+.head{background:var(--ink);color:#fff;padding:52px 20px 18px}
+.head small{font:500 12px Anuphan;letter-spacing:.06em;color:#a9c4bc}
+.head h1{font:700 26px/1.15 Anuphan;margin-top:4px}
+.live{float:right;margin-top:-30px;font:600 12px Anuphan;background:var(--mint);color:var(--ink);padding:3px 10px;border-radius:99px}
+.stubs{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px 20px 6px}
+.stub{position:relative;background:#fff;border-radius:10px;padding:12px 14px 12px 20px;overflow:hidden}
+.stub:before{content:"";position:absolute;left:8px;top:8px;bottom:8px;border-left:2px dashed var(--line)}
+.stub.me{background:var(--lemon)}
+.stub span{font:500 12px Anuphan;color:var(--muted)}
+.stub b{display:block;font:600 28px/1.1 Kanit;margin-top:2px}
+.stub em{position:absolute;right:10px;top:10px;font:500 10px Kanit;color:var(--serial);font-style:normal;letter-spacing:.08em}
+.day{position:sticky;top:0;padding:14px 20px 6px;font:600 12px Anuphan;color:var(--muted);display:flex;justify-content:space-between}
+ul{list-style:none;padding:0 20px}
+li{display:flex;align-items:center;gap:12px;background:#fff;padding:12px 14px;border-bottom:1px solid var(--line)}
+li:first-child{border-radius:10px 10px 0 0}li:last-child{border-radius:0 0 10px 10px;border-bottom:0}
+.who{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;font:600 15px Anuphan;flex:none}
+.t{flex:1;min-width:0}.t b{display:block;font:600 16px Anuphan}.t span{font:400 13px Anuphan;color:var(--muted)}
+.amt{font:600 18px Kanit;text-align:right}.amt small{display:block;font:500 11px Anuphan;color:var(--muted)}
+.fab{position:absolute;right:20px;bottom:96px;background:var(--ink);color:#fff;font:600 16px Anuphan;padding:15px 20px;border-radius:14px}
+nav{position:absolute;left:0;right:0;bottom:0;height:78px;background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,1fr);padding-top:12px;text-align:center;font:600 12px Anuphan;color:var(--muted)}
+nav i{display:block;width:22px;height:22px;margin:0 auto 4px;border:2px solid currentColor;border-radius:5px}
+nav .on{color:var(--ink)}
+.tear{margin:10px 20px 0;background:var(--rose);border-radius:10px;display:flex;align-items:center;overflow:hidden}
+.tear .main{flex:1;padding:12px 14px}.tear .main span{font:500 12px Anuphan;color:#6b3a44}.tear .main b{display:block;font:600 16px Anuphan}
+.tear .end{border-left:2px dashed #b88a94;padding:12px 14px;font:600 20px Kanit}
+</style></head><body>
+<div class="head"><small>ทริป · 4 คน</small><h1>เชียงดาว ปีใหม่</h1><div class="live">● สด</div></div>
+<div class="stubs">
+ <div class="stub"><em>No. 0142</em><span>ทั้งทริปจ่ายไป</span><b>5,635 ฿</b></div>
+ <div class="stub me"><em>No. 0142</em><span>ส่วนของคุณ</span><b>1,460 ฿</b></div>
+</div>
+<div class="tear"><div class="main"><span>คุณต้องโอนให้ มิ้นต์</span><b>QR พร้อมเพย์ · แนบสลิป</b></div><div class="end">220 ฿</div></div>
+<div class="day"><span>อ. 31 ธ.ค.</span><span>3 รายการ</span></div>
+<ul>
+ <li><div class="who" style="background:var(--mint)">ม</div><div class="t"><b>ที่พักบ้านดิน 2 คืน</b><span>มิ้นต์ จ่าย · หารเท่า 4 คน</span></div><div class="amt">3,600<small>900 / คน</small></div></li>
+ <li><div class="who" style="background:var(--sky)">ต</div><div class="t"><b>หมูกระทะ</b><span>ต้น จ่าย · หารเท่า 4 คน</span></div><div class="amt">1,240<small>310 / คน</small></div></li>
+ <li><div class="who" style="background:var(--rose)">บ</div><div class="t"><b>ค่ารถสองแถว</b><span>แบม จ่าย · หาร 3 คน</span></div><div class="amt">480<small>160 / คน</small></div></li>
+</ul>
+<div class="day"><span>ศ. 1 ม.ค.</span><span>1 รายการ</span></div>
+<ul><li><div class="who" style="background:var(--lemon)">โ</div><div class="t"><b>กาแฟดอยหลวง</b><span>โอ๊ต จ่าย · ระบุยอดเอง</span></div><div class="amt">315<small>ไม่เท่ากัน</small></div></li></ul>
+<div class="fab">+ เพิ่มรายจ่าย</div>
+<nav><div class="on"><i></i>รายจ่าย</div><div><i></i>สรุปยอด</div><div><i></i>สมาชิก</div></nav>
+</body></html>

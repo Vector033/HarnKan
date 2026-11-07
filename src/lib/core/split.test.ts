@@ -99,5 +99,9 @@ describe("validateSplit", () => {
     expect(validateSplit({ ...base, split_mode: "exact", split: { a: 999.5, b: 0.5 } })?.kind).toBe("not_whole");
     expect(validateSplit({ ...base, split_mode: "equal", split: { x: 1 } }, ["a"])?.kind).toBe("unknown_member");
     expect(validateSplit({ ...base, split_mode: "weights", split: { a: -1, b: 2 } })?.kind).toBe("negative");
+    expect(validateSplit({ ...base, split_mode: "weights", split: { a: 1e400, b: 2 } })?.kind).toBe("negative");
+    expect(validateSplit({ ...base, split_mode: "weights", split: { a: 5000, b: 2 } })?.kind).toBe("weight_range");
+    expect(validateSplit({ ...base, split_mode: "weights", split: { a: 0.0001, b: 2 } })?.kind).toBe("weight_range");
+    expect(validateSplit({ ...base, split_mode: "weights", split: { a: 1e-9, b: 2 } })?.kind).toBe("weight_range");
   });
 });

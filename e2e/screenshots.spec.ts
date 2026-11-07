@@ -6,7 +6,7 @@ test.skip(!process.env.SCREENSHOTS, "set SCREENSHOTS=1 to regenerate docs/screen
 
 // The dev server's overlay can sit over the bottom tab bar; screenshots should not show it.
 async function phone(browser: Browser) {
-  const context = await browser.newContext();
+  const context = await browser.newContext({ reducedMotion: "reduce" });
   await context.addInitScript(() =>
     document.addEventListener("DOMContentLoaded", () => {
       const s = document.createElement("style");
@@ -23,7 +23,7 @@ async function addExpense(page: Page, title: string, amount: string, payer?: str
   await page.getByRole("button", { name: /เพิ่มรายจ่าย/ }).click();
   await page.getByLabel("รายการ").fill(title);
   await page.getByLabel("จำนวนเงิน (บาท)").fill(amount);
-  if (payer) await page.getByLabel("ใครจ่าย").selectOption({ label: payer });
+  if (payer) await page.getByLabel("ผู้จ่าย").selectOption({ label: payer });
   for (const name of opts?.skip ?? []) await page.getByRole("checkbox", { name }).uncheck();
   if (opts?.exact) {
     await page.getByRole("radio", { name: "ระบุยอดเอง" }).click();
@@ -58,10 +58,15 @@ test("README screenshots", async ({ browser }) => {
   // ต้น joins on his own phone by claiming the name Mint already added.
   const ton = await phone(browser);
   await ton.goto(link);
+  await expect(ton.getByRole("button", { name: "เข้าทริป" })).toBeVisible();
+  await expect(ton.getByText("กำลังเปิดลิงก์")).toHaveCount(0);
   await shot(ton, "02-join");
+  await ton.screenshot({ path: ".impeccable/review/mobile-join.png" });
   await ton.getByRole("button", { name: "ฉันคือ ต้น" }).click();
-  await ton.getByRole("button", { name: "เข้าทริป" }).click();
-  await ton.waitForURL(/\/t\//);
+  await ton.getByRole("button", { name: "ขอเข้าทริปด้วยชื่อนี้" }).click();
+  // Claiming a name the owner added waits for the owner's approval.
+  await mint.getByTestId("approve-claim").click();
+  await ton.waitForURL(/\/t\//, { timeout: 20_000 });
   await ton.getByRole("button", { name: /สมาชิก/ }).click();
   await ton.getByLabel("เบอร์พร้อมเพย์").fill("0898765432");
   await ton.getByRole("button", { name: "บันทึก" }).click();
@@ -80,6 +85,9 @@ test("README screenshots", async ({ browser }) => {
   await ton.getByLabel("จำนวนเงิน (บาท)").fill("250");
   await ton.getByRole("radio", { name: "ตามสัดส่วน" }).click();
   await ton.getByLabel("สัดส่วนของ ต้น").fill("2");
+  await expect(ton.getByRole("radio", { name: "ตามสัดส่วน" })).toHaveAttribute("aria-checked", "true");
+  await ton.mouse.move(0, 0); // no hover state in the capture
+  await ton.waitForTimeout(400);
   await shot(ton, "04-add-expense");
   await ton.getByRole("button", { name: "ปิด" }).click();
 

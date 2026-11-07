@@ -6,7 +6,7 @@ import sharp from "sharp";
 
 /** Grayscale, upscaled so text is at least ~1000 px wide, contrast stretched: what tesseract likes. */
 export async function preprocessForOcr(image: Uint8Array): Promise<Buffer> {
-  const img = sharp(image).rotate();
+  const img = sharp(image, { limitInputPixels: 25_000_000 }).rotate();
   const meta = await img.metadata();
   const width = meta.width ?? 1000;
   return img
@@ -19,7 +19,7 @@ export async function preprocessForOcr(image: Uint8Array): Promise<Buffer> {
 
 /** Text of the first QR code in the image, or null. */
 export async function decodeQr(image: Uint8Array): Promise<string | null> {
-  const base = sharp(image).rotate();
+  const base = sharp(image, { limitInputPixels: 25_000_000 }).rotate();
   const meta = await base.metadata();
   // jsQR struggles on very large images; QR modules on slips stay readable at ~800 px.
   const width = Math.min(meta.width ?? 800, 800);
@@ -39,7 +39,7 @@ export function sha256(image: Uint8Array): string {
  * size or JPEG quality land within a few bits of each other.
  */
 export async function dHash(image: Uint8Array): Promise<string> {
-  const { data } = await sharp(image)
+  const { data } = await sharp(image, { limitInputPixels: 25_000_000 })
     .rotate()
     .grayscale()
     .resize(9, 8, { fit: "fill" })

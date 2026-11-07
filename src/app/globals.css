@@ -1,57 +1,186 @@
 @import "tailwindcss";
 
+/* Food-court coupon stock: deep ink on a cool pale ground, each member a
+   coupon tint, red only for serial numbers. */
+
 @theme inline {
-  --font-sans: var(--font-thai), system-ui, sans-serif;
+  --font-sans: var(--font-anuphan), system-ui, sans-serif;
+  --font-num: var(--font-kanit), var(--font-anuphan), system-ui, sans-serif;
 }
 
 @theme {
-  --color-paper: #f6f4ef;
-  --color-ink: #1f1d19;
-  --color-muted: #6f6a60;
-  --color-line: #e4e0d6;
-  --color-brand: #12715b;
-  --color-brand-dark: #0c5444;
-  --color-brand-soft: #e3f1ec;
-  --color-owe: #b4412f;
-  --color-owe-soft: #fbeae6;
-  --color-wait: #a1620b;
-  --color-wait-soft: #fdf1dc;
+  --color-ink: #14302b;
+  --color-ink-2: #1f443d;
+  --color-ground: #eef1ef;
+  --color-paper: #ffffff;
+  --color-muted: #4f625d;
+  --color-line: #d3dcd8;
+  --color-perf: #a9b8b2;
+  --color-serial: #a3271f; /* 4.5:1 on every member tint at 13px */
+  --color-owe: #a3271f;
+  --color-owe-soft: #fbe6e3;
+  --color-ok: #1d6b4a;
+  --color-ok-soft: #dcefe5;
+  --color-wait: #8a5300;
+  --color-wait-soft: #fbefd6;
   --color-pp: #1b3f73;
+
+  /* coupon tints, one per member in join order */
+  --color-t0: #f6cdd6;
+  --color-t1: #c4e8d6;
+  --color-t2: #c5dcf3;
+  --color-t3: #f3e19a;
+  --color-t4: #dccdf1;
+  --color-t5: #f8d2b4;
+
+  /* Four steps only; rank comes from weight first. Nothing readable below 14px. */
+  --text-meta: 14px;
+  --text-meta--line-height: 1.5;
+  --text-body: 16px;
+  --text-body--line-height: 1.55;
+  --text-title: 22px;
+  --text-title--line-height: 1.25;
+  --text-display: 34px;
+  --text-display--line-height: 1.1;
+
+  --radius-coupon: 10px;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html {
   -webkit-tap-highlight-color: transparent;
+  scrollbar-color: var(--color-perf) transparent;
 }
 
 body {
-  background: var(--color-paper);
+  background: var(--color-ground);
+  color: var(--color-ink);
+  caret-color: var(--color-ink);
+}
+
+::selection {
+  background: var(--color-t3);
   color: var(--color-ink);
 }
 
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+a {
+  text-underline-offset: 3px;
+}
+
 .num {
+  font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
 }
 
 @layer components {
   .label {
-    @apply mb-1 block text-sm font-medium text-muted;
+    @apply mb-1.5 block text-meta font-semibold text-ink;
+  }
+  .hint {
+    @apply mt-1.5 text-meta text-muted;
   }
   .input {
-    @apply w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-base outline-none placeholder:text-stone-400 focus:border-brand focus:ring-4 focus:ring-brand/15;
+    @apply w-full rounded-lg border border-line bg-paper px-3.5 py-3 text-body text-ink outline-none placeholder:text-[#6b7c77] focus:border-ink focus:ring-2 focus:ring-ink/15;
   }
   .btn-primary {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-base font-semibold text-white active:bg-brand-dark disabled:opacity-50;
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-ink px-5 py-3 text-body font-semibold text-white transition-colors duration-150 hover:bg-ink-2 active:bg-ink-2 disabled:cursor-not-allowed disabled:opacity-45;
   }
   .btn {
-    @apply inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl border border-line bg-white px-3.5 py-2 text-sm font-medium text-ink active:bg-stone-100 disabled:opacity-50;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-ink/25 bg-paper px-4 py-2.5 text-body font-semibold text-ink transition-colors duration-150 hover:border-ink/50 active:bg-ground disabled:cursor-not-allowed disabled:opacity-45;
   }
-  .btn-ghost {
-    @apply inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium text-muted active:bg-stone-200/60;
+  .btn-quiet {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-body font-semibold text-ink underline decoration-ink/30 underline-offset-4 hover:decoration-ink active:bg-ink/5;
   }
-  .card {
-    @apply rounded-2xl border border-line bg-white;
+  .btn-danger {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-owe/40 bg-paper px-4 py-2.5 text-body font-semibold text-owe hover:border-owe;
+  }
+  /* A coupon: paper with a punched perforation line. */
+  .coupon {
+    @apply relative overflow-hidden rounded-[var(--radius-coupon)] bg-paper;
+  }
+  .perf-y {
+    border-left: 2px dashed var(--color-perf);
+  }
+  .perf-x {
+    border-top: 2px dashed var(--color-perf);
+  }
+  .serial {
+    @apply text-[13px] font-semibold tracking-[0.06em] text-serial;
+    font-family: var(--font-num);
+    font-variant-numeric: tabular-nums;
   }
   .chip {
-    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium;
+    @apply inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-meta font-semibold;
+  }
+}
+
+/* Signature moment: a confirmed coupon tears along its perforation. */
+@keyframes tear-stub {
+  0% {
+    transform: translate(0, 0) rotate(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(24px, 10px) rotate(6deg);
+    opacity: 0;
+  }
+}
+.tearing .stub-half {
+  transform-origin: left top;
+  animation: tear-stub 280ms var(--ease-out-expo) forwards;
+}
+
+@keyframes stub-fade {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    transform: translateY(6px);
+    opacity: 0.4;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.arrive {
+  animation: rise-in 220ms var(--ease-out-expo);
+}
+
+dialog[open] {
+  animation: sheet-up 240ms var(--ease-out-expo);
+}
+@keyframes sheet-up {
+  from {
+    transform: translateY(24px);
+  }
+  to {
+    transform: none;
+  }
+}
+dialog::backdrop {
+  background: rgb(20 48 43 / 0.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+  /* Reduced motion keeps the moment as a plain fade, no travel. */
+  .tearing .stub-half {
+    animation: stub-fade 200ms linear forwards !important;
   }
 }

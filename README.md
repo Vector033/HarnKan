@@ -57,20 +57,38 @@ slip image ─▶ @harnkan/slip-reader ─▶ { amount, dateTime, receiver{name,
 
 A false tick, where a debt shows as paid when it isn't, is the expensive mistake, so the eval fails if any happen. The remaining 8% go to "needs a look": the date was unreadable or confidence was low, and the user taps once to record it. Field-level reader accuracy is in the SlipJot README. Numbers on real slips and with Gemini are still to come; see the roadmap.
 
-## Privacy and limits (PDPA)
+## Security and privacy (PDPA)
 
-- **Slip images are never stored.** They live in the request's memory, go to the reader, and are dropped. Only the amount, time, shortened receiver name, last 4 digits and reference are kept.
-- **HarnKan does not verify slips with the bank.** It only reads the image. That's why the receiver has to confirm every payment, and the UI says so.
-- HarnKan never holds or moves money. It only keeps records and makes QR codes.
-- RLS limits each trip to its members. Only you can edit your own PromptPay number, so nobody can point your QR at their account. Slip reads are rate-limited per user to cap API cost.
-- Real slips must not be committed. `eval/slips-private/` is gitignored, and the committed fixtures are synthetic.
-- Anonymous auth means clearing the browser's cookies loses access on that device. Moving to a new phone is on the roadmap.
+Slips are personal data, so the rule is: keep as little as possible, show it only to the trip, and make every boundary enforced by the database rather than the UI.
+
+**What is kept from a slip.** The image only exists in the request's memory: it is read and dropped, never written to disk or the database. What is stored is the amount, time, the receiver's first name and surname initial only (`สมหญิง ด.`), the account's last 4 digits, the bank, and a SHA-256 of the transaction reference salted with the trip id (enough to refuse the same slip twice, useless to look anything up). Uploads are re-encoded in the browser (max 2000 px, which also drops EXIF location data), capped at 4 MB, checked by their file signature rather than their claimed type, and decoded with a 25-megapixel limit. Logs never contain slip content. [`src/lib/core/privacy.ts`](src/lib/core/privacy.ts)
+
+**Who can see and change what** (Postgres RLS + SQL functions, tested in `tests/db`):
+- Only members of a trip can read anything in it; every write that needs a check runs in a function.
+- Invite links expire after 7 days. The trip creator can **lock** the trip (links stop admitting anyone; a locked preview shows no names), **replace the link** (old links stop working), **remove a member** (they lose access at once, are barred from rejoining with any link, the link is replaced, and their device wipes its cached copy) and **delete the trip**.
+- Claiming a name someone added ("I am Ton") waits for the creator's approval, so a stray link cannot be used to become Ton and collect what the group owes Ton.
+- A PromptPay number can only be set by its owner. Placeholders cannot carry one, so nobody can point a friend's QR at their own account.
+- Payments are claimed by the payer and confirmed only by the receiver; nobody can confirm a payment they recorded, the creator included.
+- A payment marked "with slip" can only be written by the server after it read a slip (service role, `record_slip_payment`). Browsers can record manual payments only. When the reading needs the payer's OK, the server hands back an HMAC-signed, 15-minute receipt of exactly what it read, so the browser can confirm it but not edit it.
+- Rate limits and bounds: slip reads (20/hour/user), trip creation (20/day/user), members per trip (50), split weights (0–1000, 3 decimals), size caps on stored JSON, and placeholders that appear in an expense cannot be deleted.
+
+**Web.** A per-request nonce CSP (`src/proxy.ts`: scripts only with the nonce, `connect-src` limited to this origin and the Supabase project, `frame-ancestors 'none'`), plus HSTS, `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: same-origin` (invite codes live in URLs), a tight `Permissions-Policy` and COOP. The slip API refuses cross-origin posts and oversized bodies.
+
+**On the device.** Trips are cached in IndexedDB for offline use. The home page has "ลบข้อมูลบนเครื่องนี้" for shared phones, and a member who loses access has the cache wiped automatically. A plain-language privacy page lives at `/privacy`.
+
+An independent review (a separate agent with no access to the build context) found the second-pass issues above; each is now covered by a test in `tests/db/rpc.test.ts`.
+
+**Limits, stated honestly.**
+- HarnKan does **not** verify slips with a bank; it reads the image and the receiver confirms. The UI says so.
+- With `GEMINI_API_KEY` set, slip images are sent to Google for reading. On Gemini's free tier Google may use inputs to improve its products; use a paid key or leave the key unset (local OCR) for real slips.
+- Anonymous sign-in has no CAPTCHA yet; Supabase's per-IP limit is the only brake. Adding Cloudflare Turnstile needs keys from the project owner.
+- Clearing the browser loses access to trips on that device (anonymous accounts).
 
 ## Architecture
 
 | Layer | |
 |---|---|
-| App | Next.js 16 (App Router) + TypeScript + Tailwind 4, PWA (manifest + hand-written `public/sw.js`) |
+| App | Next.js 16 (App Router) + TypeScript + Tailwind 4, PWA (manifest + hand-written `public/sw.js`). Visual system: Thai food-court coupon booklet (see `DESIGN.md`), Anuphan + Kanit, Lucide icons |
 | Data | Supabase Postgres, [one migration](supabase/migrations/20261104000000_init.sql) with RLS and SQL functions for every checked write (`save_expense` with version check, `record_payment` / `decide_payment` with role rules, `validate_split` on the server) |
 | Realtime | Supabase Realtime `postgres_changes` filtered per trip; full refetch on every (re)subscribe so no event gap is missed |
 | Offline | [`src/lib/trip/store.ts`](src/lib/trip/store.ts): IndexedDB snapshot + ordered outbox, optimistic overlay, coalescing of unsent edits ([`outbox.ts`](src/lib/trip/outbox.ts)) |

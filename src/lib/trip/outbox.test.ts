@@ -27,10 +27,10 @@ let seq = 0;
 const q = (op: Op): QueuedOp => ({ seq: ++seq, tripId: "t", op, queuedAt: "" });
 
 const snap: Snapshot = {
-  trip: { id: "t", name: "ทริป", invite_code: "x", created_by: "u1", created_at: "" },
+  trip: { id: "t", name: "ทริป", invite_code: "x", created_by: "u1", created_at: "", locked: false, invite_expires_at: "" },
   members: [
-    { id: "a", trip_id: "t", user_id: "u1", nickname: "เอ", promptpay_id: null, payee_name: null, created_at: "1" },
-    { id: "b", trip_id: "t", user_id: "u2", nickname: "บี", promptpay_id: null, payee_name: null, created_at: "2" },
+    { id: "a", trip_id: "t", user_id: "u1", pending_user_id: null, nickname: "เอ", promptpay_id: null, payee_name: null, created_at: "1" },
+    { id: "b", trip_id: "t", user_id: "u2", pending_user_id: null, nickname: "บี", promptpay_id: null, payee_name: null, created_at: "2" },
   ],
   expenses: [row()],
   payments: [],

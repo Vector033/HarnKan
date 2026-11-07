@@ -7,7 +7,7 @@ import { Baht, Sheet } from "../ui";
 /** Shows both versions when a queued edit lost a race, and lets the user pick one. */
 export function ConflictSheet({ conflict, state, store }: { conflict: Conflict; state: TripState; store: TripStore }) {
   const names = new Map(state.view!.members.map((m) => [m.id, m.nickname]));
-  const theirsBy = state.view!.members.find((m) => m.user_id === conflict.theirs.updated_by)?.nickname ?? "เพื่อน";
+  const theirsBy = state.view!.members.find((m) => m.user_id === conflict.theirs.updated_by)?.nickname ?? "สมาชิกอีกคน";
   const { theirs, mine } = conflict;
 
   async function keepMine() {
@@ -26,24 +26,24 @@ export function ConflictSheet({ conflict, state, store }: { conflict: Conflict; 
     <Sheet
       open
       onClose={() => store.dismissConflict(conflict.id)}
-      title="มีคนแก้รายการเดียวกัน"
+      title="มีคนแก้ไขรายการเดียวกัน"
       footer={
         <div className="grid grid-cols-2 gap-2">
           <button className="btn" onClick={() => store.dismissConflict(conflict.id)} data-testid="keep-theirs">
-            ใช้ของ {theirsBy}
+            ใช้ฉบับของ {theirsBy}
           </button>
           <button className="btn-primary" onClick={keepMine} data-testid="keep-mine">
-            ใช้ของฉัน
+            ใช้ฉบับของฉัน
           </button>
         </div>
       }
     >
-      <p className="mb-4 text-sm text-muted">
-        {theirsBy} บันทึกรายการนี้ก่อนการแก้ของคุณจะถึงเซิร์ฟเวอร์ เลือกว่าจะเก็บแบบไหน
+      <p className="mb-5 text-body text-muted">
+        {theirsBy} บันทึกรายการนี้ก่อนที่การแก้ไขของคุณจะถึงเซิร์ฟเวอร์ โปรดเลือกฉบับที่ต้องการเก็บไว้
       </p>
-      <div className="grid grid-cols-2 gap-3">
-        <Version heading={`ของ ${theirsBy}`} e={theirs.deleted ? "deleted" : theirs} names={names} />
-        <Version heading="ของฉัน" e={mine} names={names} highlight />
+      <div className="grid grid-cols-2 gap-2.5">
+        <Version heading={`ฉบับของ ${theirsBy}`} e={theirs.deleted ? "deleted" : theirs} names={names} />
+        <Version heading="ฉบับของฉัน" e={mine} names={names} highlight />
       </div>
     </Sheet>
   );
@@ -61,17 +61,17 @@ function Version({
   highlight?: boolean;
 }) {
   return (
-    <div className={`rounded-xl border p-3 ${highlight ? "border-brand bg-brand-soft/40" : "border-line"}`}>
-      <p className="mb-2 text-xs font-semibold text-muted">{heading}</p>
+    <div className={`coupon p-3.5 ${highlight ? "ring-2 ring-ink" : "ring-1 ring-line"}`}>
+      <p className="mb-2 text-meta font-semibold text-muted">{heading}</p>
       {e === "deleted" ? (
-        <p className="font-medium text-owe">ลบรายการนี้</p>
+        <p className="font-semibold text-owe line-through decoration-2">ลบรายการนี้</p>
       ) : (
-        <dl className="space-y-1 text-sm">
+        <dl className="space-y-1 text-body">
           <dt className="sr-only">รายการ</dt>
-          <dd className="font-medium">{e.title}</dd>
+          <dd className="font-semibold">{e.title}</dd>
           <dt className="sr-only">จำนวน</dt>
           <dd>
-            <Baht satang={e.amount} className="text-lg font-bold" />
+            <Baht satang={e.amount} className="text-title font-semibold" />
           </dd>
           <dd className="text-muted">{names.get(e.paid_by)} จ่าย</dd>
           <dd className="text-muted">

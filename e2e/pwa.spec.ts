@@ -21,8 +21,8 @@ test("a trip opened once still opens and takes expenses after a reload with no c
   await page.getByLabel("รายการ").fill("ค่าอุทยาน");
   await page.getByLabel("จำนวนเงิน (บาท)").fill("100");
   await page.getByTestId("save-expense").click();
-  await expect(page.getByText("รอซิงก์")).toBeVisible();
+  await expect(page.getByText("รอส่ง", { exact: true })).toBeVisible();
 
   await context.setOffline(false);
-  await expect(page.getByText("รอซิงก์")).toHaveCount(0, { timeout: 30_000 });
+  await expect(page.getByText("รอส่ง", { exact: true })).toHaveCount(0, { timeout: 30_000 });
 });

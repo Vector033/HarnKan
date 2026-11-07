@@ -50,3 +50,22 @@ export async function nextSeq(): Promise<number> {
   const cursor = await (await db()).transaction("outbox").store.openCursor(null, "prev");
   return Math.max(cursor?.value.seq ?? 0, Date.now() * 1000 + Math.floor(Math.random() * 1000)) + 1;
 }
+
+/** Removes everything this device keeps about one trip. */
+export async function forgetTrip(tripId: string) {
+  const d = await db();
+  const tx = d.transaction(["snapshots", "outbox"], "readwrite");
+  await tx.objectStore("snapshots").delete(tripId);
+  const outbox = tx.objectStore("outbox");
+  for (const q of await outbox.index("byTrip").getAll(tripId)) await outbox.delete(q.seq);
+  await tx.done;
+}
+
+/** Removes every trip from this device (shared or borrowed phones). */
+export async function forgetAll() {
+  const d = await db();
+  const tx = d.transaction(["snapshots", "outbox"], "readwrite");
+  await tx.objectStore("snapshots").clear();
+  await tx.objectStore("outbox").clear();
+  await tx.done;
+}

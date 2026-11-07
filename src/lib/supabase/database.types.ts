@@ -51,14 +51,14 @@ isOneToOne: false
                   ]
                 },"members": {
                   Row: {
-                    "created_at": string,"id": string,"nickname": string,"payee_name": string | null,"promptpay_id": string | null,"trip_id": string,"user_id": string | null
+                    "created_at": string,"id": string,"nickname": string,"payee_name": string | null,"pending_user_id": string | null,"promptpay_id": string | null,"trip_id": string,"user_id": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"nickname": string,"payee_name"?: string | null,"promptpay_id"?: string | null,"trip_id": string,"user_id"?: string | null
+                    "created_at"?: string,"id"?: string,"nickname": string,"payee_name"?: string | null,"pending_user_id"?: string | null,"promptpay_id"?: string | null,"trip_id": string,"user_id"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"nickname"?: string,"payee_name"?: string | null,"promptpay_id"?: string | null,"trip_id"?: string,"user_id"?: string | null
+                    "created_at"?: string,"id"?: string,"nickname"?: string,"payee_name"?: string | null,"pending_user_id"?: string | null,"promptpay_id"?: string | null,"trip_id"?: string,"user_id"?: string | null
                   }
                   Relationships: [
                     {
@@ -115,16 +115,36 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
-                },"trips": {
+                },"trip_bans": {
                   Row: {
-                    "created_at": string,"created_by": string,"id": string,"invite_code": string,"name": string
+                    "banned_at": string,"trip_id": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"created_by": string,"id"?: string,"invite_code": string,"name": string
+                    "banned_at"?: string,"trip_id": string,"user_id": string
                   }
                   Update: {
-                    "created_at"?: string,"created_by"?: string,"id"?: string,"invite_code"?: string,"name"?: string
+                    "banned_at"?: string,"trip_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "trip_bans_trip_id_fkey"
+      columns: ["trip_id"]
+isOneToOne: false
+      referencedRelation: "trips"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"trips": {
+                  Row: {
+                    "created_at": string,"created_by": string,"id": string,"invite_code": string,"invite_expires_at": string,"locked": boolean,"name": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by": string,"id"?: string,"invite_code": string,"invite_expires_at"?: string,"locked"?: boolean,"name": string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string,"id"?: string,"invite_code"?: string,"invite_expires_at"?: string,"locked"?: boolean,"name"?: string
                   }
                   Relationships: [
                     
@@ -137,6 +157,9 @@ isOneToOne: false
           Functions: {
             "create_trip":
 { Args: { "p_name": string,"p_nickname": string }; Returns: Json
+                           },
+"decide_claim":
+{ Args: { "p_accept": boolean,"p_member": string }; Returns: undefined
                            },
 "decide_payment":
 { Args: { "p_decision": string,"p_id": string }; Returns: Json
@@ -159,14 +182,35 @@ isOneToOne: false
 "record_payment":
 { Args: { "p_payment": Json }; Returns: Json
                            },
+"record_payment_as":
+{ Args: { "p_payment": Json,"p_slip": Json,"p_user": string }; Returns: Json
+                           },
+"record_slip_payment":
+{ Args: { "p_payment": Json,"p_slip": Json,"p_user": string }; Returns: Json
+                           },
+"remove_member":
+{ Args: { "p_member": string }; Returns: undefined
+                           },
+"require_creator":
+{ Args: { "t": string }; Returns: undefined
+                           },
 "require_member":
 { Args: { "t": string }; Returns: undefined
                            },
 "require_user":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
+"rotate_invite":
+{ Args: { "p_trip": string }; Returns: string
+                           },
 "save_expense":
 { Args: { "p_base_version"?: number,"p_expense": Json }; Returns: Json
+                           },
+"set_trip_locked":
+{ Args: { "p_locked": boolean,"p_trip": string }; Returns: undefined
+                           },
+"trip_has_room":
+{ Args: { "t": string }; Returns: boolean
                            },
 "trip_preview":
 { Args: { "p_code": string }; Returns: Json

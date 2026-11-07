@@ -1,7 +1,16 @@
 "use client";
 
+import { X } from "lucide-react";
 import { useEffect, useRef, type ReactNode } from "react";
 import { formatBaht } from "@/lib/core/money";
+
+const TINTS = ["--color-t0", "--color-t1", "--color-t2", "--color-t3", "--color-t4", "--color-t5"];
+
+/** Each member keeps one coupon tint for the whole trip, by join order. */
+export function memberTint(members: { id: string }[], id: string) {
+  const i = Math.max(0, members.findIndex((m) => m.id === id));
+  return `var(${TINTS[i % TINTS.length]})`;
+}
 
 /** Bottom sheet on phones, centred dialog on wider screens. */
 export function Sheet({
@@ -31,34 +40,34 @@ export function Sheet({
       onClose={onClose}
       onClick={(e) => e.target === ref.current && onClose()}
       aria-label={title}
-      className="m-0 mt-auto max-h-[92dvh] w-full max-w-none overflow-hidden rounded-t-3xl bg-white p-0 text-ink backdrop:bg-black/40 sm:m-auto sm:max-w-lg sm:rounded-3xl"
+      className="m-0 mt-auto max-h-[92dvh] w-full max-w-none overflow-hidden rounded-t-[var(--radius-coupon)] bg-ground p-0 text-ink sm:m-auto sm:max-w-lg sm:rounded-[var(--radius-coupon)]"
     >
       {open && (
         <div className="flex max-h-[92dvh] flex-col">
-          <div className="flex items-center justify-between border-b border-line px-5 py-3.5">
-            <h2 className="text-lg font-semibold">{title}</h2>
-            <button type="button" onClick={onClose} className="btn-ghost -mr-2" aria-label="ปิด">
-              ✕
+          <div className="flex items-center justify-between gap-3 bg-paper px-5 pb-3.5 pt-4">
+            <h2 className="text-body font-bold leading-tight">{title}</h2>
+            <button type="button" onClick={onClose} className="-mr-2 grid size-11 place-items-center rounded-lg hover:bg-ground" aria-label="ปิด">
+              <X className="size-5" strokeWidth={2.2} />
             </button>
           </div>
-          <div className="overflow-y-auto px-5 py-4">{children}</div>
-          {footer && <div className="border-t border-line px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">{footer}</div>}
+          <div className="perf-x" aria-hidden />
+          <div className="overflow-y-auto px-5 py-5">{children}</div>
+          {footer && (
+            <div className="border-t border-line bg-paper px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">{footer}</div>
+          )}
         </div>
       )}
     </dialog>
   );
 }
 
-const AVATAR_COLORS = ["#12715b", "#1b3f73", "#a1620b", "#7a3e9d", "#b4412f", "#2f6f8f", "#5b6b1f", "#8f4a2f"];
-
-export function Avatar({ name, id, size = 36 }: { name: string; id: string; size?: number }) {
-  let h = 0;
-  for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+/** A member's coupon-tinted tile with their first letter. */
+export function MemberTile({ name, tint, size = 36 }: { name: string; tint: string; size?: number }) {
   return (
     <span
       aria-hidden
-      className="inline-flex shrink-0 items-center justify-center rounded-full font-semibold text-white"
-      style={{ width: size, height: size, background: AVATAR_COLORS[h % AVATAR_COLORS.length], fontSize: size * 0.42 }}
+      className="inline-grid shrink-0 place-items-center rounded-lg font-bold text-ink shadow-[inset_0_0_0_1.5px_rgb(20_48_43/0.16)]"
+      style={{ width: size, height: size, background: tint, fontSize: size * 0.44 }}
     >
       {[...name.trim()][0] ?? "?"}
     </span>
@@ -69,15 +78,18 @@ export function Baht({ satang, className = "" }: { satang: number; className?: s
   return (
     <span className={`num ${className}`}>
       {formatBaht(satang)}
-      <span className="ml-0.5 text-[0.8em] font-normal opacity-70">฿</span>
+      <span className="ml-1 text-[0.72em] font-medium">฿</span>
     </span>
   );
 }
 
-export function PendingDot({ label = "รอซิงก์" }: { label?: string }) {
+/**
+ * A change on this device that has not reached the server yet. Pending is
+ * shown by a dashed outline, the same mark the coupons use for "not settled".
+ */
+export function PendingMark({ label = "รอส่ง" }: { label?: string }) {
   return (
-    <span className="chip bg-wait-soft text-wait" title="ยังไม่ถึงเซิร์ฟเวอร์">
-      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-wait" />
+    <span className="chip border border-dashed border-wait bg-wait-soft text-wait" title="ยังไม่ถึงเซิร์ฟเวอร์">
       {label}
     </span>
   );
@@ -85,9 +97,9 @@ export function PendingDot({ label = "รอซิงก์" }: { label?: string
 
 export function Empty({ title, children }: { title: string; children?: ReactNode }) {
   return (
-    <div className="rounded-2xl border border-dashed border-line px-5 py-10 text-center">
-      <p className="font-medium">{title}</p>
-      {children && <div className="mt-1 text-sm text-muted">{children}</div>}
+    <div className="rounded-[var(--radius-coupon)] border-2 border-dashed border-perf px-5 py-10 text-center">
+      <p className="text-body font-semibold">{title}</p>
+      {children && <div className="mx-auto mt-1.5 max-w-[32ch] text-body text-muted">{children}</div>}
     </div>
   );
 }

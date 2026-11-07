@@ -216,9 +216,15 @@ A cool, low-chroma ink-and-paper base with a set of six pastel coupon tints and 
 
 ## Layout
 
-A single column, centred, at most 512px wide, on every screen size. The page gutter is 16px; the home and join pages use 20px inside the header band. An ink header band opens every page; on the trip screen it is sticky, and the day-guide rows stick directly under it (at 76px) while their day is in view.
+Phone first: a single column, centred, at most 512px wide, up to 1023px. The page gutter is 16px; the home and join pages use 20px inside the header band. An ink header band opens every page; on the trip screen it is sticky, and the day-guide rows stick directly under it (at 76px) while their day is in view.
 
 The trip screen has a fixed three-tab bar at the bottom (64px tall, safe-area aware) and a fixed add-expense button above it on the right, aligned to the column edge on wide screens. Main content reserves 128px of bottom padding so neither covers the last row.
+
+**Wide screens (1024px and up).** The ink band runs the full width with its content in a centred 1152px container.
+- **Trip:** two columns. The left shows expenses or members (two tabs in the ink band, active marked by a 3px mint bar); the right is the settlement, always visible, 400px wide and sticky under the header. The bottom tab bar is gone and "เพิ่มรายจ่าย" sits at the top of the list, not floating. The "you need to transfer" banner is hidden because the settlement is already on screen.
+- **Home and join:** split screen. The left half is the ink band, sticky and full height, with the name, the line and the example coupon; the right half holds the form and the trip list at most 576px wide.
+- **Privacy:** the band runs full width; text stays at a 672px measure.
+- Rows that stick under the header read its measured height (`--header-h`), so a two-line trip name never covers them.
 
 Spacing rhythm: 8px between coupons in a list, 10px between side-by-side stubs, 12px by 14px inside a coupon, 20px inside sheets and forms, 28px to 32px between sections. Sheets are bottom sheets on phones (up to 92dvh) and centred dialogs from 640px up.
 

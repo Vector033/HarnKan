@@ -75,16 +75,18 @@ export default function Home() {
   }
 
   return (
-    <div className="mx-auto min-h-dvh max-w-lg">
-      <header className="bg-ink px-5 pb-8 pt-[max(2.5rem,env(safe-area-inset-top))] text-white">
-        <h1 className="text-display font-bold">หารกัน</h1>
-        <p className="mt-2 max-w-[30ch] text-body leading-relaxed text-on-ink-muted">
-          บันทึกค่าใช้จ่ายร่วมกันได้จากมือถือของทุกคน แล้วสรุปให้ว่าใครต้องโอนให้ใคร โดยโอนน้อยครั้งที่สุด
-        </p>
-        {trips !== null && trips.length === 0 && <ExampleCoupon />}
+    <div className="mx-auto min-h-dvh max-w-lg lg:grid lg:max-w-none lg:grid-cols-2">
+      <header className="bg-ink px-5 pb-8 pt-[max(2.5rem,env(safe-area-inset-top))] text-white lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:items-end lg:justify-center lg:px-16 lg:py-16">
+        <div className="lg:w-full lg:max-w-md">
+          <h1 className="text-display font-bold">หารกัน</h1>
+          <p className="mt-2 max-w-[30ch] text-body leading-relaxed text-on-ink-muted">
+            บันทึกค่าใช้จ่ายร่วมกันได้จากมือถือของทุกคน แล้วสรุปให้ว่าใครต้องโอนให้ใคร โดยโอนน้อยครั้งที่สุด
+          </p>
+          {trips !== null && trips.length === 0 && <ExampleCoupon />}
+        </div>
       </header>
 
-      <main className="space-y-8 px-4 pb-12 pt-5">
+      <main className="space-y-8 px-4 pb-12 pt-5 lg:w-full lg:max-w-xl lg:self-center lg:px-12 lg:py-16">
         <form onSubmit={create} className="coupon" aria-labelledby="create-h">
           <div className="space-y-5 p-4">
             <h2 id="create-h" className="text-body font-bold">

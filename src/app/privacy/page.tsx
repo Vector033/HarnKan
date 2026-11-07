@@ -45,15 +45,17 @@ const SECTIONS: { h: string; p: string[] }[] = [
 
 export default function PrivacyPage() {
   return (
-    <div className="mx-auto min-h-dvh max-w-lg">
+    <div className="min-h-dvh">
       <header className="bg-ink px-5 pb-7 pt-[max(2.5rem,env(safe-area-inset-top))] text-white">
-        <Link href="/" className="-ml-2 inline-flex min-h-12 items-center px-2 text-body font-medium text-on-ink-muted underline">
-          หารกัน
-        </Link>
-        <h1 className="mt-1 text-display font-bold leading-tight">ข้อมูลที่เราเก็บ</h1>
-        <p className="mt-2 text-body text-on-ink-muted">สลิปโอนเงินเป็นข้อมูลส่วนบุคคล เราจึงเก็บให้น้อยที่สุดเท่าที่แอปต้องใช้</p>
+        <div className="mx-auto max-w-lg lg:max-w-2xl">
+          <Link href="/" className="-ml-2 inline-flex min-h-12 items-center px-2 text-body font-medium text-on-ink-muted underline">
+            หารกัน
+          </Link>
+          <h1 className="mt-1 text-display font-bold leading-tight">ข้อมูลที่เราเก็บ</h1>
+          <p className="mt-2 text-body text-on-ink-muted">สลิปโอนเงินเป็นข้อมูลส่วนบุคคล เราจึงเก็บให้น้อยที่สุดเท่าที่แอปต้องใช้</p>
+        </div>
       </header>
-      <main className="space-y-7 px-5 pb-14 pt-6">
+      <main className="mx-auto max-w-lg space-y-7 px-5 pb-14 pt-6 lg:max-w-2xl">
         {SECTIONS.map((s) => (
           <section key={s.h}>
             <h2 className="text-body font-bold">{s.h}</h2>

@@ -2,7 +2,7 @@
 
 import { ArrowLeftRight, ChevronLeft, CloudOff, ReceiptText, Users, X } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { settlement } from "@/lib/trip/derive";
 import { useTrip, type TripState } from "@/lib/trip/store";
 import { ConflictSheet } from "./conflict-sheet";
@@ -18,9 +18,37 @@ const TABS = [
   { key: "members", label: "สมาชิก", Icon: Users },
 ] as const;
 
+/** Wide screens (1024px and up) show the settlement beside the list instead of in its own tab. */
+const WIDE = "(min-width: 1024px)";
+function useWide() {
+  return useSyncExternalStore(
+    (cb) => {
+      const m = window.matchMedia(WIDE);
+      m.addEventListener("change", cb);
+      return () => m.removeEventListener("change", cb);
+    },
+    () => window.matchMedia(WIDE).matches,
+    () => false,
+  );
+}
+
+/** Publishes the sticky header's height so rows that stick under it never slide beneath it. */
+function useHeaderHeight() {
+  return useCallback((el: HTMLElement | null) => {
+    if (!el) return;
+    const set = () => document.documentElement.style.setProperty("--header-h", `${el.offsetHeight}px`);
+    set();
+    const ro = new ResizeObserver(set);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+}
+
 export function TripView({ tripId }: { tripId: string }) {
   const [state, store] = useTrip(tripId);
   const [tab, setTab] = useState<Tab>("expenses");
+  const wide = useWide();
+  const headerRef = useHeaderHeight();
   const s = useMemo(() => (state.view ? settlement(state.view, state.me?.id ?? null) : null), [state.view, state.me]);
 
   if (state.status === "no-access")
@@ -55,12 +83,19 @@ export function TripView({ tripId }: { tripId: string }) {
 
   const view = state.view;
   const badge = s.awaitingMe.length;
+  // On a wide screen the settlement is always on the right, so the left shows expenses or members.
+  const left = wide && tab === "settle" ? "expenses" : tab;
+  const tabs = wide ? TABS.filter((t) => t.key !== "settle") : TABS;
+
+  const expenses = <ExpensesTab state={state} store={store} settlement={s} onOpenSettle={() => setTab("settle")} />;
+  const settle = <SettleTab state={state} store={store} settlement={s} />;
+  const members = <MembersTab state={state} store={store} settlement={s} />;
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-lg flex-col">
-      <header className="sticky top-0 z-20 bg-ink px-4 pb-4 pt-[max(0.75rem,env(safe-area-inset-top))] text-white">
-        <div className="flex items-center gap-1">
-          <Link href="/" className="-ml-3 grid size-12 place-items-center rounded-lg hover:bg-white/10" aria-label="ทริปทั้งหมด">
+    <div className="mx-auto flex min-h-dvh max-w-lg flex-col lg:max-w-none">
+      <header ref={headerRef} className="sticky top-0 z-20 bg-ink pb-4 pt-[max(0.75rem,env(safe-area-inset-top))] text-white lg:pb-0">
+        <div className="flex items-center gap-1 px-4 lg:mx-auto lg:max-w-6xl lg:gap-3 lg:px-8">
+          <Link href="/" className="-ml-3 grid size-12 shrink-0 place-items-center rounded-lg hover:bg-white/10" aria-label="ทริปทั้งหมด">
             <ChevronLeft className="size-6" />
           </Link>
           <div className="min-w-0 flex-1">
@@ -73,44 +108,76 @@ export function TripView({ tripId }: { tripId: string }) {
           </div>
           <SyncStatus state={state} />
         </div>
+        {wide && (
+          <nav className="mx-auto mt-2 flex max-w-6xl gap-1 px-8" aria-label="ส่วนของทริป">
+            {tabs.map(({ key, label, Icon }) => {
+              const on = left === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setTab(key)}
+                  aria-current={on ? "page" : undefined}
+                  className={`relative flex min-h-12 items-center gap-2 rounded-t-lg px-4 text-body font-semibold transition-colors duration-150 ${on ? "text-white" : "text-on-ink-muted hover:bg-white/10 hover:text-white"}`}
+                >
+                  <Icon className="size-5" strokeWidth={on ? 2.4 : 1.9} aria-hidden />
+                  {label}
+                  {on && <span className="absolute inset-x-3 bottom-0 h-[3px] rounded-t bg-t1" aria-hidden />}
+                </button>
+              );
+            })}
+          </nav>
+        )}
       </header>
 
-      <Notices state={state} onDismissError={(i) => store.dismissError(i)} />
+      <div className="lg:mx-auto lg:w-full lg:max-w-6xl lg:px-4">
+        <Notices state={state} onDismissError={(i) => store.dismissError(i)} />
+      </div>
 
-      <main className="flex-1 px-4 pb-32 pt-4">
-        {tab === "expenses" && <ExpensesTab state={state} store={store} settlement={s} onOpenSettle={() => setTab("settle")} />}
-        {tab === "settle" && <SettleTab state={state} store={store} settlement={s} />}
-        {tab === "members" && <MembersTab state={state} store={store} settlement={s} />}
-      </main>
+      {wide ? (
+        <main className="mx-auto grid w-full max-w-6xl flex-1 grid-cols-[minmax(0,1fr)_minmax(0,25rem)] items-start gap-8 px-8 pb-12 pt-6">
+          <div className="flex min-w-0 flex-col">{left === "members" ? members : expenses}</div>
+          <aside
+            className="sticky top-[calc(var(--header-h,8rem)+1.5rem)] max-h-[calc(100dvh-var(--header-h,8rem)-3rem)] overflow-y-auto rounded-[var(--radius-coupon)] pb-2"
+            aria-label="สรุปยอด"
+          >
+            {settle}
+          </aside>
+        </main>
+      ) : (
+        <main className="flex-1 px-4 pb-32 pt-4">
+          {tab === "expenses" && expenses}
+          {tab === "settle" && settle}
+          {tab === "members" && members}
+        </main>
+      )}
 
-      <nav
-        className="fixed inset-x-0 bottom-0 z-20 pb-[env(safe-area-inset-bottom)]"
-        aria-label="ส่วนของทริป"
-      >
-        <div className="mx-auto grid max-w-lg grid-cols-3 border-t border-line bg-paper sm:border-x">
-          {TABS.map(({ key, label, Icon }) => {
-            const on = tab === key;
-            return (
-              <button
-                key={key}
-                onClick={() => setTab(key)}
-                aria-current={on ? "page" : undefined}
-                className={`relative flex min-h-16 flex-col items-center justify-center gap-1 text-meta font-semibold ${on ? "text-ink" : "text-muted"}`}
-              >
-                {on && <span className="absolute inset-x-6 top-0 h-[3px] rounded-b bg-ink" aria-hidden />}
-                <Icon className="size-[22px]" strokeWidth={on ? 2.4 : 1.9} aria-hidden />
-                {label}
-                {key === "settle" && badge > 0 && (
-                  <span className="num absolute right-[calc(50%-1.9rem)] top-2 min-w-5 rounded-md bg-ink px-1 text-center text-meta leading-5 text-white">
-                    {badge}
-                    <span className="sr-only"> รายการรอคุณยืนยัน</span>
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </nav>
+      {!wide && (
+        <nav className="fixed inset-x-0 bottom-0 z-20 pb-[env(safe-area-inset-bottom)]" aria-label="ส่วนของทริป">
+          <div className="mx-auto grid max-w-lg grid-cols-3 border-t border-line bg-paper sm:border-x">
+            {TABS.map(({ key, label, Icon }) => {
+              const on = tab === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setTab(key)}
+                  aria-current={on ? "page" : undefined}
+                  className={`relative flex min-h-16 flex-col items-center justify-center gap-1 text-meta font-semibold ${on ? "text-ink" : "text-muted"}`}
+                >
+                  {on && <span className="absolute inset-x-6 top-0 h-[3px] rounded-b bg-ink" aria-hidden />}
+                  <Icon className="size-[22px]" strokeWidth={on ? 2.4 : 1.9} aria-hidden />
+                  {label}
+                  {key === "settle" && badge > 0 && (
+                    <span className="num absolute right-[calc(50%-1.9rem)] top-2 min-w-5 rounded-md bg-ink px-1 text-center text-meta leading-5 text-white">
+                      {badge}
+                      <span className="sr-only"> รายการรอคุณยืนยัน</span>
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+      )}
 
       {state.conflicts[0] && <ConflictSheet conflict={state.conflicts[0]} state={state} store={store} />}
     </div>

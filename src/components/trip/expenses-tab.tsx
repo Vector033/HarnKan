@@ -62,7 +62,7 @@ export function ExpensesTab({
       {myPayments.length > 0 && (
         <button
           onClick={onOpenSettle}
-          className="coupon coupon-press mt-2.5 flex w-full items-stretch text-left"
+          className="coupon coupon-press mt-2.5 flex w-full items-stretch text-left lg:hidden"
           style={{ background: memberTint(view.members, myPayments[0].to) }}
         >
           <span className="flex-1 px-4 py-3">
@@ -89,7 +89,7 @@ export function ExpensesTab({
           {[...byDay].map(([day, items]) => (
             <section key={day} aria-label={day}>
               {/* Guide row: stays pinned under the header while its day is in view. */}
-              <h2 className="sticky top-[calc(max(0.75rem,env(safe-area-inset-top))+4rem)] z-10 -mx-4 flex justify-between bg-ground/95 px-4 py-2 text-meta font-semibold text-muted">
+              <h2 className="sticky top-[var(--header-h,76px)] z-10 -mx-4 lg:-mx-2 lg:px-2 flex justify-between bg-ground/95 px-4 py-2 text-meta font-semibold text-muted">
                 <span>{day}</span>
                 <span className="num font-medium">
                   {items.length} รายการ · {formatBaht(items.reduce((s, e) => s + e.amount, 0))} ฿
@@ -107,7 +107,7 @@ export function ExpensesTab({
 
       <button
         onClick={() => setEditing("new")}
-        className="btn-primary fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-[max(1rem,calc(50%-15.5rem))] z-20 h-14 rounded-[var(--radius-coupon)] px-5 shadow-[0_6px_18px_-6px_rgb(20_48_43/0.55)]"
+        className="btn-primary fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-[max(1rem,calc(50%-15.5rem))] z-20 h-14 rounded-[var(--radius-coupon)] px-5 shadow-[0_6px_18px_-6px_rgb(20_48_43/0.55)] lg:static lg:order-first lg:mb-4 lg:self-end lg:shadow-none"
       >
         <Plus className="size-5" strokeWidth={2.6} aria-hidden /> เพิ่มรายจ่าย
       </button>

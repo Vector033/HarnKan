@@ -9,6 +9,11 @@ async function phone(browser: Browser, viewport: { width: number; height: number
 test("review captures", async ({ browser }) => {
   test.setTimeout(180_000);
   const a = await phone(browser, { width: 390, height: 844 });
+  const d = await phone(browser, { width: 1440, height: 900 });
+  await d.goto("/");
+  await expect(d.getByText("ยังไม่มีทริป")).toBeVisible();
+  await d.waitForTimeout(1200);
+  await d.screenshot({ path: ".impeccable/review/desktop-home.png" });
   await a.goto("/");
   await expect(a.getByText("ยังไม่มีทริป")).toBeVisible();
   await a.getByLabel("ชื่อทริป").fill("เชียงดาว ปีใหม่");
@@ -20,11 +25,15 @@ test("review captures", async ({ browser }) => {
   await a.getByRole("button", { name: "บันทึก" }).click();
   const link = await a.getByTestId("invite-link").innerText();
   const b = await phone(browser, { width: 390, height: 844 });
+  await d.goto(link);
+  await expect(d.getByRole("button", { name: "เข้าทริป" })).toBeVisible();
+  await d.screenshot({ path: ".impeccable/review/desktop-join.png" });
   await b.goto(link);
   await b.getByLabel("ชื่อเล่นของคุณ").fill("ต้น");
   await b.getByRole("button", { name: "เข้าทริป" }).click();
   await b.waitForURL(/\/t\//);
   await a.reload();
+  await expect(a.getByText("2 คน")).toBeVisible(); // the joined friend has loaded, not just the cached trip
   await a.getByRole("button", { name: /เพิ่มรายจ่าย/ }).click();
   await a.getByLabel("รายการ").fill("ที่พักบ้านดิน 2 คืน");
   await a.getByLabel("จำนวนเงิน (บาท)").fill("3600");
@@ -56,4 +65,9 @@ test("review captures", async ({ browser }) => {
   await a.getByRole("button", { name: /รายจ่าย/ }).click();
   await expect(a.getByRole("heading", { name: "เชียงดาว ปีใหม่" })).toBeVisible();
   await a.screenshot({ path: ".impeccable/review/desktop.png", fullPage: true });
+  await a.getByRole("button", { name: /สมาชิก/ }).click();
+  await a.screenshot({ path: ".impeccable/review/desktop-members.png" });
+  await a.setViewportSize({ width: 1024, height: 768 });
+  await a.getByRole("button", { name: /รายจ่าย/ }).click();
+  await a.screenshot({ path: ".impeccable/review/desktop-1024.png" });
 });

@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import { formatBaht } from "@/lib/core/money";
 
 const TINTS = ["--color-t0", "--color-t1", "--color-t2", "--color-t3", "--color-t4", "--color-t5"];
@@ -19,36 +19,55 @@ export function Sheet({
   title,
   children,
   footer,
+  dismissible = true,
+  onRequestClose,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   children: ReactNode;
   footer?: ReactNode;
+  /** false: only the footer buttons can close it (Escape, backdrop and X do nothing). */
+  dismissible?: boolean;
+  /** Called instead of onClose for Escape, backdrop and X, e.g. to ask before dropping a draft. */
+  onRequestClose?: () => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
   useEffect(() => {
     const d = ref.current;
     if (!d) return;
     if (open && !d.open) d.showModal();
     if (!open && d.open) d.close();
   }, [open]);
+  const requestClose = () => {
+    if (dismissible) (onRequestClose ?? onClose)();
+  };
 
   return (
     <dialog
       ref={ref}
       onClose={onClose}
-      onClick={(e) => e.target === ref.current && onClose()}
-      aria-label={title}
+      onCancel={(e) => {
+        // Escape goes through the same gate as the X and the backdrop.
+        e.preventDefault();
+        requestClose();
+      }}
+      onClick={(e) => e.target === ref.current && requestClose()}
+      aria-labelledby={titleId}
       className="m-0 mt-auto max-h-[92dvh] w-full max-w-none overflow-hidden rounded-t-[var(--radius-coupon)] bg-ground p-0 text-ink sm:m-auto sm:max-w-lg sm:rounded-[var(--radius-coupon)]"
     >
       {open && (
         <div className="flex max-h-[92dvh] flex-col">
           <div className="flex items-center justify-between gap-3 bg-paper px-5 pb-3.5 pt-4">
-            <h2 className="text-body font-bold leading-tight">{title}</h2>
-            <button type="button" onClick={onClose} className="-mr-2 grid size-11 place-items-center rounded-lg hover:bg-ground" aria-label="ปิด">
-              <X className="size-5" strokeWidth={2.2} />
-            </button>
+            <h2 id={titleId} className="text-body font-bold leading-tight">
+              {title}
+            </h2>
+            {dismissible && (
+              <button type="button" onClick={requestClose} className="-my-1 -mr-3 grid size-12 place-items-center rounded-lg hover:bg-ground" aria-label="ปิด">
+                <X className="size-5" strokeWidth={2.2} />
+              </button>
+            )}
           </div>
           <div className="perf-x" aria-hidden />
           <div className="overflow-y-auto px-5 py-5">{children}</div>
@@ -69,7 +88,7 @@ export function MemberTile({ name, tint, size = 36 }: { name: string; tint: stri
       className="inline-grid shrink-0 place-items-center rounded-lg font-bold text-ink shadow-[inset_0_0_0_1.5px_rgb(20_48_43/0.16)]"
       style={{ width: size, height: size, background: tint, fontSize: size * 0.44 }}
     >
-      {[...name.trim()][0] ?? "?"}
+      {initial(name)}
     </span>
   );
 }
@@ -102,4 +121,14 @@ export function Empty({ title, children }: { title: string; children?: ReactNode
       {children && <div className="mx-auto mt-1.5 max-w-[32ch] text-body text-muted">{children}</div>}
     </div>
   );
+}
+
+const segmenter = typeof Intl !== "undefined" && "Segmenter" in Intl ? new Intl.Segmenter("th", { granularity: "grapheme" }) : null;
+
+/** First letter for a tile: skips Thai leading vowels (เบียร์ → บ) and keeps a whole emoji or grapheme. */
+export function initial(name: string) {
+  const s = name.trim().replace(/^[เแโใไ]+/, "") || name.trim();
+  if (!s) return "?";
+  if (segmenter) for (const { segment } of segmenter.segment(s)) return segment;
+  return [...s][0];
 }

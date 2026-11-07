@@ -4,7 +4,7 @@ import { Clock, Lock } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { MemberTile } from "@/components/ui";
+import { MemberTile, memberTint } from "@/components/ui";
 import { ensureUser, supabase } from "@/lib/supabase/client";
 
 interface Preview {
@@ -16,8 +16,8 @@ interface Preview {
   members: { id: string; nickname: string; claimed: boolean }[];
 }
 
-const TINTS = ["--color-t0", "--color-t1", "--color-t2", "--color-t3", "--color-t4", "--color-t5"];
 const PENDING_POLL_MS = 5000;
+const MAX_CHIPS = 8;
 
 export default function JoinPage() {
   const { code } = useParams<{ code: string }>();
@@ -85,23 +85,26 @@ export default function JoinPage() {
     return <Shell>ไม่พบทริปนี้ ลิงก์อาจไม่ถูกต้อง หรือเจ้าของทริปสร้างลิงก์ใหม่แล้ว</Shell>;
   if (preview === "offline") return <Shell>ต้องเชื่อมต่ออินเทอร์เน็ตเพื่อเข้าทริปครั้งแรก</Shell>;
 
-  const tint = (id: string) => `var(${TINTS[Math.max(0, preview.members.findIndex((m) => m.id === id)) % TINTS.length]})`;
+  const tint = (id: string) => memberTint(preview.members, id);
   const unclaimed = preview.members.filter((m) => !m.claimed);
   const pendingName = preview.members.find((m) => m.id === preview.pending_member)?.nickname;
 
   return (
     <div className="mx-auto min-h-dvh max-w-lg">
       <header className="bg-ink px-5 pb-7 pt-[max(2.5rem,env(safe-area-inset-top))] text-white">
-        <h1 className="text-display font-bold">{preview.name}</h1>
-        <p className="mt-2 text-body text-[#cfe0da]">คุณได้รับเชิญเข้าทริปนี้</p>
+        <h1 className={`font-bold [overflow-wrap:anywhere] ${[...preview.name].length > 24 ? "text-title" : "text-display"}`}>{preview.name}</h1>
+        <p className="mt-2 text-body text-on-ink-muted">คุณได้รับเชิญเข้าทริปนี้</p>
         {!preview.locked && preview.members.length > 0 && (
           <ul className="mt-4 flex flex-wrap gap-2" aria-label="สมาชิกในทริป">
-            {preview.members.map((m) => (
-              <li key={m.id} className="flex items-center gap-1.5 rounded-lg bg-white/10 py-1 pl-1 pr-2.5 text-meta">
+            {preview.members.slice(0, MAX_CHIPS).map((m) => (
+              <li key={m.id} className="flex min-w-0 items-center gap-1.5 rounded-lg bg-white/10 py-1 pl-1 pr-2.5 text-meta">
                 <MemberTile name={m.nickname} tint={tint(m.id)} size={24} />
-                {m.nickname}
+                <span className="min-w-0 [overflow-wrap:anywhere]">{m.nickname}</span>
               </li>
             ))}
+            {preview.members.length > MAX_CHIPS && (
+              <li className="flex items-center px-1 text-meta text-on-ink-muted">และอีก {preview.members.length - MAX_CHIPS} คน</li>
+            )}
           </ul>
         )}
       </header>
@@ -142,7 +145,7 @@ export default function JoinPage() {
                       aria-pressed={claim === m.id}
                     >
                       <MemberTile name={m.nickname} tint={tint(m.id)} size={28} />
-                      ฉันคือ {m.nickname}
+                      <span className="min-w-0 [overflow-wrap:anywhere]">ฉันคือ {m.nickname}</span>
                     </button>
                   ))}
                 </div>
@@ -159,6 +162,7 @@ export default function JoinPage() {
                   className="input"
                   required
                   maxLength={30}
+                  autoComplete="nickname"
                   value={nickname}
                   onChange={(e) => setNickname(e.target.value)}
                 />
@@ -175,7 +179,7 @@ export default function JoinPage() {
           </form>
         )}
         <p className="mt-4 text-center text-meta text-muted">
-          <Link href="/privacy" className="underline">
+          <Link href="/privacy" className="inline-flex min-h-12 items-center px-2 underline">
             ข้อมูลที่เราเก็บ
           </Link>
         </p>

@@ -15,7 +15,7 @@ test("live: two phones sync, settle, and a slip is read on the server", async ({
   await a.getByLabel("ชื่อเล่นของคุณ").fill("เอ");
   await a.getByRole("button", { name: "สร้างทริป" }).click();
   await a.waitForURL(/\/t\//);
-  await expect(a.getByText("สด")).toBeVisible({ timeout: 45_000 });
+  await expect(a.getByText("ออนไลน์", { exact: true })).toBeVisible({ timeout: 45_000 });
   await a.getByRole("button", { name: /สมาชิก/ }).click();
   const link = await a.getByTestId("invite-link").innerText();
 
@@ -23,10 +23,10 @@ test("live: two phones sync, settle, and a slip is read on the server", async ({
   await b.getByLabel("ชื่อเล่นของคุณ").fill("บี");
   await b.getByRole("button", { name: "เข้าทริป" }).click();
   await b.waitForURL(/\/t\//);
-  await expect(b.getByText("สด")).toBeVisible({ timeout: 45_000 });
+  await expect(b.getByText("ออนไลน์", { exact: true })).toBeVisible({ timeout: 45_000 });
 
   await a.reload();
-  await expect(a.getByText("สด")).toBeVisible({ timeout: 45_000 });
+  await expect(a.getByText("ออนไลน์", { exact: true })).toBeVisible({ timeout: 45_000 });
   await a.getByRole("button", { name: /เพิ่มรายจ่าย/ }).click();
   await a.getByLabel("รายการ").fill("ค่าข้าว");
   await a.getByLabel("จำนวนเงิน (บาท)").fill("7732");
@@ -43,5 +43,5 @@ test("live: two phones sync, settle, and a slip is read on the server", async ({
   await expect(result).toBeVisible({ timeout: 120_000 });
   await expect(result).toContainText("3,866.00");
   // Dated before the trip and paid to someone else, so it must not be ticked.
-  await expect(result).toContainText("ยังติ๊กให้อัตโนมัติไม่ได้");
+  await expect(result).toContainText("ยังบันทึกให้อัตโนมัติไม่ได้");
 });

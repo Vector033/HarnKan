@@ -1,10 +1,11 @@
 "use client";
 
-import { ChevronRight, ShieldCheck } from "lucide-react";
+import { Check, ChevronRight, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { tripSerial } from "@/components/trip/expenses-tab";
+import { Baht, MemberTile } from "@/components/ui";
 import { ensureUser, supabase } from "@/lib/supabase/client";
 import { allSnapshots, forgetAll } from "@/lib/trip/idb";
 
@@ -57,7 +58,7 @@ export default function Home() {
         /rate_limited/.test(error.message)
           ? "วันนี้สร้างทริปครบจำนวนแล้ว โปรดลองใหม่พรุ่งนี้"
           : error.code
-            ? "สร้างทริปไม่สำเร็จ โปรดตรวจชื่ออีกครั้ง"
+            ? "สร้างทริปไม่สำเร็จ โปรดลองอีกครั้ง"
             : "ต้องเชื่อมต่ออินเทอร์เน็ตเพื่อสร้างทริป",
       );
       setBusy(false);
@@ -76,10 +77,11 @@ export default function Home() {
   return (
     <div className="mx-auto min-h-dvh max-w-lg">
       <header className="bg-ink px-5 pb-8 pt-[max(2.5rem,env(safe-area-inset-top))] text-white">
-        <h1 className="text-display font-bold leading-none">หารกัน</h1>
-        <p className="mt-3 max-w-[30ch] text-body leading-relaxed text-[#cfe0da]">
+        <h1 className="text-display font-bold">หารกัน</h1>
+        <p className="mt-2 max-w-[30ch] text-body leading-relaxed text-on-ink-muted">
           บันทึกค่าใช้จ่ายร่วมกันได้จากมือถือของทุกคน แล้วสรุปให้ว่าใครต้องโอนให้ใคร โดยโอนน้อยครั้งที่สุด
         </p>
+        {trips !== null && trips.length === 0 && <ExampleCoupon />}
       </header>
 
       <main className="space-y-8 px-4 pb-12 pt-5">
@@ -97,6 +99,7 @@ export default function Home() {
                 className="input"
                 required
                 maxLength={80}
+                autoComplete="off"
                 placeholder="เช่น เชียงดาว ปีใหม่"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -111,6 +114,7 @@ export default function Home() {
                 className="input"
                 required
                 maxLength={30}
+                autoComplete="nickname"
                 placeholder="ชื่อที่เพื่อนเรียก"
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
@@ -142,9 +146,9 @@ export default function Home() {
             <ul className="space-y-2">
               {trips.map((t) => (
                 <li key={t.id}>
-                  <Link href={`/t/${t.id}`} className="coupon flex items-stretch hover:ring-1 hover:ring-ink/25">
+                  <Link href={`/t/${t.id}`} className="coupon coupon-press flex min-h-16 items-stretch hover:ring-1 hover:ring-ink/25" title={t.name}>
                     <span className="min-w-0 flex-1 px-4 py-3.5">
-                      <span className="block truncate text-body font-semibold">{t.name}</span>
+                      <span className="line-clamp-2 text-body font-semibold leading-snug [overflow-wrap:anywhere]">{t.name}</span>
                       <span className="text-meta text-muted">
                         สร้างเมื่อ {new Date(t.created_at).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" })}
                       </span>
@@ -165,7 +169,7 @@ export default function Home() {
             <ShieldCheck className="mt-0.5 size-4 shrink-0 text-ok" aria-hidden />
             <span>
               แอปนี้ไม่ได้ถือหรือโอนเงิน เพียงบันทึกและสร้าง QR พร้อมเพย์ให้ ·{" "}
-              <Link href="/privacy" className="font-semibold text-ink underline">
+              <Link href="/privacy" className="-my-3 inline-flex min-h-12 items-center font-semibold text-ink underline">
                 ข้อมูลที่เราเก็บ
               </Link>
             </span>
@@ -173,7 +177,7 @@ export default function Home() {
           {confirmWipe ? (
             <div className="flex flex-wrap items-center gap-2 rounded-lg bg-owe-soft px-3 py-2.5">
               <p className="flex-1 text-owe">ลบทริปทั้งหมดที่เก็บไว้ในเครื่องนี้และออกจากระบบ? ข้อมูลบนเซิร์ฟเวอร์ยังอยู่ แต่เครื่องนี้จะเข้าทริปเดิมไม่ได้อีก</p>
-              <button className="btn-danger" onClick={wipe}>
+              <button className="btn-danger" onClick={wipe} autoFocus>
                 ลบและออกจากระบบ
               </button>
               <button className="btn-quiet" onClick={() => setConfirmWipe(false)}>
@@ -193,4 +197,45 @@ export default function Home() {
 
 function sortTrips(ts: TripItem[]) {
   return [...ts].sort((x, y) => y.created_at.localeCompare(x.created_at));
+}
+
+const EXAMPLE = [
+  { name: "ต้น", tint: "var(--color-t0)" },
+  { name: "ฝน", tint: "var(--color-t1)" },
+  { name: "บีม", tint: "var(--color-t2)" },
+];
+
+/**
+ * First visit only: one example coupon shows what the app does, in its own
+ * language. Three friends, one bill, one share each, and the stamp the
+ * receiver puts on a payment. Labelled as an example; it is not data.
+ */
+function ExampleCoupon() {
+  return (
+    <figure className="example-coupon mt-5 max-w-sm" aria-label="ตัวอย่าง: ค่าหมูกระทะ 450 บาท หาร 3 คน ได้คนละ 150 บาท">
+      <div className="coupon flex items-stretch text-ink" aria-hidden>
+        <div className="relative min-w-0 flex-1 px-3.5 py-3">
+          <p className="flex items-baseline justify-between gap-2 text-meta font-semibold text-muted">
+            ตัวอย่าง <span className="serial">No. 0450-03</span>
+          </p>
+          <p className="mt-0.5 text-body font-semibold">
+            ค่าหมูกระทะ <span className="text-meta font-medium text-muted">รวม <Baht satang={45000} /></span>
+          </p>
+          <p className="mt-2 flex items-center gap-1.5">
+            {EXAMPLE.map((m) => (
+              <MemberTile key={m.name} name={m.name} tint={m.tint} size={28} />
+            ))}
+          </p>
+          <span className="stamp pointer-events-none absolute bottom-2.5 right-2 inline-flex items-center gap-1 rounded-md border-[2.5px] border-ok bg-paper/90 px-2 py-0.5 text-meta font-bold text-ok">
+            <Check className="size-4" strokeWidth={3} />
+            ได้รับเงินแล้ว
+          </span>
+        </div>
+        <div className="perf-y flex shrink-0 flex-col items-end justify-center border-ink/30 px-3.5">
+          <span className="text-meta text-muted">คนละ</span>
+          <Baht satang={15000} className="text-title font-semibold leading-tight" />
+        </div>
+      </div>
+    </figure>
+  );
 }

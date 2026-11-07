@@ -28,7 +28,7 @@ typography:
     fontFamily: "Anuphan, system-ui, sans-serif"
     fontSize: "34px"
     fontWeight: 700
-    lineHeight: 1.1
+    lineHeight: 1.2
   title:
     fontFamily: "Anuphan, system-ui, sans-serif"
     fontSize: "22px"
@@ -81,20 +81,20 @@ components:
     typography: "{typography.body}"
     rounded: "{rounded.control}"
     padding: "10px 16px"
-    height: "44px"
+    height: "48px"
   button-quiet:
     textColor: "{colors.ink}"
     typography: "{typography.body}"
     rounded: "{rounded.control}"
     padding: "10px 12px"
-    height: "44px"
+    height: "48px"
   button-danger:
     backgroundColor: "{colors.paper}"
     textColor: "{colors.owe}"
     typography: "{typography.body}"
     rounded: "{rounded.control}"
     padding: "10px 16px"
-    height: "44px"
+    height: "48px"
   button-add-expense:
     backgroundColor: "{colors.ink}"
     textColor: "{colors.paper}"
@@ -172,7 +172,7 @@ A cool, low-chroma ink-and-paper base with a set of six pastel coupon tints and 
 - **Serial Red** (serial): coupon and booklet numbers ("No. 2116", "No. 2116-61"), always at 13px semibold. It was darkened from the planned #c7352c so it reaches 4.5:1 on every member tint at 13px.
 
 ### Tertiary
-- **Coupon Tints** (t0 rose, t1 mint, t2 sky, t3 lemon, t4 lilac, t5 apricot): one per member in join order, cycling after six. They fill the member tile, the "your share" stub, and a transfer coupon you need to pay (tinted with the receiver's colour). Lemon (t3) is also the text-selection colour and the dashed "sending" chip on the ink header. Mint (t1) is the "live" chip on the header.
+- **Coupon Tints** (t0 rose, t1 mint, t2 sky, t3 lemon, t4 lilac, t5 apricot): one per member in join order, cycling after six. They fill the member tile, the "your share" stub, and a transfer coupon you need to pay (tinted with the receiver's colour). Lemon (t3) is also the text-selection colour and the dashed "sending" chip on the ink header. Mint (t1) is the "online" (ออนไลน์) chip on the header; its ok dot sends out a soft ring every 2.4s (none under reduced motion).
 - **PromptPay Navy** (pp): a real-world scheme colour, not a world colour. It is used only for the QR panel and the QR button's text and border, so the QR looks like the one people see at shop counters.
 
 ### Neutral
@@ -202,7 +202,7 @@ A cool, low-chroma ink-and-paper base with a set of six pastel coupon tints and 
 **Character:** Anuphan is a calm, rounded Thai sans that reads clearly at small sizes for older users. Kanit's firmer, slightly condensed numerals feel like printed coupon figures and keep columns of baht aligned.
 
 ### Hierarchy
-- **Display** (bold, 34px, 1.1): the app name on the home header, the "you owe" balance, and the amount on the PromptPay panel. Amounts at this size are Kanit semibold.
+- **Display** (bold, 34px, 1.2, so Thai marks above and below a wrapped line never touch): the app name on the home header, the "you owe" balance, and the amount on the PromptPay panel. Amounts at this size are Kanit semibold.
 - **Title** (bold, 22px, 1.25): the trip name in the header band. Amounts at this size (stub totals, coupon amounts) are Kanit semibold.
 - **Body** (regular, 16px, 1.55): all running text, buttons, inputs, and section headings (bold). Explanatory paragraphs are capped around 30 to 36ch.
 - **Meta** (regular to semibold, 14px, 1.5): labels, hints, timestamps, chips, tab labels and day-guide rows.
@@ -248,8 +248,9 @@ Perforations are 2px dashed lines in perforation grey (or tinted ink at 25 to 35
 Firm and plain, ink on paper.
 - **Shape:** control corner (8px); the add-expense button uses the coupon corner (10px).
 - **Primary:** ink fill, white semibold body text, at least 48px tall, 12px by 20px padding. Hover and press go to ink press; disabled drops to 45% opacity.
-- **Secondary:** paper fill, ink text, 1px ink border at 25% (50% on hover), at least 44px tall; press fills with ground.
-- **Quiet:** no fill, ink text underlined at 30% (full on hover), at least 44px tall.
+- **Secondary:** paper fill, ink text, 1px ink border at 25% (50% on hover), at least 48px tall; press fills with ground.
+- **Quiet:** no fill, ink text underlined at 30% (full on hover), at least 48px tall.
+- **Press:** every enabled button scales to 0.98 on press (150ms ease-out); whole tappable coupons scale to 0.99. Coupons never lift on hover.
 - **Danger:** paper fill, owe text, owe border at 40% (full on hover).
 - **Add expense:** the primary button, fixed at the bottom right, 56px tall, with the floating button lift.
 - **Focus:** a 2px ink outline, offset 2px, on every focusable element.
@@ -271,14 +272,23 @@ Firm and plain, ink on paper.
 - **Labels and hints:** label in meta semibold ink above; hint in meta muted below; errors in meta owe below.
 
 ### Navigation
-- **Header band:** ink fill, white text, trip name in title bold, member count in meta in a pale green-grey; sync chip on the right; back button 44px square.
+- **Header band:** ink fill, white text, trip name in title bold, member count in meta in a pale green-grey; sync chip on the right; back button 48px square. Focus rings inside the ink band and the PromptPay panel are white.
 - **Tab bar:** three equal tabs on paper with a rule-line top edge, 64px tall, icon over a meta semibold label. Active is ink with a 3px ink bar at the top edge and a heavier icon stroke; inactive is muted. A pending-confirmation count sits as an ink badge.
 
 ### Coupon Stub (signature)
-A coupon split by a vertical perforation: the body holds the label, names and the serial; the stub holds the amount in Kanit semibold. When a receiver confirms a payment, the stub tears off along the perforation (moves 24px right and 10px down, turns 6 degrees and fades, in 280ms on an exponential ease-out), then the payment files into history. Under reduced motion the tear becomes a 200ms fade with no travel.
+A coupon split by a vertical perforation: the body holds the label, names and the serial; the stub holds the amount in Kanit semibold. Amounts that would not fit drop one type step rather than clip.
+
+When a receiver confirms a payment, three beats play in order (about 1s, the peak of the app):
+1. **Stamp:** a "ได้รับเงินแล้ว" rubber stamp lands on the body (ok border 2.5px, ok text, paper at 90%, chip corner): from 1.45x and -14deg to 1x and -6deg in 350ms on the exponential ease-out. Green here is a status mark, not a balance colour.
+2. **Tear:** the stub tears off along the perforation (24px right, 10px down, 6deg, opacity held until 60%, 280ms). Each piece carries its own paper, so the gap shows the ground.
+3. **Fold:** the remaining coupon folds away (rows to 0, 200ms), then the payment files into history.
+
+Under reduced motion the stamp appears without travel and the stub fades in 200ms; there is no fold. If the decision fails, the coupon comes back whole.
+
+The home page shows the same coupon once, as a labelled example ("ตัวอย่าง"), only while the device has no trips: it settles in at -1.5deg and its stamp lands once. It never loops.
 
 ### Sheet
-A bottom sheet on phones and a centred dialog from 640px, on the ground colour with a paper title bar, a horizontal perforation under the title, and a paper footer for actions. It rises 24px in 240ms when it opens.
+A bottom sheet on phones and a centred dialog from 640px, on the ground colour with a paper title bar, a horizontal perforation under the title, and a paper footer for actions. It rises 24px in 240ms when it opens and the backdrop fades in over 200ms. A sheet holding a typed draft asks "ทิ้งข้อมูลที่กรอกไว้?" before Escape, the backdrop or the X can close it; the conflict sheet cannot be dismissed at all, only answered. While a slip is read, the result rows show dashed placeholder values (dashed = not settled yet) with a faint sweep.
 
 ### PromptPay Panel
 The QR on a white 8px-cornered tile inside a PromptPay navy panel with the coupon corner, the amount in display Kanit below it, and the payee with a masked PromptPay ID in pale blue.
@@ -294,7 +304,7 @@ A coupon-cornered box with a 2px dashed perforation border, a body semibold titl
 - **Do** keep each member on one tint for the whole trip, assigned by join order.
 - **Do** use dashed edges for pending, solid for settled, and strikethrough for cancelled.
 - **Do** keep to the four type steps (14, 16, 22, 34) and build rank with weight first.
-- **Do** keep touch targets at least 44px tall (48px for primary actions).
+- **Do** keep every touch target at least 48px (buttons, icon buttons, segments, standalone links).
 - **Do** keep PromptPay's own navy (#1b3f73) on the QR panel.
 
 ### Don't:

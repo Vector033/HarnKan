@@ -10,9 +10,12 @@ import { Baht, MemberTile, Sheet, memberTint } from "../ui";
 
 const MODES = [
   ["equal", "เท่ากัน"],
-  ["weights", "ตามสัดส่วน"],
-  ["exact", "ระบุยอดเอง"],
+  ["weights", "สัดส่วน"],
+  ["exact", "ระบุเอง"],
 ] as const;
+
+/** The database caps one expense at 1,000,000 baht. */
+const MAX_SATANG = 100_000_000;
 
 /**
  * Add or edit one expense. Edits remember the version they started from, so
@@ -49,6 +52,10 @@ export function ExpenseSheet({
     ),
   );
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const [startTitle] = useState(title);
+  const [startAmount] = useState(amountText);
+  const dirty = title !== startTitle || amountText !== startAmount;
 
   const amount = parseBaht(amountText);
   const split: Split = useMemo(() => {
@@ -74,6 +81,7 @@ export function ExpenseSheet({
   const preview = draft && !problem ? shares(draft) : null;
   const exactTotal = mode === "exact" ? Object.values(split).reduce((s, v) => s + v, 0) : 0;
   const amountInvalid = amountText.trim() !== "" && amount === null;
+  const amountTooBig = amount !== null && amount > MAX_SATANG;
 
   // Someone else changed this expense while the sheet was open.
   const live = base ? view.expenses.find((e) => e.id === base.id) : null;
@@ -81,7 +89,7 @@ export function ExpenseSheet({
   const deletedUnderneath = !!(base && live?.deleted && !live.pending);
 
   async function save() {
-    if (!draft || problem || !draft.title) return;
+    if (!draft || problem || !draft.title || amountTooBig) return;
     await store.do({ kind: "save_expense", expense: draft, baseVersion: base ? Math.max(1, base.version) : null });
     onClose();
   }
@@ -98,12 +106,24 @@ export function ExpenseSheet({
     <Sheet
       open
       onClose={onClose}
+      onRequestClose={() => (dirty ? setConfirmDiscard(true) : onClose())}
       title={base ? "แก้ไขรายจ่าย" : "เพิ่มรายจ่าย"}
       footer={
+        confirmDiscard ? (
+          <div className="flex flex-wrap items-center gap-2" role="alert">
+            <p className="w-full text-body font-semibold">ทิ้งข้อมูลที่กรอกไว้?</p>
+            <button className="btn-danger flex-1" onClick={onClose} autoFocus>
+              ทิ้ง
+            </button>
+            <button className="btn flex-1" onClick={() => setConfirmDiscard(false)}>
+              กรอกต่อ
+            </button>
+          </div>
+        ) : (
         <div className="flex gap-2">
           {base &&
             (confirmDelete ? (
-              <button className="btn-danger" onClick={remove}>
+              <button className="btn-danger" onClick={remove} autoFocus>
                 <Trash2 className="size-4" aria-hidden /> ยืนยันการลบ
               </button>
             ) : (
@@ -114,12 +134,13 @@ export function ExpenseSheet({
           <button
             className="btn-primary flex-1"
             onClick={save}
-            disabled={!draft || !!problem || !title.trim() || deletedUnderneath}
+            disabled={!draft || !!problem || !title.trim() || deletedUnderneath || amountTooBig}
             data-testid="save-expense"
           >
             <Check className="size-5" aria-hidden /> บันทึก
           </button>
         </div>
+        )
       }
     >
       {(changedUnderneath || deletedUnderneath) && (
@@ -164,13 +185,13 @@ export function ExpenseSheet({
               inputMode="decimal"
               placeholder="0.00"
               value={amountText}
-              aria-invalid={amountInvalid}
-              aria-describedby={amountInvalid ? "amount-error" : undefined}
+              aria-invalid={amountInvalid || amountTooBig}
+              aria-describedby={amountInvalid || amountTooBig ? "amount-error" : undefined}
               onChange={(e) => setAmountText(e.target.value)}
             />
-            {amountInvalid && (
-              <p id="amount-error" className="mt-1.5 text-meta text-owe">
-                ใส่ตัวเลข ทศนิยมไม่เกิน 2 ตำแหน่ง
+            {(amountInvalid || amountTooBig) && (
+              <p id="amount-error" className="mt-1.5 text-meta text-owe" role="alert">
+                {amountTooBig ? "ยอดต่อรายการต้องไม่เกิน 1,000,000 บาท" : "ใส่ตัวเลข ทศนิยมไม่เกิน 2 ตำแหน่ง"}
               </p>
             )}
           </div>
@@ -190,18 +211,21 @@ export function ExpenseSheet({
 
         <fieldset>
           <legend className="label">วิธีหาร</legend>
-          <div className="grid grid-cols-3 gap-1 rounded-lg bg-paper p-1 ring-1 ring-line" role="radiogroup" aria-label="วิธีหาร">
+          <div className="grid grid-cols-3 gap-1 rounded-lg bg-paper p-1 ring-1 ring-line">
             {MODES.map(([k, label]) => (
-              <button
-                key={k}
-                type="button"
-                role="radio"
-                aria-checked={mode === k}
-                onClick={() => setMode(k)}
-                className={`min-h-11 rounded-md text-body font-semibold transition-colors duration-150 ${mode === k ? "bg-ink text-white" : "text-ink hover:bg-ground"}`}
-              >
-                {label}
-              </button>
+              <label key={k} className="relative">
+                <input
+                  type="radio"
+                  name="split-mode"
+                  value={k}
+                  checked={mode === k}
+                  onChange={() => setMode(k)}
+                  className="peer sr-only"
+                />
+                <span className="flex min-h-12 cursor-pointer items-center justify-center rounded-md text-body font-semibold text-ink transition-colors duration-150 hover:bg-ground peer-checked:bg-ink peer-checked:text-white peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ink">
+                  {label}
+                </span>
+              </label>
             ))}
           </div>
         </fieldset>
@@ -212,7 +236,7 @@ export function ExpenseSheet({
             return (
               <li key={m.id} className="flex min-h-14 items-center gap-3 px-3.5 py-2">
                 {mode === "equal" ? (
-                  <label className="flex flex-1 cursor-pointer items-center gap-3">
+                  <label className="flex min-h-12 min-w-0 flex-1 cursor-pointer items-center gap-3 self-stretch">
                     <input
                       type="checkbox"
                       className="size-5 accent-[#14302b]"
@@ -220,15 +244,17 @@ export function ExpenseSheet({
                       onChange={(e) => setEqual({ ...equal, [m.id]: e.target.checked })}
                     />
                     <MemberTile name={m.nickname} tint={memberTint(members, m.id)} size={30} />
-                    <span className="flex-1 text-body">{m.nickname}</span>
+                    <span className="min-w-0 flex-1 text-body [overflow-wrap:anywhere]">{m.nickname}</span>
                   </label>
                 ) : (
                   <>
                     <MemberTile name={m.nickname} tint={memberTint(members, m.id)} size={30} />
-                    <span className="flex-1 text-body">{m.nickname}</span>
+                    <span className="min-w-0 flex-1 truncate text-body" title={m.nickname}>
+                      {m.nickname}
+                    </span>
                     <input
                       aria-label={`${mode === "weights" ? "สัดส่วน" : "ยอด"}ของ ${m.nickname}`}
-                      className="input num w-24 py-2 text-right"
+                      className="input num w-20 shrink-0 text-right min-[400px]:w-24"
                       inputMode="decimal"
                       placeholder="0"
                       value={mode === "weights" ? weights[m.id] : exact[m.id]}
@@ -240,7 +266,7 @@ export function ExpenseSheet({
                     />
                   </>
                 )}
-                <span className={`num w-20 text-right text-body ${share ? "text-ink" : "text-muted"}`}>
+                <span className={`num min-w-20 shrink-0 text-right text-body ${share ? "text-ink" : "text-muted"}`}>
                   {share ? formatBaht(share, { always2dp: true }) : "–"}
                 </span>
               </li>
@@ -254,7 +280,7 @@ export function ExpenseSheet({
             {exactTotal !== amount && ` (${exactTotal < amount ? "ขาด" : "เกิน"} ${formatBaht(Math.abs(amount - exactTotal))} ฿)`}
           </p>
         )}
-        {problem?.kind === "empty" && <p className="text-body text-owe">โปรดเลือกอย่างน้อย 1 คนที่ร่วมจ่ายรายการนี้</p>}
+        {problem?.kind === "empty" && <p className="text-body text-owe" role="alert">โปรดเลือกอย่างน้อย 1 คนที่ร่วมจ่ายรายการนี้</p>}
         {mode !== "exact" && preview && amount !== null && amount % Math.max(1, preview.size) !== 0 && (
           <p className="hint">เศษสตางค์ที่หารไม่ลงตัวจะไปอยู่กับผู้จ่ายก่อน ยอดรวมจึงตรงทุกสตางค์</p>
         )}

@@ -53,7 +53,7 @@ export function QrSheet({
             dangerouslySetInnerHTML={svg ? { __html: svg } : undefined}
           />
           <p className="num mt-4 text-display font-semibold leading-none">{formatBaht(amount, { always2dp: true })} ฿</p>
-          <p className="mt-2 text-body text-[#d6e2f3]">
+          <p className="mt-2 text-body text-on-pp-muted">
             {receiver.payee_name || receiver.nickname} · {maskPromptPay(receiver.promptpay_id!)}
           </p>
         </div>

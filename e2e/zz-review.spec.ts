@@ -16,7 +16,7 @@ test("review captures", async ({ browser }) => {
   await a.getByRole("button", { name: "สร้างทริป" }).click();
   await a.waitForURL(/\/t\//);
   await a.getByRole("button", { name: /สมาชิก/ }).click();
-  await a.getByLabel("เบอร์พร้อมเพย์").fill("0812345678");
+  await a.getByLabel("เบอร์มือถือหรือเลขพร้อมเพย์").fill("0812345678");
   await a.getByRole("button", { name: "บันทึก" }).click();
   const link = await a.getByTestId("invite-link").innerText();
   const b = await phone(browser, { width: 390, height: 844 });
@@ -42,6 +42,8 @@ test("review captures", async ({ browser }) => {
   await expect(a.getByTestId("claim")).toHaveCount(0);
   await b.getByRole("button", { name: "โอนแล้ว (ไม่มีสลิป)" }).click();
   await a.getByTestId("confirm-payment").click();
+  await a.waitForTimeout(250); // the stamp has landed, the stub has not torn yet
+  await a.screenshot({ path: ".impeccable/review/mobile-stamp.png" });
   await expect(a.getByText("ประวัติการโอน")).toBeVisible();
   await expect(a.getByText("ยืนยันแล้ว")).toBeVisible();
   await a.screenshot({ path: ".impeccable/review/mobile-history.png", fullPage: true });

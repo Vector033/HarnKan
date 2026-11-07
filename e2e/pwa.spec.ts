@@ -9,10 +9,10 @@ test("a trip opened once still opens and takes expenses after a reload with no c
   await page.getByLabel("ชื่อเล่นของคุณ").fill("เอ");
   await page.getByRole("button", { name: "สร้างทริป" }).click();
   await page.waitForURL(/\/t\//);
-  await expect(page.getByText("สด")).toBeVisible();
+  await expect(page.getByText("ออนไลน์", { exact: true })).toBeVisible();
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.reload(); // let the worker see this page once so it is cached
-  await expect(page.getByText("สด")).toBeVisible();
+  await expect(page.getByText("ออนไลน์", { exact: true })).toBeVisible();
 
   await context.setOffline(true);
   await page.reload();

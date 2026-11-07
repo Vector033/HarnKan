@@ -1,7 +1,7 @@
 "use client";
 
-import { Camera, Check, CircleHelp, LoaderCircle, ShieldCheck, X } from "lucide-react";
-import { useState } from "react";
+import { Camera, Check, CircleHelp, LoaderCircle, Minus, ShieldCheck, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import type { SlipResponse } from "@/app/api/slips/route";
 import { formatBaht } from "@/lib/core/money";
 import type { PlannedTransfer } from "@/lib/trip/derive";
@@ -36,6 +36,17 @@ export function SlipSheet({
     form.set("to_member", transfer.to);
     try {
       const res = await fetch("/api/slips", { method: "POST", body: form });
+      if (res.status === 413) {
+        setError(errorText("too_large"));
+        setPhase("error");
+        return;
+      }
+      // A proxy or platform error page is not JSON; do not report it as being offline.
+      if (!res.headers.get("content-type")?.includes("json")) {
+        setError(errorText(`HTTP ${res.status}`));
+        setPhase("error");
+        return;
+      }
       const body = (await res.json()) as SlipResponse | { error: string };
       if (!res.ok || "error" in body) {
         setError(errorText("error" in body ? body.error : `HTTP ${res.status}`));
@@ -97,11 +108,7 @@ export function SlipSheet({
         </div>
       )}
 
-      {phase === "reading" && (
-        <p className="flex items-center justify-center gap-2 py-12 text-muted" role="status">
-          <LoaderCircle className="size-5 animate-spin" aria-hidden /> กำลังอ่านสลิป…
-        </p>
-      )}
+      {phase === "reading" && <Reading />}
 
       {phase === "error" && (
         <div className="space-y-3">
@@ -120,8 +127,9 @@ export function SlipSheet({
             className={`rounded-lg px-4 py-3 ${result.payment ? "bg-ok-soft text-ok" : "border border-dashed border-wait bg-wait-soft text-wait"}`}
             role="status"
           >
-            <p className="font-bold">
-              {result.payment ? `ติ๊กว่าจ่ายแล้ว รอ ${to.nickname} ยืนยัน` : "ยังติ๊กให้อัตโนมัติไม่ได้"}
+            <p className="flex items-start gap-2 font-bold">
+              {result.payment ? <Check className="mt-0.5 size-5 shrink-0" aria-hidden /> : <CircleHelp className="mt-0.5 size-5 shrink-0" aria-hidden />}
+              {result.payment ? `บันทึกว่าโอนแล้ว รอ ${to.nickname} ยืนยันว่าได้รับเงิน` : "ยังบันทึกให้อัตโนมัติไม่ได้ โปรดตรวจข้อมูลด้านล่าง"}
             </p>
             {result.match.reasons.length > 0 && (
               <ul className="mt-1 list-disc pl-5 text-meta">
@@ -135,7 +143,7 @@ export function SlipSheet({
           <dl className="coupon grid grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-2.5 p-4 text-body">
             <Row
               label="ยอดเงิน"
-              value={result.summary.amount !== null ? `${result.summary.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })} บาท` : "อ่านไม่ได้"}
+              value={result.summary.amount !== null ? `${result.summary.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })} ฿` : "อ่านไม่ได้"}
               check={result.match.checks.amount}
             />
             <Row
@@ -174,8 +182,37 @@ const CHECK = {
   match: { Icon: Check, cls: "text-ok", text: "ตรง" },
   partial: { Icon: CircleHelp, cls: "text-wait", text: "ตรงบางส่วน" },
   mismatch: { Icon: X, cls: "text-owe", text: "ไม่ตรง" },
-  unknown: { Icon: CircleHelp, cls: "text-muted", text: "ไม่ทราบ" },
+  unknown: { Icon: Minus, cls: "text-muted", text: "ไม่ทราบ" },
 } as const;
+
+/**
+ * While the slip is read: the result rows already in place with dashed
+ * placeholder values (dashed = not settled yet), so the answer fills in
+ * where the eye already is.
+ */
+function Reading() {
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setSlow(true), 8000);
+    return () => clearTimeout(t);
+  }, []);
+  return (
+    <div className="space-y-4" role="status">
+      <p className="flex items-center gap-2 text-body font-semibold">
+        <LoaderCircle className="size-5 animate-spin motion-reduce:hidden" aria-hidden />
+        {slow ? "ยังอ่านอยู่ บางครั้งอาจใช้เวลาถึงครึ่งนาที" : "กำลังอ่านสลิป…"}
+      </p>
+      <div className="coupon grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-3 p-4 text-body" aria-hidden>
+        {["ยอดเงิน", "วันเวลา", "ผู้รับ"].map((l, i) => (
+          <div key={l} className="contents">
+            <span className="text-muted">{l}</span>
+            <span className={`reading-bar h-6 rounded-md border-2 border-dashed border-perf ${["w-28", "w-40", "w-32"][i]}`} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function Row({ label, value, check }: { label: string; value: string; check?: keyof typeof CHECK }) {
   const c = check ? CHECK[check] : null;
@@ -183,7 +220,14 @@ function Row({ label, value, check }: { label: string; value: string; check?: ke
     <>
       <dt className="text-muted">{label}</dt>
       <dd className="font-semibold">{value}</dd>
-      <dd className={c?.cls}>{c && <c.Icon className="size-5" aria-label={`${label}${c.text}`} />}</dd>
+      <dd className={`flex items-center gap-1 text-meta font-semibold ${c?.cls ?? ""}`}>
+        {c && (
+          <>
+            <c.Icon className="size-5" aria-hidden />
+            {c.text}
+          </>
+        )}
+      </dd>
     </>
   );
 }
@@ -213,6 +257,7 @@ function errorText(code: string) {
   if (code === "not_configured") return "ยังไม่ได้ตั้งค่าตัวอ่านสลิป โปรดใช้ปุ่ม “โอนแล้ว (ไม่มีสลิป)” แทน";
   if (code === "rate_limited") return "อ่านสลิปครบจำนวนต่อชั่วโมงแล้ว โปรดลองใหม่ภายหลัง";
   if (code === "bad_image") return "ไฟล์นี้ใช้ไม่ได้ โปรดใช้รูปภาพ JPG, PNG, WebP หรือ HEIC ขนาดไม่เกิน 4 MB";
+  if (code === "too_large") return "ไฟล์ใหญ่เกินไป โปรดใช้ภาพหน้าจอสลิปจากแอปธนาคาร";
   if (code === "read_failed") return "อ่านสลิปไม่สำเร็จ โปรดถ่ายให้ชัดขึ้น หรือใช้ภาพหน้าจอจากแอปธนาคาร";
   return "เกิดข้อผิดพลาด โปรดลองอีกครั้ง";
 }

@@ -44,6 +44,7 @@ export function ExpensesTab({
   const myShare = me ? (settlement.spentBy.get(me.id) ?? 0) : 0;
   const myPayments = me ? settlement.transfers.filter((t) => t.from === me.id && t.claimedAmount < t.amount) : [];
   const serial = tripSerial(view.trip.id);
+  const allHavePromptPay = myPayments.every((t) => view.members.find((m) => m.id === t.to)?.promptpay_id);
 
   const byDay = new Map<string, Pending<Expense>[]>();
   for (const e of list) {
@@ -53,7 +54,7 @@ export function ExpensesTab({
 
   return (
     <>
-      <section className="grid grid-cols-2 gap-2.5" aria-label="ยอดรวม">
+      <section className="grid grid-cols-1 gap-2.5 min-[400px]:grid-cols-2" aria-label="ยอดรวม">
         <Stub label="ทั้งทริปจ่ายไป" serial={serial} satang={settlement.total} />
         <Stub label="ส่วนของคุณ" serial={serial} satang={myShare} tint={me ? memberTint(view.members, me.id) : undefined} />
       </section>
@@ -61,16 +62,16 @@ export function ExpensesTab({
       {myPayments.length > 0 && (
         <button
           onClick={onOpenSettle}
-          className="coupon mt-2.5 flex w-full items-stretch text-left transition-transform duration-150 active:scale-[0.99]"
+          className="coupon coupon-press mt-2.5 flex w-full items-stretch text-left"
           style={{ background: memberTint(view.members, myPayments[0].to) }}
         >
           <span className="flex-1 px-4 py-3">
             <span className="flex items-baseline justify-between gap-2 text-meta font-medium">
-              คุณต้องโอนให้ {myPayments.map((t) => names.get(t.to)).join(", ")}
+              <span className="min-w-0 [overflow-wrap:anywhere]">คุณต้องโอนให้ {myPayments.map((t) => names.get(t.to)).join(", ")}</span>
               {myPayments.length === 1 && <span className="serial">{couponNo(view.trip.id, myPayments[0].from, myPayments[0].to)}</span>}
             </span>
             <span className="mt-0.5 flex items-center gap-1 text-body font-bold">
-              ดู QR พร้อมเพย์และแนบสลิป <ChevronRight className="size-4" aria-hidden />
+              {allHavePromptPay ? "ดู QR พร้อมเพย์และแนบสลิป" : "ดูยอดที่ต้องโอนและแนบสลิป"} <ChevronRight className="size-4" aria-hidden />
             </span>
           </span>
           <span className="perf-y flex items-center border-ink/30 px-4">
@@ -88,7 +89,7 @@ export function ExpensesTab({
           {[...byDay].map(([day, items]) => (
             <section key={day} aria-label={day}>
               {/* Guide row: stays pinned under the header while its day is in view. */}
-              <h2 className="sticky top-[76px] z-10 -mx-4 flex justify-between bg-ground/95 px-4 py-2 text-meta font-semibold text-muted backdrop-blur-[2px]">
+              <h2 className="sticky top-[calc(max(0.75rem,env(safe-area-inset-top))+4rem)] z-10 -mx-4 flex justify-between bg-ground/95 px-4 py-2 text-meta font-semibold text-muted">
                 <span>{day}</span>
                 <span className="num font-medium">
                   {items.length} รายการ · {formatBaht(items.reduce((s, e) => s + e.amount, 0))} ฿
@@ -129,7 +130,7 @@ function Stub({ label, serial, satang, tint }: { label: string; serial: string; 
     <div className="coupon flex" style={tint ? { background: tint } : undefined}>
       <span className="perf-y my-2.5 ml-2.5 border-ink/25" aria-hidden />
       <div className="min-w-0 flex-1 px-3 py-3">
-        <span className="block whitespace-nowrap text-meta font-medium">{label}</span>
+        <span className="block text-meta font-medium">{label}</span>
         <Baht satang={satang} className="mt-0.5 block text-title font-semibold leading-tight" />
         <span className="serial mt-1 block whitespace-nowrap">{serial}</span>
       </div>
@@ -153,9 +154,11 @@ function ExpenseRow({ e, state, onOpen }: { e: Pending<Expense>; state: TripStat
       <button onClick={onOpen} className="flex w-full items-center gap-3 px-3.5 py-3 text-left hover:bg-ground/60" data-testid="expense-row">
         <MemberTile name={payer?.nickname ?? "?"} tint={memberTint(members, e.paid_by)} />
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-body font-semibold">{e.title}</span>
+          <span className="block truncate text-body font-semibold" title={e.title}>
+            {e.title}
+          </span>
           <span className="block text-meta text-muted">
-            {payer?.nickname ?? "?"} จ่าย · {splitLabel(e.split_mode, people)}
+            <span className="[overflow-wrap:anywhere]">{payer?.nickname ?? "?"}</span> จ่าย · {splitLabel(e.split_mode, people)}
             {editedBy && ` · แก้ล่าสุดโดย ${editedBy}`}
           </span>
         </span>

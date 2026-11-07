@@ -104,14 +104,17 @@ export function MembersTab({ state, store, settlement }: { state: TripState; sto
             <MemberRow key={m.id} m={m} state={state} store={store} net={settlement.net.get(m.id) ?? 0} canRemove={isOwner && m.id !== me?.id} />
           ))}
         </ul>
-        <form onSubmit={addPlaceholder} className="mt-3 flex gap-2">
+        <label className="label mt-4" htmlFor="new-member">
+          เพิ่มชื่อเพื่อน
+        </label>
+        <form onSubmit={addPlaceholder} className="flex gap-2">
           <input
+            id="new-member"
             className="input"
             placeholder="ชื่อเพื่อนที่ยังไม่ได้เข้าทริป"
             maxLength={30}
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
-            aria-label="ชื่อเพื่อนที่จะเพิ่ม"
           />
           <button className="btn shrink-0" disabled={!newName.trim()}>
             <UserPlus className="size-4" aria-hidden /> เพิ่ม
@@ -165,12 +168,18 @@ function OwnerControls({ state, store }: { state: TripState; store: TripStore })
           <button
             className="btn-danger"
             disabled={!!busy}
+            autoFocus
             onClick={() => {
               setConfirmRotate(false);
               void run("rotate", "rotate_invite", { p_trip: trip.id }, "สร้างลิงก์ใหม่แล้ว ลิงก์เดิมใช้ไม่ได้อีก");
             }}
           >
             <RefreshCw className="size-4" aria-hidden /> ยืนยัน ลิงก์เดิมจะใช้ไม่ได้
+          </button>
+        ) : null}
+        {confirmRotate ? (
+          <button className="btn-quiet" onClick={() => setConfirmRotate(false)}>
+            ยกเลิก
           </button>
         ) : (
           <button className="btn" disabled={!!busy} onClick={() => setConfirmRotate(true)}>
@@ -184,7 +193,7 @@ function OwnerControls({ state, store }: { state: TripState; store: TripStore })
       {confirmDelete ? (
         <div className="flex flex-wrap items-center gap-2 rounded-lg bg-owe-soft px-3 py-2.5">
           <p className="flex-1 text-meta text-owe">ลบทริปนี้ถาวร? รายจ่าย การโอน และสมาชิกทั้งหมดจะถูกลบ และกู้คืนไม่ได้</p>
-          <button className="btn-danger" disabled={!!busy} onClick={deleteTrip}>
+          <button className="btn-danger" disabled={!!busy} onClick={deleteTrip} autoFocus>
             ลบถาวร
           </button>
           <button className="btn-quiet" onClick={() => setConfirmDelete(false)}>
@@ -214,7 +223,7 @@ function ClaimRequest({ m, state, store }: { m: Member; state: TripState; store:
       <div className="flex items-center gap-3">
         <MemberTile name={m.nickname} tint={memberTint(state.view!.members, m.id)} />
         <p className="flex-1 text-body">
-          มีคนเปิดลิงก์แล้วบอกว่าเป็น <b>{m.nickname}</b> ใช่ {m.nickname} จริงหรือไม่
+          มีคนขอเข้าทริปในชื่อ “<b>{m.nickname}</b>” คนนี้คือ {m.nickname} จริงหรือไม่
         </p>
       </div>
       <p className="hint">ยืนยันเมื่อแน่ใจเท่านั้น ผู้ที่ได้ชื่อนี้จะเห็นทริปและใส่พร้อมเพย์รับเงินแทน {m.nickname} ได้</p>
@@ -226,7 +235,11 @@ function ClaimRequest({ m, state, store }: { m: Member; state: TripState; store:
           <X className="size-4" aria-hidden /> ไม่ใช่
         </button>
       </div>
-      {err && <p className="mt-1.5 text-meta text-owe">{err}</p>}
+      {err && (
+        <p className="mt-1.5 text-meta text-owe" role="alert">
+          {err}
+        </p>
+      )}
     </li>
   );
 }
@@ -259,7 +272,7 @@ function MemberRow({
       <div className="flex items-center gap-3">
         <MemberTile name={m.nickname} tint={memberTint(members, m.id)} />
         <span className="min-w-0 flex-1">
-          <span className="block text-body font-semibold">
+          <span className="block text-body font-semibold [overflow-wrap:anywhere]">
             {m.nickname}
             {m.id === state.me?.id && <span className="ml-1.5 text-meta font-medium text-muted">(คุณ)</span>}
             {m.user_id === state.view!.trip.created_by && <span className="ml-1.5 text-meta font-medium text-muted">เจ้าของทริป</span>}
@@ -276,7 +289,7 @@ function MemberRow({
         </span>
         <span className="text-right">
           {net === 0 ? (
-            <span className="text-meta text-muted">เคลียร์แล้ว</span>
+            <span className="text-meta text-muted">ไม่มียอดค้าง</span>
           ) : (
             <>
               <span className="block text-meta text-muted">{net > 0 ? "ได้คืน" : "ต้องโอน"}</span>
@@ -286,7 +299,7 @@ function MemberRow({
         </span>
         {m.pending && <PendingMark />}
         {canRemove && !confirm && (
-          <button className="-mr-1 grid size-10 place-items-center rounded-lg text-muted hover:bg-ground hover:text-owe" onClick={() => setConfirm(true)} aria-label={`นำ ${m.nickname} ออกจากทริป`}>
+          <button className="-mr-2 grid size-12 place-items-center rounded-lg text-muted hover:bg-ground hover:text-owe" onClick={() => setConfirm(true)} aria-label={`นำ ${m.nickname} ออกจากทริป`}>
             <UserMinus className="size-[18px]" />
           </button>
         )}
@@ -296,7 +309,7 @@ function MemberRow({
           <p className="flex-1 text-meta text-owe">
             นำ {m.nickname} ออก? {m.nickname} จะเข้าทริปนี้ไม่ได้อีก ลิงก์เชิญจะเปลี่ยนใหม่ ยอดที่เคยบันทึกยังอยู่ครบ
           </p>
-          <button className="btn-danger" onClick={remove}>
+          <button className="btn-danger" onClick={remove} autoFocus>
             นำออก
           </button>
           <button className="btn-quiet" onClick={() => setConfirm(false)}>
@@ -304,7 +317,11 @@ function MemberRow({
           </button>
         </div>
       )}
-      {err && <p className="mt-1.5 text-meta text-owe">{err}</p>}
+      {err && (
+        <p className="mt-1.5 text-meta text-owe" role="alert">
+          {err}
+        </p>
+      )}
     </li>
   );
 }
@@ -333,7 +350,7 @@ function MyProfile({ state, store }: { state: TripState; store: TripStore }) {
       </div>
       <div>
         <label className="label" htmlFor="promptpay">
-          เบอร์พร้อมเพย์
+          เบอร์มือถือหรือเลขพร้อมเพย์
         </label>
         <input
           id="promptpay"
@@ -343,9 +360,10 @@ function MyProfile({ state, store }: { state: TripState; store: TripStore }) {
           placeholder="08x-xxx-xxxx"
           value={promptpay}
           aria-invalid={!valid}
+          aria-describedby={!valid ? "promptpay-error" : undefined}
           onChange={(e) => setPromptpay(e.target.value)}
         />
-        {!valid && <p className="mt-1.5 text-meta text-owe">โปรดใส่เบอร์มือถือ 10 หลัก หรือเลขพร้อมเพย์ 13 หรือ 15 หลัก</p>}
+        {!valid && <p id="promptpay-error" className="mt-1.5 text-meta text-owe">โปรดใส่เบอร์มือถือ 10 หลัก หรือเลขพร้อมเพย์ 13 หรือ 15 หลัก</p>}
         <p className="hint">แนะนำให้ใช้เบอร์มือถือแทนเลขบัตรประชาชน เพราะสมาชิกในทริปจะเห็นเลขนี้</p>
       </div>
       <div>

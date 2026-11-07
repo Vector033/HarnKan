@@ -47,11 +47,11 @@ export default function PrivacyPage() {
   return (
     <div className="mx-auto min-h-dvh max-w-lg">
       <header className="bg-ink px-5 pb-7 pt-[max(2.5rem,env(safe-area-inset-top))] text-white">
-        <Link href="/" className="text-body font-medium text-[#cfe0da] underline">
+        <Link href="/" className="-ml-2 inline-flex min-h-12 items-center px-2 text-body font-medium text-on-ink-muted underline">
           หารกัน
         </Link>
-        <h1 className="mt-2 text-display font-bold leading-tight">ข้อมูลที่เราเก็บ</h1>
-        <p className="mt-2 text-body text-[#cfe0da]">สลิปโอนเงินเป็นข้อมูลส่วนบุคคล เราจึงเก็บให้น้อยที่สุดเท่าที่แอปต้องใช้</p>
+        <h1 className="mt-1 text-display font-bold leading-tight">ข้อมูลที่เราเก็บ</h1>
+        <p className="mt-2 text-body text-on-ink-muted">สลิปโอนเงินเป็นข้อมูลส่วนบุคคล เราจึงเก็บให้น้อยที่สุดเท่าที่แอปต้องใช้</p>
       </header>
       <main className="space-y-7 px-5 pb-14 pt-6">
         {SECTIONS.map((s) => (

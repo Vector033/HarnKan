@@ -24,6 +24,8 @@
   --color-wait: #8a5300;
   --color-wait-soft: #fbefd6;
   --color-pp: #1b3f73;
+  --color-on-ink-muted: #cfe0da; /* secondary text on the ink band */
+  --color-on-pp-muted: #d6e2f3; /* secondary text on the PromptPay panel */
 
   /* coupon tints, one per member in join order */
   --color-t0: #f6cdd6;
@@ -41,7 +43,7 @@
   --text-title: 22px;
   --text-title--line-height: 1.25;
   --text-display: 34px;
-  --text-display--line-height: 1.1;
+  --text-display--line-height: 1.2; /* room for Thai marks above and below */
 
   --radius-coupon: 10px;
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
@@ -50,6 +52,9 @@
 html {
   -webkit-tap-highlight-color: transparent;
   scrollbar-color: var(--color-perf) transparent;
+  /* Keyboard focus never lands under the sticky header or the fixed tab bar. */
+  scroll-padding-top: calc(7.5rem + env(safe-area-inset-top));
+  scroll-padding-bottom: calc(9rem + env(safe-area-inset-bottom));
 }
 
 body {
@@ -66,6 +71,16 @@ body {
 :focus-visible {
   outline: 2px solid var(--color-ink);
   outline-offset: 2px;
+}
+
+/* Ink on ink would be invisible: focus on the dark bands is white. */
+.bg-ink :focus-visible,
+.bg-pp :focus-visible {
+  outline-color: var(--color-paper);
+}
+/* Inputs show focus with their own border and ring only. */
+.input:focus-visible {
+  outline: none;
 }
 
 a {
@@ -86,23 +101,27 @@ a {
     @apply mt-1.5 text-meta text-muted;
   }
   .input {
-    @apply w-full rounded-lg border border-line bg-paper px-3.5 py-3 text-body text-ink outline-none placeholder:text-[#6b7c77] focus:border-ink focus:ring-2 focus:ring-ink/15;
+    @apply w-full rounded-lg border border-line bg-paper px-3.5 py-3 text-body text-ink outline-none placeholder:text-[#63746f] focus:border-ink focus:ring-2 focus:ring-ink/15;
   }
   .btn-primary {
-    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-ink px-5 py-3 text-body font-semibold text-white transition-colors duration-150 hover:bg-ink-2 active:bg-ink-2 disabled:cursor-not-allowed disabled:opacity-45;
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-ink px-5 py-3 text-body font-semibold text-white transition-[background-color,transform] duration-150 ease-out hover:bg-ink-2 active:bg-ink-2 enabled:active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45;
   }
   .btn {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-ink/25 bg-paper px-4 py-2.5 text-body font-semibold text-ink transition-colors duration-150 hover:border-ink/50 active:bg-ground disabled:cursor-not-allowed disabled:opacity-45;
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-ink/25 bg-paper px-4 py-2.5 text-body font-semibold text-ink transition-[background-color,border-color,transform] duration-150 ease-out hover:border-ink/50 active:bg-ground enabled:active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-45;
   }
   .btn-quiet {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-body font-semibold text-ink underline decoration-ink/30 underline-offset-4 hover:decoration-ink active:bg-ink/5;
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-body font-semibold text-ink underline decoration-ink/30 underline-offset-4 transition-[background-color,text-decoration-color,transform] duration-150 ease-out hover:decoration-ink active:bg-ink/5 enabled:active:scale-[0.98];
   }
   .btn-danger {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-owe/40 bg-paper px-4 py-2.5 text-body font-semibold text-owe hover:border-owe;
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-owe/40 bg-paper px-4 py-2.5 text-body font-semibold text-owe transition-[background-color,border-color,transform] duration-150 ease-out hover:border-owe active:bg-owe-soft enabled:active:scale-[0.98];
   }
   /* A coupon: paper with a punched perforation line. */
   .coupon {
     @apply relative overflow-hidden rounded-[var(--radius-coupon)] bg-paper;
+  }
+  /* Whole-coupon press feedback; smaller than buttons because coupons are wide. */
+  .coupon-press {
+    @apply transition-transform duration-150 ease-out active:scale-[0.99];
   }
   .perf-y {
     border-left: 2px dashed var(--color-perf);
@@ -126,14 +145,117 @@ a {
     transform: translate(0, 0) rotate(0);
     opacity: 1;
   }
+  60% {
+    opacity: 1;
+  }
   100% {
     transform: translate(24px, 10px) rotate(6deg);
     opacity: 0;
   }
 }
+/* While tearing, the paper belongs to each piece, so the gap shows the ground. */
+.coupon.tearing {
+  overflow: visible;
+  background: transparent;
+}
+.tearing .coupon-body,
+.tearing .coupon-actions {
+  background: var(--color-paper);
+}
+.tearing .coupon-body {
+  border-top-left-radius: var(--radius-coupon);
+}
+.tearing .coupon-actions {
+  border-radius: 0 0 var(--radius-coupon) var(--radius-coupon);
+}
 .tearing .stub-half {
+  background: var(--color-paper);
+  border-top-right-radius: var(--radius-coupon);
   transform-origin: left top;
   animation: tear-stub 280ms var(--ease-out-expo) forwards;
+}
+
+/* The receiver's "money arrived" stamp lands before the stub tears. */
+@keyframes stamp-in {
+  0% {
+    opacity: 0;
+    transform: scale(1.45) rotate(-14deg);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(0.96) rotate(-4deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(-6deg);
+  }
+}
+.stamp {
+  transform: rotate(-6deg);
+  animation: stamp-in 350ms var(--ease-out-expo) both;
+}
+
+/* Live: a soft ring leaves the dot; the dot itself stays still. */
+@keyframes live-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(2.8);
+    opacity: 0;
+  }
+}
+.live-dot {
+  position: relative;
+}
+.live-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--color-ok);
+  animation: live-ring 2.4s var(--ease-out-expo) infinite;
+}
+
+/* Slip being read: dashed placeholder values with a faint sweep. */
+@keyframes sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+.reading-bar {
+  position: relative;
+  overflow: hidden;
+}
+.reading-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgb(20 48 43 / 0.08), transparent);
+  animation: sweep 1.4s linear infinite;
+}
+
+/* Home example coupon: slides in once, then its stamp lands. */
+@keyframes coupon-in {
+  from {
+    transform: translateY(10px) rotate(-1deg);
+    opacity: 0;
+  }
+  to {
+    transform: rotate(-1.5deg);
+    opacity: 1;
+  }
+}
+.example-coupon {
+  transform: rotate(-1.5deg);
+  animation: coupon-in 420ms var(--ease-out-expo) 120ms both;
+}
+.example-coupon .stamp {
+  animation-delay: 650ms;
 }
 
 @keyframes stub-fade {
@@ -170,6 +292,14 @@ dialog[open] {
 dialog::backdrop {
   background: rgb(20 48 43 / 0.45);
 }
+dialog[open]::backdrop {
+  animation: fade-in 200ms ease-out;
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -182,5 +312,9 @@ dialog::backdrop {
   /* Reduced motion keeps the moment as a plain fade, no travel. */
   .tearing .stub-half {
     animation: stub-fade 200ms linear forwards !important;
+  }
+  .live-dot::after,
+  .reading-bar::after {
+    display: none;
   }
 }

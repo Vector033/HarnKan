@@ -25,12 +25,13 @@ export function ConflictSheet({ conflict, state, store }: { conflict: Conflict; 
   return (
     <Sheet
       open
-      onClose={() => store.dismissConflict(conflict.id)}
+      onClose={() => {}}
+      dismissible={false}
       title="มีคนแก้ไขรายการเดียวกัน"
       footer={
         <div className="grid grid-cols-2 gap-2">
           <button className="btn" onClick={() => store.dismissConflict(conflict.id)} data-testid="keep-theirs">
-            ใช้ฉบับของ {theirsBy}
+            ใช้ฉบับของเพื่อน
           </button>
           <button className="btn-primary" onClick={keepMine} data-testid="keep-mine">
             ใช้ฉบับของฉัน
@@ -41,9 +42,9 @@ export function ConflictSheet({ conflict, state, store }: { conflict: Conflict; 
       <p className="mb-5 text-body text-muted">
         {theirsBy} บันทึกรายการนี้ก่อนที่การแก้ไขของคุณจะถึงเซิร์ฟเวอร์ โปรดเลือกฉบับที่ต้องการเก็บไว้
       </p>
-      <div className="grid grid-cols-2 gap-2.5">
+      <div className="grid grid-cols-1 gap-2.5 min-[400px]:grid-cols-2">
         <Version heading={`ฉบับของ ${theirsBy}`} e={theirs.deleted ? "deleted" : theirs} names={names} />
-        <Version heading="ฉบับของฉัน" e={mine} names={names} highlight />
+        <Version heading="ฉบับของฉัน" e={mine} names={names} />
       </div>
     </Sheet>
   );
@@ -53,15 +54,13 @@ function Version({
   heading,
   e,
   names,
-  highlight,
 }: {
   heading: string;
   e: ExpenseDraft | "deleted";
   names: Map<string, string>;
-  highlight?: boolean;
 }) {
   return (
-    <div className={`coupon p-3.5 ${highlight ? "ring-2 ring-ink" : "ring-1 ring-line"}`}>
+    <div className="coupon p-3.5 ring-1 ring-line [overflow-wrap:anywhere]">
       <p className="mb-2 text-meta font-semibold text-muted">{heading}</p>
       {e === "deleted" ? (
         <p className="font-semibold text-owe line-through decoration-2">ลบรายการนี้</p>

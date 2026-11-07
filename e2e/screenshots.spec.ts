@@ -26,7 +26,7 @@ async function addExpense(page: Page, title: string, amount: string, payer?: str
   if (payer) await page.getByLabel("ผู้จ่าย").selectOption({ label: payer });
   for (const name of opts?.skip ?? []) await page.getByRole("checkbox", { name }).uncheck();
   if (opts?.exact) {
-    await page.getByRole("radio", { name: "ระบุยอดเอง" }).click();
+    await page.getByText("ระบุเอง", { exact: true }).click();
     for (const [name, v] of Object.entries(opts.exact)) await page.getByLabel(`ยอดของ ${name}`).fill(v);
   }
   await page.getByTestId("save-expense").click();
@@ -38,6 +38,7 @@ test("README screenshots", async ({ browser }) => {
   const mint = await phone(browser);
   await mint.goto("/");
   await expect(mint.getByText("ยังไม่มีทริป")).toBeVisible(); // hydrated
+  await mint.waitForTimeout(1200); // the example coupon settles and its stamp lands
   await shot(mint, "01-home");
   await mint.getByLabel("ชื่อทริป").fill("เชียงดาว ปีใหม่");
   await mint.getByLabel("ชื่อเล่นของคุณ").fill("มิ้นต์");
@@ -45,11 +46,11 @@ test("README screenshots", async ({ browser }) => {
   await mint.waitForURL(/\/t\//);
 
   await mint.getByRole("button", { name: /สมาชิก/ }).click();
-  await mint.getByLabel("เบอร์พร้อมเพย์").fill("0812345678");
+  await mint.getByLabel("เบอร์มือถือหรือเลขพร้อมเพย์").fill("0812345678");
   await mint.getByLabel("ชื่อที่ขึ้นในสลิป (ไม่บังคับ)").fill("มินตรา ส.");
   await mint.getByRole("button", { name: "บันทึก" }).click();
   for (const n of ["ต้น", "แบม", "โอ๊ต"]) {
-    await mint.getByLabel("ชื่อเพื่อนที่จะเพิ่ม").fill(n);
+    await mint.getByLabel("เพิ่มชื่อเพื่อน").fill(n);
     await mint.getByRole("button", { name: "เพิ่ม", exact: true }).click();
     await expect(mint.getByText(n, { exact: true })).toBeVisible();
   }
@@ -68,7 +69,7 @@ test("README screenshots", async ({ browser }) => {
   await mint.getByTestId("approve-claim").click();
   await ton.waitForURL(/\/t\//, { timeout: 20_000 });
   await ton.getByRole("button", { name: /สมาชิก/ }).click();
-  await ton.getByLabel("เบอร์พร้อมเพย์").fill("0898765432");
+  await ton.getByLabel("เบอร์มือถือหรือเลขพร้อมเพย์").fill("0898765432");
   await ton.getByRole("button", { name: "บันทึก" }).click();
   await ton.getByRole("button", { name: /รายจ่าย/ }).click();
 
@@ -83,13 +84,14 @@ test("README screenshots", async ({ browser }) => {
   await ton.getByRole("button", { name: /เพิ่มรายจ่าย/ }).click();
   await ton.getByLabel("รายการ").fill("ข้าวซอย");
   await ton.getByLabel("จำนวนเงิน (บาท)").fill("250");
-  await ton.getByRole("radio", { name: "ตามสัดส่วน" }).click();
+  await ton.getByText("สัดส่วน", { exact: true }).click();
   await ton.getByLabel("สัดส่วนของ ต้น").fill("2");
-  await expect(ton.getByRole("radio", { name: "ตามสัดส่วน" })).toHaveAttribute("aria-checked", "true");
+  await expect(ton.getByRole("radio", { name: "สัดส่วน" })).toBeChecked();
   await ton.mouse.move(0, 0); // no hover state in the capture
   await ton.waitForTimeout(400);
   await shot(ton, "04-add-expense");
   await ton.getByRole("button", { name: "ปิด" }).click();
+  await ton.getByRole("button", { name: "ทิ้ง", exact: true }).click();
 
   await ton.getByRole("button", { name: /สรุปยอด/ }).click();
   await shot(ton, "05-settle");

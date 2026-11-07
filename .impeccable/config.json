@@ -20,6 +20,15 @@
         ],
         "createdAt": "2026-11-04T17:36:15.043Z",
         "reason": "Claude: unchosen direction-round sketch, not shipped UI"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "*",
+        "files": [
+          ".impeccable/mocks/decision/canon.html"
+        ],
+        "createdAt": "2026-11-07T02:29:44.141Z",
+        "reason": "Claude: unchosen category-standard sketch from the direction round, not shipped UI"
       }
     ]
   }

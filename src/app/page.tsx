@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { tripSerial } from "@/components/trip/expenses-tab";
-import { Baht, MemberTile } from "@/components/ui";
+import { Baht, MemberTile, SettleStrip } from "@/components/ui";
+import { settlement } from "@/lib/trip/derive";
 import { ensureUser, supabase } from "@/lib/supabase/client";
 import { allSnapshots, forgetAll } from "@/lib/trip/idb";
 
@@ -23,13 +24,22 @@ export default function Home() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmWipe, setConfirmWipe] = useState(false);
+  // Trips opened on this device carry their data, so their coupon can show how settled they are.
+  const [settled, setSettled] = useState<Map<string, { settled: number; toSettle: number }>>(new Map());
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       // Trips cached on this device show first and are all there is offline.
-      const cached = (await allSnapshots().catch(() => [])).map((s) => s.trip);
-      if (!cancelled) setTrips(sortTrips(cached));
+      const snaps = await allSnapshots().catch(() => []);
+      const cached = snaps.map((s) => s.trip);
+      if (!cancelled) {
+        setTrips(sortTrips(cached));
+        setSettled(new Map(snaps.map((s) => {
+          const r = settlement(s, null);
+          return [s.trip.id, { settled: r.settled, toSettle: r.toSettle }];
+        })));
+      }
       const user = await ensureUser();
       if (!user) return;
       const { data } = await supabase().from("trips").select("id,name,created_at");
@@ -76,7 +86,7 @@ export default function Home() {
 
   return (
     <div className="mx-auto min-h-dvh max-w-lg lg:grid lg:max-w-none lg:grid-cols-2">
-      <header className="bg-ink px-5 pb-8 pt-[max(2.5rem,env(safe-area-inset-top))] text-white lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:items-end lg:justify-center lg:px-16 lg:py-16">
+      <header className="bg-ink px-5 pb-8 pt-[max(2.5rem,env(safe-area-inset-top))] text-white rounded-b-[28px] lg:rounded-none lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:items-end lg:justify-center lg:px-16 lg:py-16">
         <div className="lg:w-full lg:max-w-md">
           <h1 className="text-display font-bold">หารกัน</h1>
           <p className="mt-2 max-w-[30ch] text-body leading-relaxed text-on-ink-muted">
@@ -148,12 +158,17 @@ export default function Home() {
             <ul className="space-y-2">
               {trips.map((t) => (
                 <li key={t.id}>
-                  <Link href={`/t/${t.id}`} className="coupon coupon-press flex min-h-16 items-stretch hover:ring-1 hover:ring-ink/25" title={t.name}>
+                  <Link href={`/t/${t.id}`} data-testid="trip-link" className="coupon coupon-press flex min-h-16 items-stretch hover:ring-1 hover:ring-ink/25" title={t.name}>
                     <span className="min-w-0 flex-1 px-4 py-3.5">
                       <span className="line-clamp-2 text-body font-semibold leading-snug [overflow-wrap:anywhere]">{t.name}</span>
                       <span className="text-meta text-muted">
                         สร้างเมื่อ {new Date(t.created_at).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" })}
                       </span>
+                      {(settled.get(t.id)?.toSettle ?? 0) > 0 && (
+                        <span className="mt-2 block">
+                          <SettleStrip settled={settled.get(t.id)!.settled} total={settled.get(t.id)!.toSettle} compact />
+                        </span>
+                      )}
                     </span>
                     <span className="perf-y flex items-center gap-2 px-3.5">
                       <span className="serial">{tripSerial(t.id)}</span>

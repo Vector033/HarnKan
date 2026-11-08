@@ -45,7 +45,8 @@
   --text-display: 34px;
   --text-display--line-height: 1.2; /* room for Thai marks above and below */
 
-  --radius-coupon: 10px;
+  --radius-coupon: 14px;
+  --radius-lg: 12px; /* controls, notices, tiles */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -116,8 +117,12 @@ a {
     @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-owe/40 bg-paper px-4 py-2.5 text-body font-semibold text-owe transition-[background-color,border-color,transform] duration-150 ease-out hover:border-owe active:bg-owe-soft enabled:active:scale-[0.98];
   }
   /* A coupon: paper with a punched perforation line. */
+  /* Paper lying on the table: a faint contact shadow, never a lift. */
   .coupon {
     @apply relative overflow-hidden rounded-[var(--radius-coupon)] bg-paper;
+    box-shadow:
+      0 1px 2px rgb(20 48 43 / 0.05),
+      0 8px 22px -14px rgb(20 48 43 / 0.28);
   }
   /* Whole-coupon press feedback; smaller than buttons because coupons are wide. */
   .coupon-press {
@@ -157,6 +162,7 @@ a {
 .coupon.tearing {
   overflow: visible;
   background: transparent;
+  box-shadow: none;
 }
 .tearing .coupon-body,
 .tearing .coupon-actions {

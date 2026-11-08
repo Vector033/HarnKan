@@ -8,7 +8,7 @@ import type { PlannedTransfer, Settlement } from "@/lib/trip/derive";
 import type { Pending } from "@/lib/trip/outbox";
 import type { TripState, TripStore } from "@/lib/trip/store";
 import type { Member, Payment } from "@/lib/trip/types";
-import { Baht, Empty, MemberTile, PendingMark, memberTint } from "../ui";
+import { Baht, Empty, MemberTile, PendingMark, SettleStrip, memberTint } from "../ui";
 import { couponNo, tripSerial } from "./expenses-tab";
 import { QrSheet } from "./qr-sheet";
 import { SlipSheet } from "./slip-sheet";
@@ -93,15 +93,21 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
           ใครโอนให้ใคร
         </h2>
         {transfers.length > 0 && (
-          <p className="mb-3 mt-0.5 text-meta text-muted">จัดให้โอนน้อยครั้งที่สุดแล้ว รวม {settlement.transfers.length} ครั้ง</p>
+          <p className="mt-0.5 text-meta text-muted">จัดให้โอนน้อยครั้งที่สุดแล้ว รวม {settlement.transfers.length} ครั้ง</p>
         )}
+        {settlement.toSettle > 0 && (
+          <div className="coupon mb-3 mt-2.5 px-4 py-3" data-testid="settle-progress">
+            <SettleStrip settled={settlement.settled} total={settlement.toSettle} label="ทั้งทริปโอนแล้ว" />
+          </div>
+        )}
+        {settlement.toSettle === 0 && <div className="mb-3" />}
         {transfers.length === 0 ? (
           settlement.transfers.length > 0 ? (
             <Empty title="ไม่มียอดอื่นที่ค้างอยู่">รายการที่เหลือรอคุณยืนยันด้านบน</Empty>
           ) : (
             view.members.length < 2 ? (
               <Empty title="ยังไม่มีเพื่อนในทริป">เชิญเพื่อนหรือเพิ่มชื่อเพื่อนในแท็บสมาชิก แล้วระบบจะคำนวณยอดให้</Empty>
-            ) : (
+            ) : settlement.toSettle > 0 ? null : (
               <Empty title={settlement.total ? "ทุกคนโอนกันครบแล้ว" : "ยังไม่มียอดที่ต้องโอน"}>
                 {settlement.total ? "ไม่มีใครค้างโอนในทริปนี้" : "เมื่อมีรายจ่าย ระบบจะคำนวณให้ว่าใครต้องโอนให้ใคร"}
               </Empty>

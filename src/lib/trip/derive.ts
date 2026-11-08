@@ -16,6 +16,9 @@ export interface Settlement {
   total: number;
   transfers: PlannedTransfer[];
   awaitingMe: Payment[];
+  /** Money confirmed as received so far, and what that plus every planned transfer adds up to. */
+  settled: number;
+  toSettle: number;
 }
 
 export function settlement(view: TripView, meId: string | null): Settlement {
@@ -40,5 +43,16 @@ export function settlement(view: TripView, meId: string | null): Settlement {
     total: expenses.reduce((s, e) => s + e.amount, 0),
     transfers,
     awaitingMe: meId ? claims.filter((p) => p.to_member === meId) : [],
+    ...progress(view.payments, transfers),
   };
+}
+
+/**
+ * How far the trip is from settled: confirmed payments against confirmed plus
+ * still planned. Claimed but unconfirmed money still counts as outstanding.
+ */
+export function progress(payments: Payment[], transfers: { amount: number }[]) {
+  const settled = payments.filter((p) => p.status === "confirmed").reduce((s, p) => s + p.amount, 0);
+  const outstanding = transfers.reduce((s, t) => s + t.amount, 0);
+  return { settled, toSettle: settled + outstanding };
 }

@@ -91,7 +91,7 @@ export default function JoinPage() {
 
   return (
     <div className="mx-auto min-h-dvh max-w-lg lg:grid lg:max-w-none lg:grid-cols-2">
-      <header className="bg-ink px-5 pb-7 pt-[max(2.5rem,env(safe-area-inset-top))] text-white lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:items-end lg:justify-center lg:px-16 lg:py-16">
+      <header className="bg-ink px-5 pb-7 pt-[max(2.5rem,env(safe-area-inset-top))] text-white rounded-b-[28px] lg:rounded-none lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:items-end lg:justify-center lg:px-16 lg:py-16">
         <div className="lg:w-full lg:max-w-md">
           <h1 className={`font-bold [overflow-wrap:anywhere] ${[...preview.name].length > 24 ? "text-title" : "text-display"}`}>{preview.name}</h1>
           <p className="mt-2 text-body text-on-ink-muted">คุณได้รับเชิญเข้าทริปนี้</p>

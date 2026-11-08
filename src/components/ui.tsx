@@ -1,6 +1,6 @@
 "use client";
 
-import { X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import { formatBaht } from "@/lib/core/money";
 
@@ -111,6 +111,38 @@ export function PendingMark({ label = "รอส่ง" }: { label?: string }) {
     <span className="chip border border-dashed border-wait bg-wait-soft text-wait" title="ยังไม่ถึงเซิร์ฟเวอร์">
       {label}
     </span>
+  );
+}
+
+/**
+ * How much of the trip is settled, drawn in the coupon's own line language:
+ * the dashed track is money not settled yet, the solid ink fill is settled.
+ */
+export function SettleStrip({ settled, total, label = "โอนแล้ว", compact = false }: { settled: number; total: number; label?: string; compact?: boolean }) {
+  const pct = total ? Math.min(100, Math.round((settled / total) * 100)) : 0;
+  const done = total > 0 && settled >= total;
+  return (
+    <div>
+      <p className="flex items-baseline justify-between gap-3 text-meta">
+        <span className={`inline-flex min-w-0 items-center gap-1 font-semibold ${done ? "text-ok" : "text-muted"}`}>
+          {done && <Check className="size-4 shrink-0" aria-hidden />}
+          {done ? (compact ? "โอนครบแล้ว" : "ทุกคนโอนกันครบแล้ว") : label}
+        </span>
+        <span className={`num shrink-0 whitespace-nowrap text-muted ${done && compact ? "hidden" : ""}`}>
+          <span className="font-semibold text-ink">{formatBaht(settled)}</span> / {formatBaht(total)} ฿
+        </span>
+      </p>
+      <div
+        className="relative mt-1.5 h-2.5 rounded-[3px] border-2 border-dashed border-perf"
+        role="progressbar"
+        aria-label={label}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={pct}
+      >
+        <span className="absolute -inset-y-0.5 -left-0.5 rounded-[3px] bg-ink transition-[width] duration-500 ease-out" style={{ width: `calc(${pct}% + 4px)`, maxWidth: "calc(100% + 4px)", display: pct ? undefined : "none" }} />
+      </div>
+    </div>
   );
 }
 

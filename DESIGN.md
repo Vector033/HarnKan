@@ -56,8 +56,8 @@ typography:
     letterSpacing: "0.06em"
     fontFeature: "tnum"
 rounded:
-  coupon: "10px"
-  control: "8px"
+  coupon: "14px"
+  control: "12px"
   chip: "6px"
 spacing:
   stack: "8px"
@@ -158,7 +158,7 @@ The world rejects the fintech dashboard (white cards, a green accent, charts) an
 - Red only for serial numbers (and, through the owe tokens, error and destructive text).
 - Amounts and serials in Kanit with tabular figures; every other word in Anuphan.
 - Dashed perforations as both decoration and state.
-- Small coupon corners (10px); no pills.
+- Soft coupon corners (14px) and controls (12px); no pills.
 
 ## Colors
 
@@ -230,18 +230,20 @@ Spacing rhythm: 8px between coupons in a list, 10px between side-by-side stubs, 
 
 ## Elevation & Depth
 
-The system is flat. Depth comes from tone: white paper on a cool ground, the ink band above, and a dimmed ink backdrop (ink at 45%) behind sheets. Coupons have no shadow.
+Depth comes mostly from tone: white paper on a cool ground, the ink band above, and a dimmed ink backdrop (ink at 45%) behind sheets. Coupons rest on the table with a faint contact shadow (softness borrowed, as an idea only, from friendly Thai money apps; never their colours, clouds or names).
 
 ### Shadow Vocabulary
 - **Floating button lift** (`box-shadow: 0 6px 18px -6px rgb(20 48 43 / 0.55)`): only on the fixed add-expense button, which floats over scrolling content.
 - **Tile edge** (`box-shadow: inset 0 0 0 1.5px rgb(20 48 43 / 0.16)`): an inner hairline on member tiles so pale tints hold their edge on white.
 
 ### Named Rules
-**The Flat Paper Rule.** Coupons and cards lie flat. The only cast shadow belongs to the one control that floats over content.
+- **Paper contact** (`0 1px 2px rgb(20 48 43 / 0.05), 0 8px 22px -14px rgb(20 48 43 / 0.28)`): every coupon. It is removed while a coupon tears.
+
+**The Paper On The Table Rule.** Coupons rest; they never lift. No hover lift, no growing shadows. Only the add-expense button floats.
 
 ## Shapes
 
-Small, slightly softened rectangles, like cut coupon stock. Coupons, sheets, the empty state, the PromptPay panel and the add-expense button use the coupon corner (10px). Buttons, inputs, notices and member tiles use the control corner (8px). Chips, segmented options and the tab badge use the chip corner (6px). There are no pills; the only full circle is the 6px live dot.
+Small, slightly softened rectangles, like cut coupon stock. Coupons, sheets, the empty state, the PromptPay panel and the add-expense button use the coupon corner (14px). Buttons, inputs, notices and member tiles use the control corner (12px). The ink band on the home, join and privacy pages has a 28px curved bottom on phones. Chips, segmented options and the tab badge use the chip corner (6px). There are no pills; the only full circle is the 6px live dot.
 
 Perforations are 2px dashed lines in perforation grey (or tinted ink at 25 to 35% on coloured coupons). A vertical perforation separates a coupon's body from its amount stub; a horizontal one separates a coupon from its actions, and a sheet's title from its body.
 
@@ -252,7 +254,7 @@ Perforations are 2px dashed lines in perforation grey (or tinted ink at 25 to 35
 
 ### Buttons
 Firm and plain, ink on paper.
-- **Shape:** control corner (8px); the add-expense button uses the coupon corner (10px).
+- **Shape:** control corner (12px); the add-expense button uses the coupon corner (14px).
 - **Primary:** ink fill, white semibold body text, at least 48px tall, 12px by 20px padding. Hover and press go to ink press; disabled drops to 45% opacity.
 - **Secondary:** paper fill, ink text, 1px ink border at 25% (50% on hover), at least 48px tall; press fills with ground.
 - **Quiet:** no fill, ink text underlined at 30% (full on hover), at least 48px tall.
@@ -266,14 +268,14 @@ Firm and plain, ink on paper.
 - **State:** pending is wait text on wait-soft with a dashed wait border; "live" is ink on mint with an ok dot; offline and connecting are white on white at 12% over the ink band; sending is lemon text with a dashed lemon border.
 
 ### Cards / Containers (Coupons)
-- **Corner Style:** coupon corner (10px), content clipped.
+- **Corner Style:** coupon corner (14px), content clipped.
 - **Background:** paper; tinted with a member's tint when it is that member's money (your share, a transfer you need to pay). Unsettled history coupons sit at 60% paper.
-- **Shadow Strategy:** none (see Elevation & Depth).
+- **Shadow Strategy:** paper contact only (see Elevation & Depth).
 - **Border:** none; structure comes from perforations and row dividers in rule line.
 - **Internal Padding:** 12px by 14px; 16px for the balance coupon.
 
 ### Inputs / Fields
-- **Style:** paper fill, 1px rule-line border, control corner (8px), 12px by 14px padding, body text.
+- **Style:** paper fill, 1px rule-line border, control corner (12px), 12px by 14px padding, body text.
 - **Focus:** border turns ink with a 2px ink ring at 15%.
 - **Labels and hints:** label in meta semibold ink above; hint in meta muted below; errors in meta owe below.
 
@@ -299,6 +301,9 @@ A bottom sheet on phones and a centred dialog from 640px, on the ground colour w
 ### PromptPay Panel
 The QR on a white 8px-cornered tile inside a PromptPay navy panel with the coupon corner, the amount in display Kanit below it, and the payee with a masked PromptPay ID in pale blue.
 
+### Settle Strip
+How much of the trip is settled, in the Line Form language: a dashed perforation track (not settled) filled with solid ink (confirmed money), 10px tall with chip corners, never a pill. Label left in meta, "settled / total ฿" right in Kanit. At 100% the label turns ok with a check: "ทุกคนโอนกันครบแล้ว" (or "โอนครบแล้ว" in the compact form on home trip coupons, which hides the amounts). It sits under "ใครโอนให้ใคร" and on every trip coupon cached on the device. Claimed but unconfirmed money counts as not settled.
+
 ### Empty State
 A coupon-cornered box with a 2px dashed perforation border, a body semibold title and a muted body line capped at 32ch.
 
@@ -318,5 +323,5 @@ A coupon-cornered box with a 2px dashed perforation border, a body semibold titl
 - **Don't** colour balances green and red like a bank ledger.
 - **Don't** set readable text below 14px.
 - **Don't** use pill-shaped buttons, chips or badges.
-- **Don't** add drop shadows to coupons or cards.
+- **Don't** lift coupons on hover or give them anything heavier than the paper contact shadow.
 - **Don't** build a fintech dashboard of white cards, a green accent and charts.

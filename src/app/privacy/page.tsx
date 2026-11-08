@@ -46,7 +46,7 @@ const SECTIONS: { h: string; p: string[] }[] = [
 export default function PrivacyPage() {
   return (
     <div className="min-h-dvh">
-      <header className="bg-ink px-5 pb-7 pt-[max(2.5rem,env(safe-area-inset-top))] text-white">
+      <header className="rounded-b-[28px] bg-ink px-5 pb-7 pt-[max(2.5rem,env(safe-area-inset-top))] text-white">
         <div className="mx-auto max-w-lg lg:max-w-2xl">
           <Link href="/" className="-ml-2 inline-flex min-h-12 items-center px-2 text-body font-medium text-on-ink-muted underline">
             หารกัน

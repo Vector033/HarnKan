@@ -70,4 +70,8 @@ test("review captures", async ({ browser }) => {
   await a.setViewportSize({ width: 1024, height: 768 });
   await a.getByRole("button", { name: /รายจ่าย/ }).click();
   await a.screenshot({ path: ".impeccable/review/desktop-1024.png" });
+  await a.setViewportSize({ width: 390, height: 844 });
+  await a.goto("/");
+  await expect(a.getByTestId("trip-link").first()).toBeVisible();
+  await a.screenshot({ path: ".impeccable/review/mobile-home-trips.png" });
 });

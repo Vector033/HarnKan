@@ -22,6 +22,6 @@ export default defineConfig({
     url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
-    env: { SLIP_READER: "fake" },
+    env: { SLIP_READER: "fake", NEXT_PUBLIC_GOOGLE_AUTH: "true" },
   },
 });

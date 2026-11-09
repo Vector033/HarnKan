@@ -26,6 +26,9 @@ export default function Home() {
   const [confirmWipe, setConfirmWipe] = useState(false);
   // Trips opened on this device carry their data, so their coupon can show how settled they are.
   const [settled, setSettled] = useState<Map<string, { settled: number; toSettle: number }>>(new Map());
+  // null until known; email is set once this browser is tied to a Google account.
+  const [account, setAccount] = useState<{ email: string | null } | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -40,8 +43,15 @@ export default function Home() {
           return [s.trip.id, { settled: r.settled, toSettle: r.toSettle }];
         })));
       }
-      const user = await ensureUser();
+      // Back from Google: the client has already traded the code for a session; tidy the URL.
+      const back = new URLSearchParams(location.search);
+      const user = await ensureUser(); // waits for the client to read the code from the URL
+      if (back.size) history.replaceState(null, "", location.pathname);
       if (!user) return;
+      if (back.get("error_code") === "identity_already_exists") setAuthError("taken");
+      else if (back.get("error")) setAuthError("failed");
+      const { data: s } = await supabase().auth.getSession();
+      if (!cancelled) setAccount({ email: s.session?.user.is_anonymous ? null : (s.session?.user.email ?? "") });
       const { data } = await supabase().from("trips").select("id,name,created_at");
       if (!cancelled && data) setTrips(sortTrips(data));
       const { data: me } = await supabase().from("members").select("nickname").eq("user_id", user).limit(1);
@@ -77,10 +87,25 @@ export default function Home() {
     router.push(`/t/${(data as { trip_id: string }).trip_id}`);
   }
 
+  // A guest with trips keeps them by linking Google to this same user; with none, it just signs in.
+  async function google(signIn = false) {
+    setAuthError(null);
+    const auth = supabase().auth;
+    const options = { redirectTo: `${location.origin}/` };
+    // Switching to another account: this browser's guest trips will not open under it.
+    if (signIn && trips?.length) await forgetAll();
+    const { error } =
+      signIn || !trips?.length
+        ? await auth.signInWithOAuth({ provider: "google", options })
+        : await auth.linkIdentity({ provider: "google", options });
+    if (error) setAuthError("failed");
+  }
+
   async function wipe() {
     await forgetAll();
     await supabase().auth.signOut({ scope: "local" });
     setConfirmWipe(false);
+    setAccount({ email: null });
     setTrips([]);
   }
 
@@ -182,6 +207,49 @@ export default function Home() {
           )}
         </section>
 
+        {GOOGLE && account && (
+          <section aria-labelledby="account-h" className="space-y-2.5" data-testid="account">
+            <h2 id="account-h" className="text-body font-bold">
+              บัญชี
+            </h2>
+            {account.email !== null ? (
+              <p className="text-body text-muted">
+                ทริปทั้งหมดเก็บไว้กับบัญชี Google <span className="font-semibold text-ink [overflow-wrap:anywhere]">{account.email}</span> เข้าสู่ระบบที่เครื่องอื่นเพื่อเปิดทริปเดิมได้
+              </p>
+            ) : authError === "taken" ? (
+              <div className="space-y-2.5 rounded-lg bg-owe-soft px-3.5 py-3" role="alert">
+                <p className="text-body text-owe">
+                  บัญชี Google นี้ใช้กับเครื่องอื่นอยู่แล้ว เข้าสู่ระบบด้วยบัญชีนั้นได้ แต่ทริปที่เปิดไว้บนเครื่องนี้แบบไม่มีบัญชีจะเปิดไม่ได้อีก
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <button className="btn-danger" onClick={() => google(true)}>
+                    เข้าสู่ระบบด้วยบัญชีนั้น
+                  </button>
+                  <button className="btn-quiet" onClick={() => setAuthError(null)}>
+                    ยกเลิก
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <p className="text-body text-muted">
+                  {trips?.length
+                    ? "ตอนนี้ทริปผูกกับเบราว์เซอร์นี้เท่านั้น เชื่อมกับ Google ไว้เพื่อเปิดทริปจากเครื่องอื่นหรือหลังล้างข้อมูลเบราว์เซอร์ได้"
+                    : "หากเคยเชื่อมกับ Google ไว้ เข้าสู่ระบบเพื่อเปิดทริปเดิมได้ ถ้าไม่เข้าก็ใช้งานได้ตามปกติ"}
+                </p>
+                <button className="btn w-full" onClick={() => google()}>
+                  <GoogleMark /> {trips?.length ? "เชื่อมกับ Google" : "เข้าสู่ระบบด้วย Google"}
+                </button>
+                {authError === "failed" && (
+                  <p className="text-body text-owe" role="alert">
+                    เชื่อมกับ Google ไม่สำเร็จ โปรดลองอีกครั้ง
+                  </p>
+                )}
+              </>
+            )}
+          </section>
+        )}
+
         <footer className="space-y-3 border-t border-line pt-5 text-meta text-muted">
           <p className="flex gap-2">
             <ShieldCheck className="mt-0.5 size-4 shrink-0 text-ok" aria-hidden />
@@ -194,7 +262,11 @@ export default function Home() {
           </p>
           {confirmWipe ? (
             <div className="flex flex-wrap items-center gap-2 rounded-lg bg-owe-soft px-3 py-2.5">
-              <p className="flex-1 text-owe">ลบทริปทั้งหมดที่เก็บไว้ในเครื่องนี้และออกจากระบบ? ข้อมูลบนเซิร์ฟเวอร์ยังอยู่ แต่เครื่องนี้จะเข้าทริปเดิมไม่ได้อีก</p>
+              <p className="flex-1 text-owe">
+                {account?.email
+                  ? "ออกจากระบบและลบทริปที่เก็บไว้ในเครื่องนี้? ทริปยังอยู่ในบัญชี Google เข้าสู่ระบบใหม่เพื่อเปิดอีกครั้ง"
+                  : "ลบทริปทั้งหมดที่เก็บไว้ในเครื่องนี้และออกจากระบบ? ข้อมูลบนเซิร์ฟเวอร์ยังอยู่ แต่เครื่องนี้จะเข้าทริปเดิมไม่ได้อีก"}
+              </p>
               <button className="btn-danger" onClick={wipe} autoFocus>
                 ลบและออกจากระบบ
               </button>
@@ -204,12 +276,27 @@ export default function Home() {
             </div>
           ) : (
             <button className="btn-quiet -ml-3 text-muted" onClick={() => setConfirmWipe(true)}>
-              ใช้เครื่องคนอื่นอยู่? ลบข้อมูลบนเครื่องนี้
+              {account?.email ? "ออกจากระบบ" : "ใช้เครื่องคนอื่นอยู่? ลบข้อมูลบนเครื่องนี้"}
             </button>
           )}
         </footer>
       </main>
     </div>
+  );
+}
+
+/** Google sign-in shows only where the provider is set up (README "Google sign-in"). */
+const GOOGLE = process.env.NEXT_PUBLIC_GOOGLE_AUTH === "true";
+
+/** Google's "G", in its own colours as its brand rules ask. */
+function GoogleMark() {
+  return (
+    <svg viewBox="0 0 48 48" className="size-5" aria-hidden>
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+    </svg>
   );
 }
 

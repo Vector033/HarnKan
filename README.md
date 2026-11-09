@@ -122,6 +122,22 @@ E2E_BASE_URL=https://harnkan-ten.vercel.app npx playwright test live   # smoke t
 
 `next.config.ts` lists tesseract.js's worker files for output tracing. Without that, the OCR worker crashes on Vercel because it is started from a file path the tracer cannot follow.
 
+## Google sign-in (optional)
+
+Everyone still starts as a guest (an anonymous Supabase user). On the home page a guest with trips can
+*link* Google to that same user (`linkIdentity`), so the trips open on any device signed in to that account;
+a browser with no trips just signs in. If the Google account already belongs to another user, the guest
+session stays and the page asks before switching. The section shows only when `NEXT_PUBLIC_GOOGLE_AUTH=true`.
+
+1. Google Cloud Console → Credentials → OAuth client ID (Web application). Authorised redirect URI:
+   `https://<project-ref>.supabase.co/auth/v1/callback`.
+2. Supabase dashboard → Authentication → Providers → Google: paste the client ID and secret, enable it.
+3. Push the auth config (adds the redirect URLs and turns on manual linking):
+   `npx supabase config push --workdir deploy --remote=<project-ref>`.
+4. Set `NEXT_PUBLIC_GOOGLE_AUTH=true` in Vercel and redeploy.
+
+Locally the stack has a dummy Google client, so e2e (`e2e/google.spec.ts`) checks the redirect without signing in.
+
 ## Tests
 
 | command | what |

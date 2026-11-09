@@ -5,9 +5,13 @@ project_id = "harnkan"
 
 [auth]
 site_url = "https://harnkan-ten.vercel.app"
-additional_redirect_urls = ["https://harnkan-ten.vercel.app"]
+# The project is shared: keep the other apps' URLs in this list, a push replaces it.
+additional_redirect_urls = ["https://harnkan-ten.vercel.app/**", "https://factfit-five.vercel.app/**", "https://slipjot.vercel.app/**"]
 # Trip members never make an account: each browser is an anonymous user.
 enable_anonymous_sign_ins = true
+# A guest links Google to the same user, so their trips follow them to other devices.
+# The Google provider itself (client id, secret) is set in the dashboard.
+enable_manual_linking = true
 
 [auth.rate_limit]
 # Anonymous sign-ins per hour per IP. A whole trip on one café Wi-Fi fits easily.

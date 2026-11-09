@@ -60,3 +60,6 @@ deploy/supabase/.temp/
 # impeccable runtime
 .impeccable/mocks/decision/serve.txt
 .impeccable/mocks/decision/answer.txt
+
+# Google OAuth client downloads hold the secret
+client_secret_*.json

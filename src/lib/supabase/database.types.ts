@@ -101,6 +101,20 @@ isOneToOne: false
       referencedColumns: ["trip_id","id"]
     }
                   ]
+                },"profiles": {
+                  Row: {
+                    "nickname": string | null,"payee_name": string | null,"promptpay_id": string | null,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "nickname"?: string | null,"payee_name"?: string | null,"promptpay_id"?: string | null,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "nickname"?: string | null,"payee_name"?: string | null,"promptpay_id"?: string | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"slip_reads": {
                   Row: {
                     "read_at": string,"user_id": string

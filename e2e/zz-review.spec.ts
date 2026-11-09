@@ -74,4 +74,9 @@ test("review captures", async ({ browser }) => {
   await a.goto("/");
   await expect(a.getByTestId("trip-link").first()).toBeVisible();
   await a.screenshot({ path: ".impeccable/review/mobile-home-trips.png" });
+  await a.goto("/settings");
+  await expect(a.getByRole("button", { name: "เชื่อมกับ Google" })).toBeVisible();
+  await a.screenshot({ path: ".impeccable/review/mobile-settings.png", fullPage: true });
+  await a.setViewportSize({ width: 1440, height: 900 });
+  await a.screenshot({ path: ".impeccable/review/desktop-settings.png", fullPage: true });
 });

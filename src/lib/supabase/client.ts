@@ -19,7 +19,14 @@ export function supabase() {
  * trip never make an account; the anonymous session is what ties this browser
  * to its member row. Returns null when offline with no session yet.
  */
-export async function ensureUser(): Promise<string | null> {
+export function ensureUser(): Promise<string | null> {
+  // Calls made at the same time share one answer, so two of them cannot each sign in a new guest.
+  inFlight ??= resolveUser().finally(() => (inFlight = null));
+  return inFlight;
+}
+let inFlight: Promise<string | null> | null = null;
+
+async function resolveUser(): Promise<string | null> {
   const sb = supabase();
   const { data } = await sb.auth.getSession();
   if (data.session) {

@@ -371,3 +371,33 @@ describe("second-pass hardening (independent review, 2026-11-07)", () => {
     await expect(rpc(owner, "save_expense", { p_expense: { ...base, split: { [t.member_id]: 0.0001, [ph!.id]: 1 } } })).rejects.toThrow(/weights are 0 to 1000/);
   });
 });
+
+describe("profiles", () => {
+  it("only the owner reads or writes a profile", async () => {
+    const [me, other] = await Promise.all([user(), user()]);
+    const { data: { user: u } } = await me.auth.getUser();
+    const { error } = await me.from("profiles").upsert({ user_id: u!.id, nickname: "ฉัน", promptpay_id: "0812345678" });
+    expect(error).toBeNull();
+    const { data: seen } = await other.from("profiles").select("*").eq("user_id", u!.id);
+    expect(seen).toEqual([]);
+    const { error: forged } = await other.from("profiles").upsert({ user_id: u!.id, nickname: "ปลอม" });
+    expect(forged).not.toBeNull();
+    const { count } = await other.from("profiles").update({ nickname: "ปลอม" }, { count: "exact" }).eq("user_id", u!.id);
+    expect(count).toBe(0);
+    const { data: mine } = await me.from("profiles").select("nickname").single();
+    expect(mine!.nickname).toBe("ฉัน");
+  });
+
+  it("a new trip and a join start with the profile's payout account", async () => {
+    const [host, guest] = await Promise.all([user(), user()]);
+    for (const c of [host, guest]) {
+      const { data: { user: u } } = await c.auth.getUser();
+      await c.from("profiles").upsert({ user_id: u!.id, promptpay_id: "0899999999", payee_name: "ทดสอบ ท." });
+    }
+    const t = await rpc<{ trip_id: string; member_id: string; invite_code: string }>(host, "create_trip", { p_name: "โปรไฟล์", p_nickname: "โฮสต์" });
+    const j = await rpc<{ member_id: string }>(guest, "join_trip", { p_code: t.invite_code, p_nickname: "แขก" });
+    const { data } = await host.from("members").select("id,promptpay_id,payee_name").in("id", [t.member_id, j.member_id]);
+    expect(data).toHaveLength(2);
+    for (const m of data!) expect(m).toMatchObject({ promptpay_id: "0899999999", payee_name: "ทดสอบ ท." });
+  });
+});

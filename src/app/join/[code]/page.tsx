@@ -37,6 +37,8 @@ export default function JoinPage() {
     const p = data as unknown as Preview;
     if (p.already_member) return router.replace(`/t/${p.trip_id}`);
     setPreview(p);
+    const { data: profile } = await supabase().from("profiles").select("nickname").maybeSingle();
+    if (profile?.nickname) setNickname((n) => n || profile.nickname!);
   }, [code, router]);
 
   useEffect(() => {

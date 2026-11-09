@@ -124,7 +124,7 @@ E2E_BASE_URL=https://harnkan-ten.vercel.app npx playwright test live   # smoke t
 
 ## Google sign-in (optional)
 
-Everyone still starts as a guest (an anonymous Supabase user). On the home page a guest with trips can
+Everyone still starts as a guest (an anonymous Supabase user). On the settings page (`/settings`) a guest with trips can
 *link* Google to that same user (`linkIdentity`), so the trips open on any device signed in to that account;
 a browser with no trips just signs in. If the Google account already belongs to another user, the guest
 session stays and the page asks before switching. The section shows only when `NEXT_PUBLIC_GOOGLE_AUTH=true`.
@@ -137,6 +137,13 @@ session stays and the page asks before switching. The section shows only when `N
 4. Set `NEXT_PUBLIC_GOOGLE_AUTH=true` in Vercel and redeploy.
 
 Locally the stack has a dummy Google client, so e2e (`e2e/google.spec.ts`) checks the redirect without signing in.
+
+## Settings and defaults
+
+`/settings` holds the account (guest or Google), sign-out of other devices for Google accounts, clearing this
+device, and per-person defaults in `public.profiles` (nickname, PromptPay, payee name; RLS: owner only). A trigger
+copies the PromptPay fields into the member row whenever a trip is created, joined or a name is claimed, so they are
+typed once instead of per trip. There are no passwords to leak.
 
 ## Tests
 

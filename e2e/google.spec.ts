@@ -58,7 +58,8 @@ test("defaults from settings fill a new trip; clearing the device signs out", as
   await page.getByRole("button", { name: /สมาชิก/ }).click();
   await expect(page.getByLabel("เบอร์มือถือหรือเลขพร้อมเพย์")).toHaveValue("0812345678");
 
-  await page.goto("/settings");
+  await page.getByTestId("settings-link").click(); // reachable from inside a trip too
+  await page.waitForURL(/\/settings$/);
   await page.getByRole("button", { name: "ลบข้อมูลและออกจากระบบ" }).click();
   await page.getByRole("button", { name: "ยืนยัน ลบและออกจากระบบ" }).click();
   await page.waitForURL((u) => u.pathname === "/");

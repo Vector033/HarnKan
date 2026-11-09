@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeftRight, ChevronLeft, CloudOff, ReceiptText, Users, X } from "lucide-react";
+import { ArrowLeftRight, ChevronLeft, CloudOff, ReceiptText, Settings, Users, X } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { settlement } from "@/lib/trip/derive";
@@ -107,6 +107,9 @@ export function TripView({ tripId }: { tripId: string }) {
             </p>
           </div>
           <SyncStatus state={state} />
+          <Link href="/settings" className="-mr-3 grid size-12 shrink-0 place-items-center rounded-lg text-on-ink-muted hover:bg-white/10 hover:text-white" aria-label="ตั้งค่า" data-testid="settings-link">
+            <Settings className="size-6" aria-hidden />
+          </Link>
         </div>
         {wide && (
           <nav className="mx-auto mt-2 flex max-w-6xl gap-1 px-8" aria-label="ส่วนของทริป">

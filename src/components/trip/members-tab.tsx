@@ -93,8 +93,6 @@ export function MembersTab({ state, store, settlement }: { state: TripState; sto
         </section>
       )}
 
-      {me && <MyProfile key={me.id + (me.promptpay_id ?? "") + (me.payee_name ?? "")} state={state} store={store} />}
-
       <section aria-labelledby="members-h">
         <h2 id="members-h" className="mb-2.5 text-body font-bold">
           สมาชิก {view.members.length} คน
@@ -122,6 +120,8 @@ export function MembersTab({ state, store, settlement }: { state: TripState; sto
         </form>
         <p className="hint">เพิ่มชื่อไว้ก่อนเพื่อบันทึกรายจ่ายได้ทันที เมื่อเพื่อนเปิดลิงก์ จะเลือกชื่อนี้และใส่พร้อมเพย์ของตัวเองได้</p>
       </section>
+
+      {me && <MyProfile key={me.id + (me.promptpay_id ?? "") + (me.payee_name ?? "")} state={state} store={store} />}
     </div>
   );
 }

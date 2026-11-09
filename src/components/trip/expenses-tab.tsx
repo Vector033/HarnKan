@@ -43,7 +43,6 @@ export function ExpensesTab({
   const me = state.me;
   const myShare = me ? (settlement.spentBy.get(me.id) ?? 0) : 0;
   const myPayments = me ? settlement.transfers.filter((t) => t.from === me.id && t.claimedAmount < t.amount) : [];
-  const serial = tripSerial(view.trip.id);
   const allHavePromptPay = myPayments.every((t) => view.members.find((m) => m.id === t.to)?.promptpay_id);
 
   const byDay = new Map<string, Pending<Expense>[]>();
@@ -54,9 +53,10 @@ export function ExpensesTab({
 
   return (
     <>
-      <section className="grid grid-cols-1 gap-2.5 min-[400px]:grid-cols-2" aria-label="ยอดรวม">
-        <Stub label="ทั้งทริปจ่ายไป" serial={serial} satang={settlement.total} />
-        <Stub label="ส่วนของคุณ" serial={serial} satang={myShare} tint={me ? memberTint(view.members, me.id) : undefined} />
+      {/* One receipt, two lines: the totals read at a glance and leave room for the list. */}
+      <section className="coupon divide-y divide-line" aria-label="ยอดรวม">
+        <TotalRow label="ทั้งทริปจ่ายไป" satang={settlement.total} />
+        <TotalRow label="ส่วนของคุณ" satang={myShare} tint={me ? memberTint(view.members, me.id) : undefined} />
       </section>
 
       {myPayments.length > 0 && (
@@ -125,16 +125,12 @@ export function ExpensesTab({
   );
 }
 
-function Stub({ label, serial, satang, tint }: { label: string; serial: string; satang: number; tint?: string }) {
+function TotalRow({ label, satang, tint }: { label: string; satang: number; tint?: string }) {
   return (
-    <div className="coupon flex" style={tint ? { background: tint } : undefined}>
-      <span className="perf-y my-2.5 ml-2.5 border-ink/25" aria-hidden />
-      <div className="min-w-0 flex-1 px-3 py-3">
-        <span className="block text-meta font-medium">{label}</span>
-        <Baht satang={satang} className="mt-0.5 block text-title font-semibold leading-tight" />
-        <span className="serial mt-1 block whitespace-nowrap">{serial}</span>
-      </div>
-    </div>
+    <p className="flex items-baseline justify-between gap-3 px-4 py-3" style={tint ? { background: tint } : undefined}>
+      <span className="text-body font-medium">{label}</span>
+      <Baht satang={satang} className="text-title font-semibold leading-tight" />
+    </p>
   );
 }
 

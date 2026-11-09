@@ -9,7 +9,7 @@ import type { Pending } from "@/lib/trip/outbox";
 import type { TripState, TripStore } from "@/lib/trip/store";
 import type { Member, Payment } from "@/lib/trip/types";
 import { Baht, Empty, MemberTile, PendingMark, SettleStrip, memberTint } from "../ui";
-import { couponNo, tripSerial } from "./expenses-tab";
+import { couponNo } from "./expenses-tab";
 import { QrSheet } from "./qr-sheet";
 import { SlipSheet } from "./slip-sheet";
 
@@ -27,7 +27,6 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
   const [slip, setSlip] = useState<PlannedTransfer | null>(null);
   const myNet = me ? (settlement.net.get(me.id) ?? 0) : 0;
   const tripCreator = view.trip.created_by === state.userId;
-  const serial = tripSerial(view.trip.id);
 
   // A transfer fully claimed to me already shows above as a coupon to confirm; show it once.
   const transfers = settlement.transfers.filter((t) => !(me && t.to === me.id && t.claimedAmount >= t.amount));
@@ -57,7 +56,6 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
                 : settlement.total
                   ? "คุณไม่มียอดค้างแล้ว"
                   : "ยังไม่มียอดที่ต้องโอน"}
-            <span className="serial">{serial}</span>
           </p>
           {myNet !== 0 && (
             <Baht

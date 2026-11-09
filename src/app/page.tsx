@@ -90,13 +90,13 @@ export default function Home() {
         <div className="lg:w-full lg:max-w-md">
           <h1 className="text-display font-bold">หารกัน</h1>
           <p className="mt-2 max-w-[30ch] text-body leading-relaxed text-on-ink-muted">
-            บันทึกค่าใช้จ่ายร่วมกันได้จากมือถือของทุกคน แล้วสรุปให้ว่าใครต้องโอนให้ใคร โดยโอนน้อยครั้งที่สุด
+            บันทึกค่าใช้จ่ายร่วมกันได้จากมือถือของทุกคน แล้วสรุปให้ว่าใครต้องโอนให้ใคร <span className="whitespace-nowrap">โดยโอนน้อยครั้งที่สุด</span>
           </p>
           {trips !== null && trips.length === 0 && <ExampleCoupon />}
         </div>
       </header>
 
-      <main className="space-y-8 px-4 pb-12 pt-5 lg:w-full lg:max-w-xl lg:self-center lg:px-12 lg:py-16">
+      <main className="flex flex-col gap-8 px-4 pb-12 pt-5 lg:w-full lg:max-w-xl lg:self-center lg:px-12 lg:py-16">
         <form onSubmit={create} className="coupon" aria-labelledby="create-h">
           <div className="space-y-5 p-4">
             <h2 id="create-h" className="text-body font-bold">
@@ -146,7 +146,8 @@ export default function Home() {
           </p>
         </form>
 
-        <section aria-labelledby="mine-h">
+        {/* Returning people come for their trips; the form moves below them. */}
+        <section aria-labelledby="mine-h" className={trips?.length ? "order-first" : undefined}>
           <h2 id="mine-h" className="mb-2.5 text-body font-bold">
             ทริปของฉัน
           </h2>

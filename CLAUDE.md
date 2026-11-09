@@ -1,6 +1,6 @@
 # HarnKan (หารกัน): หารค่าทริปแบบ realtime ถ่ายสลิปแล้วติ๊ก "จ่ายแล้ว" ให้อัตโนมัติ
 
-> สถานะ: **MVP ครบ 1–7, deploy แล้ว** ที่ https://harnkan-ten.vercel.app (2026-11-04) · Supabase project `harnkan` ref `ddyjypurrrzasbtfwncs` (Singapore, org "Vector033's Org") · ที่เหลือดู README หัวข้อ Roadmap
+> สถานะ: **MVP ครบ 1–7, deploy แล้ว** ที่ https://harnkan-ten.vercel.app (อัปเดต 2026-11-09: มี Google login แต่ปิด flag ไว้ อ่าน HANDOFF.md) · Supabase project `harnkan` ref `ddyjypurrrzasbtfwncs` (Singapore, org "Vector033's Org") · ที่เหลือดู README หัวข้อ Roadmap
 
 ## เจ้าของโปรเจกต์
 Nawat Wattanawong นักศึกษาวิทยาการคอมพิวเตอร์ มช. ปี 3 เป้าหมายคือสาย **full-stack**

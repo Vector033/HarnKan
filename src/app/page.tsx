@@ -109,11 +109,13 @@ export default function Home() {
             </Link>
           </div>
           <h1 className="mt-2 text-display font-bold text-balance">
-            หารค่างวด <span className="whitespace-nowrap">ค่ากินเที่ยว</span>กับเพื่อนได้ทันที{" "}
+            หารค่างวด <span className="whitespace-nowrap">ค่ากินเที่ยว</span>กับเพื่อน
+            <span className="whitespace-nowrap">ได้ทันที</span>{" "}
             <span className="whitespace-nowrap">สลิปเดียวรู้เรื่อง</span>
           </h1>
           <p className="mt-2 max-w-[38ch] text-body leading-relaxed text-on-ink-muted">
-            จดค่าใช้จ่ายร่วมกันจากมือถือทุกคน สรุปยอดโอนให้น้อยครั้งที่สุด พร้อม QR พร้อมเพย์
+            จดค่าใช้จ่ายร่วมกันจากมือถือทุกคน สรุปยอดโอน<span className="whitespace-nowrap">ให้น้อยครั้งที่สุด</span>{" "}
+            พร้อม <span className="whitespace-nowrap">QR พร้อมเพย์</span>
           </p>
           <div className={showMobileDemo ? "block" : "hidden lg:block"}>
             <ExampleCoupon />
@@ -195,7 +197,7 @@ export default function Home() {
             </button>
           </div>
           <p className="perf-x px-4 py-3 text-meta text-muted">
-            ไม่ต้องสมัครสมาชิก เพื่อนเข้าผ่านลิงก์หรือ QR แล้วใส่ชื่อเล่นได้เลย
+            ไม่ต้องสมัครสมาชิก เพื่อนเข้าผ่านลิงก์หรือ QR แล้วใส่<span className="whitespace-nowrap">ชื่อเล่นได้เลย</span>
           </p>
         </form>
 
@@ -214,7 +216,7 @@ export default function Home() {
                 <li key={t.id}>
                   <Link href={`/t/${t.id}`} data-testid="trip-link" className="coupon coupon-press flex min-h-16 items-stretch hover:ring-1 hover:ring-ink/25" title={t.name}>
                     <span className="min-w-0 flex-1 px-4 py-3.5">
-                      <span className="line-clamp-2 text-body font-semibold leading-snug [overflow-wrap:anywhere]">{t.name}</span>
+                      <span className="line-clamp-2 break-words text-body font-semibold leading-snug">{t.name}</span>
                       <span className="block text-meta text-muted">
                         สร้างเมื่อ <span className="num font-num">{new Date(t.created_at).toLocaleDateString("th-TH", { day: "numeric", month: "short", year: "numeric" })}</span>
                       </span>
@@ -240,8 +242,9 @@ export default function Home() {
           <p className="flex gap-2">
             <ShieldCheck className="mt-0.5 size-4 shrink-0 text-ok" strokeWidth={1.75} aria-hidden />
             <span>
-              แอปนี้ไม่ได้ถือหรือโอนเงิน เพียงบันทึกและสร้าง QR พร้อมเพย์ให้ ·{" "}
-              <Link href="/privacy" className="-my-3 inline-flex min-h-12 items-center font-semibold text-ink underline">
+              แอปนี้ไม่ได้ถือหรือโอนเงิน เพียงบันทึกและสร้าง{" "}
+              <span className="whitespace-nowrap">QR พร้อมเพย์ให้</span> ·{" "}
+              <Link href="/privacy" className="-my-3 inline-flex min-h-12 items-center whitespace-nowrap font-semibold text-ink underline">
                 ข้อมูลที่เราเก็บ
               </Link>
             </span>

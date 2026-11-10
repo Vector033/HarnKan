@@ -67,11 +67,11 @@ export function ExpensesTab({
         >
           <span className="flex-1 px-4 py-3">
             <span className="flex items-baseline justify-between gap-2 text-meta font-medium">
-              <span className="min-w-0 [overflow-wrap:anywhere]">คุณต้องโอนให้ {myPayments.map((t) => names.get(t.to)).join(", ")}</span>
+              <span className="min-w-0 break-words">คุณต้องโอนให้ {myPayments.map((t) => names.get(t.to)).join(", ")}</span>
               {myPayments.length === 1 && <span className="serial">{couponNo(view.trip.id, myPayments[0].from, myPayments[0].to)}</span>}
             </span>
             <span className="mt-0.5 flex items-center gap-1 text-body font-bold">
-              {allHavePromptPay ? "ดู QR พร้อมเพย์และแนบสลิป" : "ดูยอดที่ต้องโอนและแนบสลิป"} <ChevronRight className="size-4" strokeWidth={1.75} aria-hidden />
+              {allHavePromptPay ? <>ดู <span className="whitespace-nowrap">QR พร้อมเพย์</span>และแนบสลิป</> : "ดูยอดที่ต้องโอนและแนบสลิป"} <ChevronRight className="size-4" strokeWidth={1.75} aria-hidden />
             </span>
           </span>
           <span className="perf-y relative flex items-center border-ink/30 px-4">
@@ -90,9 +90,9 @@ export function ExpensesTab({
           {[...byDay].map(([day, items]) => (
             <section key={day} aria-label={day}>
               {/* Guide row: stays pinned under the header while its day is in view. */}
-              <h2 className="sticky top-[var(--header-h,76px)] z-10 -mx-4 flex justify-between bg-ground/95 px-4 py-2 text-meta font-semibold text-muted backdrop-blur-[2px] lg:-mx-2 lg:px-2">
-                <span>{day}</span>
-                <span className="num font-num tabular-nums font-medium">
+              <h2 className="sticky top-[var(--header-h,76px)] z-10 -mx-4 flex justify-between gap-2 bg-ground/95 px-4 py-2 text-meta font-semibold text-muted backdrop-blur-[2px] lg:-mx-2 lg:px-2">
+                <span className="whitespace-nowrap">{day}</span>
+                <span className="num font-num tabular-nums whitespace-nowrap font-medium">
                   {items.length} รายการ · {formatBaht(items.reduce((s, e) => s + e.amount, 0))} ฿
                 </span>
               </h2>
@@ -155,7 +155,7 @@ function ExpenseRow({ e, state, onOpen }: { e: Pending<Expense>; state: TripStat
             {e.title}
           </span>
           <span className="block text-meta text-muted">
-            <span className="[overflow-wrap:anywhere]">{payer?.nickname ?? "?"}</span> จ่าย · {splitLabel(e.split_mode, people)}
+            <span className="break-words">{payer?.nickname ?? "?"}</span> จ่าย · <span className="whitespace-nowrap">{splitLabel(e.split_mode, people)}</span>
             {editedBy && ` · แก้ล่าสุดโดย ${editedBy}`}
           </span>
         </span>

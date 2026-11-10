@@ -60,7 +60,7 @@ function Version({
   names: Map<string, string>;
 }) {
   return (
-    <div className="coupon p-3.5 ring-1 ring-line [overflow-wrap:anywhere]">
+    <div className="coupon break-words p-3.5 ring-1 ring-line">
       <p className="mb-2 text-meta font-semibold text-muted">{heading}</p>
       {e === "deleted" ? (
         <p className="font-semibold text-owe line-through decoration-2">ลบรายการนี้</p>

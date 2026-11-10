@@ -85,8 +85,8 @@ export function SlipSheet({
         <div className="space-y-4">
           <p className="text-body">
             ระบบจะอ่านยอดเงิน เวลา และชื่อผู้รับจากสลิป หากตรงกับยอดที่ต้องโอน (
-            <span className="num font-num font-semibold">{formatBaht(owed)} ฿</span>) ระบบจะบันทึกว่าโอนแล้ว และให้ {to.nickname}{" "}
-            ยืนยันอีกครั้ง
+            <span className="num font-num whitespace-nowrap font-semibold">{formatBaht(owed)} ฿</span>) ระบบจะบันทึกว่าโอนแล้ว{" "}
+            <span className="whitespace-nowrap">และให้ {to.nickname} ยืนยันอีกครั้ง</span>
           </p>
           <label className="btn-primary w-full cursor-pointer">
             <Camera className="size-5" strokeWidth={1.75} aria-hidden /> เลือกรูปสลิปหรือถ่ายรูป
@@ -101,8 +101,8 @@ export function SlipSheet({
           <div className="flex gap-2.5 rounded-lg bg-paper px-3.5 py-3 text-meta text-muted ring-1 ring-line">
             <ShieldCheck className="mt-0.5 size-5 shrink-0 text-ok" strokeWidth={1.75} aria-hidden />
             <p>
-              รูปสลิปถูกอ่านแล้วลบทันที ไม่มีการเก็บรูปไว้ เก็บเพียงยอดเงิน เวลา ชื่อย่อผู้รับ และเลขบัญชี 4 หลักท้าย
-              · ระบบไม่ได้ตรวจสอบสลิปกับธนาคาร
+              รูปสลิปถูกอ่านแล้วลบทันที ไม่มีการเก็บรูปไว้ <span className="whitespace-nowrap">เก็บเพียงยอดเงิน</span> เวลา ชื่อย่อผู้รับ และเลขบัญชี{" "}
+              <span className="whitespace-nowrap">4 หลักท้าย</span> · ระบบไม่ได้ตรวจสอบสลิปกับธนาคาร
             </p>
           </div>
         </div>

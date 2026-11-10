@@ -244,7 +244,7 @@ export function ExpenseSheet({
                       onChange={(e) => setEqual({ ...equal, [m.id]: e.target.checked })}
                     />
                     <MemberTile name={m.nickname} tint={memberTint(members, m.id)} size={30} />
-                    <span className="min-w-0 flex-1 text-body [overflow-wrap:anywhere]">{m.nickname}</span>
+                    <span className="min-w-0 flex-1 break-words text-body">{m.nickname}</span>
                   </label>
                 ) : (
                   <>
@@ -280,7 +280,7 @@ export function ExpenseSheet({
             {exactTotal !== amount && ` (${exactTotal < amount ? "ขาด" : "เกิน"} ${formatBaht(Math.abs(amount - exactTotal))} ฿)`}
           </p>
         )}
-        {problem?.kind === "empty" && <p className="text-body text-owe" role="alert">โปรดเลือกอย่างน้อย 1 คนที่ร่วมจ่ายรายการนี้</p>}
+        {problem?.kind === "empty" && <p className="text-body text-owe" role="alert">โปรดเลือกอย่างน้อย <span className="whitespace-nowrap">1 คน</span>ที่ร่วมจ่ายรายการนี้</p>}
         {mode !== "exact" && preview && amount !== null && amount % Math.max(1, preview.size) !== 0 && (
           <p className="hint">เศษสตางค์ที่หารไม่ลงตัวจะไปอยู่กับผู้จ่ายก่อน ยอดรวมจึงตรงทุกสตางค์</p>
         )}

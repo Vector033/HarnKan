@@ -180,7 +180,7 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
                   {settled && <span className="halftone-header absolute inset-x-0 top-0 h-10" aria-hidden />}
                   <span className="relative min-w-0 flex-1 px-3.5 py-3">
                     <span className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="flex flex-wrap items-center gap-x-1.5 font-semibold [overflow-wrap:anywhere]">
+                      <span className="flex flex-wrap items-center gap-x-1.5 break-words font-semibold">
                         {name(p.from_member)} <ArrowRight className="size-4 shrink-0" strokeWidth={1.75} aria-label="โอนให้" /> {name(p.to_member)}
                       </span>
                       {settled && (
@@ -298,12 +298,12 @@ function TransferCoupon({
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-body font-semibold">
           <span className="flex min-w-0 items-center gap-2">
             <MemberTile name={from?.nickname ?? "?"} tint={memberTint(members, t.from)} size={28} />
-            <span className="[overflow-wrap:anywhere]">{label(from, iPay)}</span>
+            <span className="break-words">{label(from, iPay)}</span>
           </span>
           <span className="flex min-w-0 items-center gap-2">
             <ArrowRight className="size-4 shrink-0" strokeWidth={1.75} aria-label="โอนให้" />
             <MemberTile name={to?.nickname ?? "?"} tint={memberTint(members, t.to)} size={28} />
-            <span className="[overflow-wrap:anywhere]">{label(to, iReceive)}</span>
+            <span className="break-words">{label(to, iReceive)}</span>
           </span>
         </div>
 
@@ -420,9 +420,9 @@ function ClaimCoupon({
 
   const slipParts = p.slip
     ? [
-        p.slip.amount !== null && `${p.slip.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })} ฿`,
+        p.slip.amount !== null && `${p.slip.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}\u00A0฿`,
         p.slip.dateTime && new Date(p.slip.dateTime).toLocaleString("th-TH", { dateStyle: "short", timeStyle: "short" }),
-        p.slip.receiverName && `ถึง ${p.slip.receiverName}`,
+        p.slip.receiverName && `ถึง\u00A0${p.slip.receiverName}`,
         p.slip.bank,
       ].filter(Boolean)
     : [];
@@ -436,7 +436,7 @@ function ClaimCoupon({
       <div className={`coupon min-h-0 ${stage === "tear" ? "tearing" : ""} ${stage === "fold" ? "tearing overflow-hidden" : ""}`}>
         <div className="flex items-stretch">
           <div className="coupon-body relative min-w-0 flex-1 px-3.5 py-3">
-            <p className="flex flex-wrap items-center gap-x-1.5 text-body font-semibold [overflow-wrap:anywhere]">
+            <p className="flex flex-wrap items-center gap-x-1.5 break-words text-body font-semibold">
               {name(p.from_member)} <ArrowRight className="size-4 shrink-0" strokeWidth={1.75} aria-label="โอนให้" /> {name(p.to_member)}
             </p>
             <p className="serial mt-1">{no}</p>
@@ -445,7 +445,7 @@ function ClaimCoupon({
                 <p className="font-semibold">AI อ่านจากสลิป</p>
                 <p className="text-muted">{slipParts.length ? slipParts.join(" · ") : "อ่านข้อมูลจากสลิปไม่ได้ โปรดตรวจยอดในแอปธนาคาร"}</p>
                 <p className="mt-1 text-meta text-muted">
-                  อ่านจากรูปเท่านั้น ไม่ได้ตรวจสอบกับธนาคาร โปรดตรวจยอดเงินเข้าในแอปธนาคารก่อนกดยืนยัน
+                  อ่านจากรูปเท่านั้น ไม่ได้ตรวจสอบกับธนาคาร โปรดตรวจยอดเงินเข้าในแอปธนาคาร<span className="whitespace-nowrap">ก่อนกดยืนยัน</span>
                 </p>
               </div>
             ) : (

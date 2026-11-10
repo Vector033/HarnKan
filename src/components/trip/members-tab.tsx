@@ -57,7 +57,7 @@ export function MembersTab({ state, store, settlement }: { state: TripState; sto
               ? "ทริปนี้ล็อกอยู่ คนใหม่เข้าไม่ได้ แม้มีลิงก์"
               : expired
                 ? "ลิงก์นี้หมดอายุแล้ว สร้างลิงก์ใหม่เพื่อเชิญเพิ่ม"
-                : `เพื่อนเปิดลิงก์หรือสแกน QR แล้วใส่ชื่อเล่น ลิงก์ใช้ได้ถึง ${new Date(view.trip.invite_expires_at).toLocaleDateString("th-TH", { day: "numeric", month: "short" })}`}
+                : <>เพื่อนเปิดลิงก์หรือสแกน QR แล้วใส่ชื่อเล่น ลิงก์ใช้ได้ถึง{" "}<span className="num font-num whitespace-nowrap">{new Date(view.trip.invite_expires_at).toLocaleDateString("th-TH", { day: "numeric", month: "short" })}</span></>}
           </p>
         </div>
         <div className={`flex items-center gap-4 px-4 py-4 ${closed ? "opacity-45" : ""}`}>
@@ -188,7 +188,7 @@ function OwnerControls({ state, store }: { state: TripState; store: TripStore })
         )}
       </div>
       <p className="text-meta text-muted" role="status">
-        {msg ?? "ล็อกเมื่อทุกคนเข้าครบแล้ว หากลิงก์หลุดออกไปนอกกลุ่ม ให้สร้างลิงก์ใหม่ (ลิงก์ใหม่ใช้ได้ 7 วัน)"}
+        {msg ?? "ล็อกเมื่อทุกคนเข้าครบแล้ว หากลิงก์หลุดออกไปนอกกลุ่ม ให้สร้างลิงก์ใหม่ (ลิงก์ใหม่ใช้ได้ 7\u00A0วัน)"}
       </p>
       {confirmDelete ? (
         <div className="flex flex-wrap items-center gap-2 rounded-lg bg-owe-soft px-3 py-2.5">
@@ -272,10 +272,10 @@ function MemberRow({
       <div className="flex items-center gap-3">
         <MemberTile name={m.nickname} tint={memberTint(members, m.id)} />
         <span className="min-w-0 flex-1">
-          <span className="block text-body font-semibold [overflow-wrap:anywhere]">
+          <span className="block break-words text-body font-semibold">
             {m.nickname}
-            {m.id === state.me?.id && <span className="ml-1.5 text-meta font-medium text-muted">(คุณ)</span>}
-            {m.user_id === state.view!.trip.created_by && <span className="ml-1.5 text-meta font-medium text-muted">เจ้าของทริป</span>}
+            {m.id === state.me?.id && <span className="ml-1.5 whitespace-nowrap text-meta font-medium text-muted">(คุณ)</span>}
+            {m.user_id === state.view!.trip.created_by && <span className="ml-1.5 whitespace-nowrap text-meta font-medium text-muted">เจ้าของทริป</span>}
           </span>
           <span className="block text-meta text-muted">
             {m.user_id

@@ -110,7 +110,7 @@ export function Settings() {
     <div className="min-h-dvh">
       <header className="rounded-b-[28px] bg-ink px-5 pb-7 pt-[max(2.5rem,env(safe-area-inset-top))] text-white">
         <div className="mx-auto max-w-lg lg:max-w-3xl lg:px-4">
-          <Link href="/" className="-ml-2 inline-flex min-h-12 items-center px-2 text-body font-medium text-on-ink-muted underline">
+          <Link href="/" className="-ml-2 inline-flex min-h-12 items-center whitespace-nowrap px-2 text-body font-medium text-on-ink-muted underline">
             หารกัน
           </Link>
           <h1 className="mt-1 text-display font-bold leading-tight">ตั้งค่า</h1>
@@ -131,7 +131,7 @@ export function Settings() {
                 {account.email !== null ? (
                   <p className="flex items-center gap-2.5 text-body" data-testid="signed-in">
                     <GoogleMark />
-                    <span className="min-w-0 font-semibold [overflow-wrap:anywhere]">{account.email}</span>
+                    <span className="min-w-0 break-all font-semibold">{account.email}</span>
                   </p>
                 ) : (
                   <div className="space-y-3">
@@ -273,7 +273,7 @@ export function Settings() {
             </Section>
 
             <p className="text-meta text-muted">
-              <Link href="/privacy" className="-my-3 inline-flex min-h-12 items-center font-semibold text-ink underline">
+              <Link href="/privacy" className="-my-3 inline-flex min-h-12 items-center whitespace-nowrap font-semibold text-ink underline">
                 ข้อมูลที่เราเก็บ
               </Link>
             </p>

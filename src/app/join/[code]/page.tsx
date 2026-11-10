@@ -95,14 +95,14 @@ export default function JoinPage() {
     <div className="mx-auto min-h-dvh max-w-lg lg:grid lg:max-w-none lg:grid-cols-2">
       <header className="bg-ink px-5 pb-7 pt-[max(2.5rem,env(safe-area-inset-top))] text-white rounded-b-[28px] lg:rounded-none lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:items-end lg:justify-center lg:px-16 lg:py-16">
         <div className="lg:w-full lg:max-w-md">
-          <h1 className={`font-bold [overflow-wrap:anywhere] ${[...preview.name].length > 24 ? "text-title" : "text-display"}`}>{preview.name}</h1>
+          <h1 className={`text-balance break-words font-bold ${[...preview.name].length > 24 ? "text-title" : "text-display"}`}>{preview.name}</h1>
           <p className="mt-2 text-body text-on-ink-muted">คุณได้รับเชิญเข้าทริปนี้</p>
           {!preview.locked && preview.members.length > 0 && (
             <ul className="mt-4 flex flex-wrap gap-2" aria-label="สมาชิกในทริป">
               {preview.members.slice(0, MAX_CHIPS).map((m) => (
                 <li key={m.id} className="flex min-w-0 items-center gap-1.5 rounded-lg bg-white/10 py-1 pl-1 pr-2.5 text-meta">
                   <MemberTile name={m.nickname} tint={tint(m.id)} size={24} />
-                  <span className="min-w-0 [overflow-wrap:anywhere]">{m.nickname}</span>
+                  <span className="min-w-0 break-words">{m.nickname}</span>
                 </li>
               ))}
               {preview.members.length > MAX_CHIPS && (
@@ -130,7 +130,7 @@ export default function JoinPage() {
             <div>
               <p className="font-bold">ทริปนี้ปิดรับสมาชิกใหม่แล้ว</p>
               <p className="mt-1 text-body text-muted">
-                ลิงก์อาจหมดอายุ (ลิงก์ใช้ได้ 7 วัน) หรือเจ้าของทริปล็อกไว้ โปรดขอลิงก์ใหม่จากเจ้าของทริป
+                ลิงก์อาจหมดอายุ (ลิงก์ใช้ได้ 7{"\u00A0"}วัน) หรือเจ้าของทริปล็อกไว้ โปรดขอลิงก์ใหม่จากเจ้าของทริป
               </p>
             </div>
           </div>
@@ -149,7 +149,7 @@ export default function JoinPage() {
                       aria-pressed={claim === m.id}
                     >
                       <MemberTile name={m.nickname} tint={tint(m.id)} size={28} />
-                      <span className="min-w-0 [overflow-wrap:anywhere]">ฉันคือ {m.nickname}</span>
+                      <span className="min-w-0 break-words">ฉันคือ {m.nickname}</span>
                     </button>
                   ))}
                 </div>
@@ -183,7 +183,7 @@ export default function JoinPage() {
           </form>
         )}
         <p className="mt-4 text-center text-meta text-muted">
-          <Link href="/privacy" className="inline-flex min-h-12 items-center px-2 underline">
+          <Link href="/privacy" className="inline-flex min-h-12 items-center whitespace-nowrap px-2 underline">
             ข้อมูลที่เราเก็บ
           </Link>
         </p>

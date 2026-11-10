@@ -67,7 +67,7 @@ export function QrSheet({
             </p>
           </div>
         </div>
-        <p className="hint">โปรดตรวจชื่อผู้รับในแอปธนาคารให้ถูกต้องก่อนกดโอนทุกครั้ง</p>
+        <p className="hint">โปรดตรวจชื่อผู้รับในแอปธนาคารให้ถูกต้องก่อนกดโอน<span className="whitespace-nowrap">ทุกครั้ง</span></p>
       </div>
     </Sheet>
   );

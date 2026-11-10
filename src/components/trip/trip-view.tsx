@@ -58,7 +58,7 @@ export function TripView({ tripId }: { tripId: string }) {
         <p className="max-w-[34ch] text-body text-muted">
           คุณอาจยังไม่ได้เข้าทริป หรือถูกนำออกจากทริปแล้ว โปรดขอลิงก์ชวนใหม่จากเจ้าของทริป
         </p>
-        <Link href="/" className="btn mt-2">
+        <Link href="/" className="btn mt-2 whitespace-nowrap">
           กลับหน้าแรก
         </Link>
       </main>
@@ -69,7 +69,7 @@ export function TripView({ tripId }: { tripId: string }) {
         <CloudOff className="size-6 text-muted" aria-hidden />
         <p className="text-body font-bold">ต้องเชื่อมต่ออินเทอร์เน็ตเพื่อเปิดทริปนี้ครั้งแรก</p>
         <p className="max-w-[34ch] text-body text-muted">ทริปที่เคยเปิดในเครื่องนี้แล้วจะใช้ได้แม้ไม่มีสัญญาณ</p>
-        <Link href="/" className="btn mt-2">
+        <Link href="/" className="btn mt-2 whitespace-nowrap">
           กลับหน้าแรก
         </Link>
       </main>
@@ -99,7 +99,7 @@ export function TripView({ tripId }: { tripId: string }) {
             <ChevronLeft className="size-6" strokeWidth={1.75} />
           </Link>
           <div className="min-w-0 flex-1">
-            <h1 className="line-clamp-2 text-title font-bold leading-[1.3] [overflow-wrap:anywhere]" title={view.trip.name}>
+            <h1 className="line-clamp-2 break-words text-title font-bold leading-[1.3]" title={view.trip.name}>
               {view.trip.name}
             </h1>
             <p className="text-meta text-on-ink-muted">
@@ -226,7 +226,7 @@ function Notices({ state, onDismissError }: { state: TripState; onDismissError: 
           {state.lastSyncedAt && (
             <span className="text-muted">
               {" "}
-              · ข้อมูลล่าสุดเมื่อ {new Date(state.lastSyncedAt).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })} น.
+              · ข้อมูลล่าสุดเมื่อ <span className="num font-num whitespace-nowrap">{new Date(state.lastSyncedAt).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })} น.</span>
             </span>
           )}
         </p>

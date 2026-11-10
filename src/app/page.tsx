@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { tripSerial } from "@/components/trip/expenses-tab";
+import { CouponShader } from "@/components/coupon-shader";
 import { Baht, MemberTile, SettleStrip } from "@/components/ui";
 import { formatBaht } from "@/lib/core/money";
 import { settlement } from "@/lib/trip/derive";
@@ -95,6 +96,7 @@ export default function Home() {
   return (
     <div className="mx-auto min-h-dvh max-w-lg lg:grid lg:max-w-none lg:grid-cols-2">
       <header className="relative overflow-hidden rounded-b-[28px] bg-ink px-5 pb-8 pt-[max(2.25rem,env(safe-area-inset-top))] text-white lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:items-center lg:justify-center lg:overflow-y-auto lg:rounded-none lg:px-12 lg:py-10">
+        <CouponShader className="absolute inset-0 opacity-[0.09] mix-blend-screen" />
         <HeroContourBackdrop />
         <div className="relative z-10 w-full lg:max-w-lg">
           <div className="flex items-center justify-between gap-4">

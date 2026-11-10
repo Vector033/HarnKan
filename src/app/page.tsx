@@ -1,11 +1,12 @@
 "use client";
 
-import { Check, ChevronRight, RotateCcw, Settings, ShieldCheck } from "lucide-react";
+import { Check, ChevronRight, MapPin, Pause, Play, RotateCcw, Settings, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { tripSerial } from "@/components/trip/expenses-tab";
 import { Baht, MemberTile, SettleStrip } from "@/components/ui";
+import { formatBaht } from "@/lib/core/money";
 import { settlement } from "@/lib/trip/derive";
 import { ensureUser, supabase } from "@/lib/supabase/client";
 import { allSnapshots } from "@/lib/trip/idb";
@@ -93,8 +94,9 @@ export default function Home() {
 
   return (
     <div className="mx-auto min-h-dvh max-w-lg lg:grid lg:max-w-none lg:grid-cols-2">
-      <header className="rounded-b-[28px] bg-ink px-5 pb-8 pt-[max(2.25rem,env(safe-area-inset-top))] text-white lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:items-end lg:justify-center lg:rounded-none lg:px-14 lg:py-12">
-        <div className="lg:w-full lg:max-w-md">
+      <header className="relative overflow-hidden rounded-b-[28px] bg-ink px-5 pb-8 pt-[max(2.25rem,env(safe-area-inset-top))] text-white lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:items-center lg:justify-center lg:overflow-y-auto lg:rounded-none lg:px-12 lg:py-10">
+        <HeroContourBackdrop />
+        <div className="relative z-10 w-full lg:max-w-lg">
           <div className="flex items-center justify-between gap-4">
             <span className="text-title font-bold tracking-tight text-white">หารกัน</span>
             <Link
@@ -110,7 +112,7 @@ export default function Home() {
             หารค่างวด <span className="whitespace-nowrap">ค่ากินเที่ยว</span>กับเพื่อนได้ทันที{" "}
             <span className="whitespace-nowrap">สลิปเดียวรู้เรื่อง</span>
           </h1>
-          <p className="mt-2.5 max-w-[34ch] text-body leading-relaxed text-on-ink-muted">
+          <p className="mt-2 max-w-[38ch] text-body leading-relaxed text-on-ink-muted">
             จดค่าใช้จ่ายร่วมกันจากมือถือทุกคน สรุปยอดโอนให้น้อยครั้งที่สุด พร้อม QR พร้อมเพย์
           </p>
           <div className={showMobileDemo ? "block" : "hidden lg:block"}>
@@ -119,7 +121,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="flex flex-col gap-8 px-4 pb-12 pt-5 lg:w-full lg:max-w-xl lg:self-center lg:px-12 lg:py-14">
+      <main className="flex flex-col gap-8 px-4 pb-12 pt-5 lg:mx-auto lg:w-full lg:max-w-xl lg:self-center lg:px-12 lg:py-14">
         <form onSubmit={create} className="coupon" aria-labelledby="create-h">
           <div className="relative space-y-5 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -257,6 +259,32 @@ function sortTrips(ts: TripItem[]) {
   return [...ts].sort((x, y) => y.created_at.localeCompare(x.created_at));
 }
 
+/** #13 Contour Lines: lightweight inline SVG elevation lines behind the ink hero. */
+function HeroContourBackdrop() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 800 900"
+      preserveAspectRatio="xMidYMid slice"
+      className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.075]"
+      style={{
+        WebkitMaskImage: "radial-gradient(ellipse 90% 85% at 50% 50%, #000 35%, transparent 100%)",
+        maskImage: "radial-gradient(ellipse 90% 85% at 50% 50%, #000 35%, transparent 100%)",
+      }}
+    >
+      <g fill="none" stroke="var(--color-t1)" strokeWidth="1.25">
+        <path d="M-80,140 C120,60 280,220 480,150 C660,90 740,210 880,160" />
+        <path d="M-60,210 C130,130 270,290 490,220 C670,160 760,270 890,230" />
+        <path d="M-90,300 C110,230 260,380 510,310 C690,260 760,360 900,330" />
+        <path d="M-70,420 C140,350 280,490 500,430 C690,380 750,470 880,440" />
+        <path d="M-80,560 C130,490 300,640 520,570 C700,515 760,600 900,560" />
+        <path d="M-60,690 C150,620 290,760 510,695 C690,640 770,730 890,690" />
+        <path d="M-90,810 C120,740 310,870 530,810 C710,760 760,840 900,805" />
+      </g>
+    </svg>
+  );
+}
+
 const DEMO_FRIENDS = [
   { name: "ต้น", tint: "var(--color-t0)" },
   { name: "ฝน", tint: "var(--color-t1)" },
@@ -264,22 +292,89 @@ const DEMO_FRIENDS = [
   { name: "มายด์", tint: "var(--color-t3)" },
 ];
 
-const DEMO_DINNER_SATANG = 45000;
+const TRIP_STOPS = [
+  {
+    id: "dinner",
+    short: "อาหาร",
+    title: "ค่าอาหารเย็น",
+    amountSatang: 45000,
+    payer: "ต้น",
+    payerTint: "var(--color-t0)",
+    serialPrefix: "0450",
+    posClass: "left-2.5 bottom-2.5",
+    cx: 66,
+    cy: 78,
+  },
+  {
+    id: "cafe",
+    short: "คาเฟ่",
+    title: "ค่ากาแฟชมวิว",
+    amountSatang: 24000,
+    payer: "ฝน",
+    payerTint: "var(--color-t1)",
+    serialPrefix: "0240",
+    posClass: "left-1/2 top-2.5 -translate-x-1/2",
+    cx: 210,
+    cy: 30,
+  },
+  {
+    id: "stay",
+    short: "ที่พัก",
+    title: "ที่พักบ้านสวน",
+    amountSatang: 180000,
+    payer: "บีม",
+    payerTint: "var(--color-t2)",
+    serialPrefix: "1800",
+    posClass: "right-2.5 bottom-3",
+    cx: 354,
+    cy: 72,
+  },
+] as const;
+
+const TOTAL_DEMO_SATANG = TRIP_STOPS.reduce((sum, s) => sum + s.amountSatang, 0);
 
 /**
- * Interactive coupon ticket demo: "฿450 dinner split among 3 friends -> ฿150 each"
- * with perforated edges, red serial, halftone shading, and a tactile green PAID stamp.
+ * Hybrid interactive hero showcase:
+ * 1) Mini Trip Route Map (3 clickable expense pins along an animated dashed route)
+ * 2) Connected Interactive Coupon Ticket (2/3/4 friends split + tactile PAID rubber stamp)
  */
 function ExampleCoupon() {
+  const [stopIdx, setStopIdx] = useState(0);
   const [friends, setFriends] = useState<2 | 3 | 4>(3);
   const [stamped, setStamped] = useState(true);
   const [stampCount, setStampCount] = useState(0);
+  const [autoPlay, setAutoPlay] = useState(true);
 
-  const shareSatang = Math.round(DEMO_DINNER_SATANG / friends);
+  useEffect(() => {
+    if (!autoPlay) return;
+    if (typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const t = setInterval(() => {
+      setStopIdx((i) => (i + 1) % TRIP_STOPS.length);
+      setStamped(true);
+      setStampCount((c) => c + 1);
+    }, 4500);
+    return () => clearInterval(t);
+  }, [autoPlay]);
+
+  const stop = TRIP_STOPS[stopIdx];
+  const shareSatang = Math.round(stop.amountSatang / friends);
   const visibleFriends = DEMO_FRIENDS.slice(0, friends);
-  const serial = `No. 0450-0${friends}`;
+  const serial = `No. ${stop.serialPrefix}-0${friends}`;
+
+  function selectStop(idx: number) {
+    setAutoPlay(false);
+    setStopIdx(idx);
+    setStamped(true);
+    setStampCount((c) => c + 1);
+  }
+
+  function selectFriends(count: 2 | 3 | 4) {
+    setAutoPlay(false);
+    setFriends(count);
+  }
 
   function toggleStamp() {
+    setAutoPlay(false);
     if (stamped) {
       setStamped(false);
     } else {
@@ -289,19 +384,109 @@ function ExampleCoupon() {
   }
 
   return (
-    <figure className="example-coupon mt-5 max-w-md" aria-label="ตัวอย่างคูปอง: ค่าอาหารเย็น 450 บาท หาร 3 คน ได้คนละ 150 บาท">
-      <div className="coupon text-ink">
+    <figure className="mt-5 w-full space-y-2.5" aria-label="แผนที่ทริปตัวอย่างและคูปองหารค่าใช้จ่าย">
+      {/* Mini Interactive Trip Route Map (outer 14px - 8px padding = 6px inner radius). */}
+      <div className="rounded-[var(--radius-coupon)] border border-white/15 bg-black/25 p-2">
+        <div className="flex items-center justify-between gap-2 px-1.5 pb-2 text-meta text-on-ink-muted">
+          <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap font-semibold text-white">
+            <MapPin className="size-4 text-t1" strokeWidth={1.75} aria-hidden />
+            เส้นทางทริป
+          </span>
+          <div className="flex shrink-0 items-center gap-2 whitespace-nowrap">
+            <span className="num font-num text-on-ink-muted">
+              รวม <span className="font-semibold text-white">{formatBaht(TOTAL_DEMO_SATANG)} ฿</span> · โอน <span className="font-semibold text-t1">2</span> ครั้ง
+            </span>
+            <button
+              type="button"
+              onClick={() => setAutoPlay((v) => !v)}
+              aria-label={autoPlay ? "หยุดเล่นอัตโนมัติ" : "เล่นอัตโนมัติ"}
+              className="grid size-8 place-items-center rounded-[6px] border border-white/15 bg-white/10 text-white transition-transform duration-150 hover:bg-white/15 active:scale-95"
+            >
+              {autoPlay ? <Pause className="size-3.5" strokeWidth={1.75} aria-hidden /> : <Play className="size-3.5" strokeWidth={1.75} aria-hidden />}
+            </button>
+          </div>
+        </div>
+
+        <div className="relative h-28 overflow-hidden rounded-[6px] border border-white/12 bg-ink/80">
+          {/* Vector terrain & animated dashed route connecting the 3 stops */}
+          <svg viewBox="0 0 420 112" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden>
+            <g fill="none" stroke="var(--color-t1)" strokeOpacity="0.12" strokeWidth="1">
+              <path d="M-20,32 Q110,12 220,44 T440,26" />
+              <path d="M-20,86 Q130,62 250,92 T440,74" />
+            </g>
+            {/* Base route path */}
+            <path
+              d="M 66 78 C 128 66, 148 30, 210 30 C 272 30, 294 64, 354 72"
+              fill="none"
+              stroke="var(--color-on-ink-muted)"
+              strokeOpacity="0.32"
+              strokeWidth="2"
+              strokeDasharray="4 4"
+            />
+            {/* Animated dashed flow */}
+            <path
+              d="M 66 78 C 128 66, 148 30, 210 30 C 272 30, 294 64, 354 72"
+              fill="none"
+              stroke="var(--color-t1)"
+              strokeWidth="2.2"
+              strokeDasharray="6 6"
+              className="route-flow"
+            />
+            {/* Active pin beacon ring */}
+            <circle
+              cx={stop.cx}
+              cy={stop.cy}
+              r="14"
+              fill="none"
+              stroke="var(--color-t1)"
+              strokeWidth="1.75"
+              className="pin-ripple"
+            />
+          </svg>
+
+          {/* 3 Clickable Map Pins */}
+          {TRIP_STOPS.map((item, idx) => {
+            const active = idx === stopIdx;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => selectStop(idx)}
+                aria-pressed={active}
+                className={`absolute ${item.posClass} inline-flex min-h-9 items-center gap-1.5 rounded-[6px] px-2 py-1 text-meta font-semibold shadow-sm transition-[transform,background-color,box-shadow] duration-200 active:scale-95 ${
+                  active
+                    ? "z-10 scale-[1.03] bg-paper text-ink ring-2 ring-t1"
+                    : "bg-ink-2/95 text-white ring-1 ring-white/25 hover:bg-ink-2"
+                }`}
+              >
+                <span
+                  className="paper-tint inline-grid size-5 shrink-0 place-items-center rounded-[4px] text-[13px] font-bold text-ink"
+                  style={{ background: item.payerTint }}
+                >
+                  {idx + 1}
+                </span>
+                <span className="whitespace-nowrap">
+                  {item.short} <span className="num font-num">{formatBaht(item.amountSatang)}฿</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Connected Interactive Coupon Ticket */}
+      <div key={stop.id} className="example-coupon coupon text-ink">
         {stamped && <div className="halftone-header absolute inset-x-0 top-0 h-11" aria-hidden />}
         <div className="flex items-stretch">
           <div className="relative min-w-0 flex-1 px-3.5 py-3">
             <p className="flex items-baseline justify-between gap-2 text-meta font-semibold text-muted">
-              <span>ตัวอย่างคูปอง</span>
+              <span>จุดที่ <span className="num font-num">{stopIdx + 1}/3</span> · {stop.payer}จ่ายก่อน</span>
               <span className="serial">{serial}</span>
             </p>
             <p className="mt-0.5 text-body font-semibold">
-              ค่าอาหารเย็น{" "}
+              {stop.title}{" "}
               <span className="text-meta font-medium text-muted">
-                รวม <Baht satang={DEMO_DINNER_SATANG} className="font-semibold text-ink" />
+                รวม <Baht satang={stop.amountSatang} className="font-semibold text-ink" />
               </span>
             </p>
             <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2">
@@ -350,7 +535,7 @@ function ExampleCoupon() {
                 <button
                   key={count}
                   type="button"
-                  onClick={() => setFriends(count)}
+                  onClick={() => selectFriends(count)}
                   aria-pressed={active}
                   className={`num font-num min-h-10 rounded-[6px] px-2.5 text-meta font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.97] ${
                     active ? "bg-ink text-white" : "bg-paper text-ink ring-1 ring-line hover:ring-ink/35"

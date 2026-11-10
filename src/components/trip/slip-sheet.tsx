@@ -80,16 +80,16 @@ export function SlipSheet({
   }
 
   return (
-    <Sheet open onClose={onClose} title={`แนบสลิปที่โอนให้ ${to.nickname}`}>
+    <Sheet open fluted onClose={onClose} title={`แนบสลิปที่โอนให้ ${to.nickname}`}>
       {phase === "pick" && (
         <div className="space-y-4">
           <p className="text-body">
             ระบบจะอ่านยอดเงิน เวลา และชื่อผู้รับจากสลิป หากตรงกับยอดที่ต้องโอน (
-            <span className="num font-semibold">{formatBaht(owed)} ฿</span>) ระบบจะบันทึกว่าโอนแล้ว และให้ {to.nickname}{" "}
+            <span className="num font-num font-semibold">{formatBaht(owed)} ฿</span>) ระบบจะบันทึกว่าโอนแล้ว และให้ {to.nickname}{" "}
             ยืนยันอีกครั้ง
           </p>
           <label className="btn-primary w-full cursor-pointer">
-            <Camera className="size-5" aria-hidden /> เลือกรูปสลิปหรือถ่ายรูป
+            <Camera className="size-5" strokeWidth={1.75} aria-hidden /> เลือกรูปสลิปหรือถ่ายรูป
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
@@ -99,7 +99,7 @@ export function SlipSheet({
             />
           </label>
           <div className="flex gap-2.5 rounded-lg bg-paper px-3.5 py-3 text-meta text-muted ring-1 ring-line">
-            <ShieldCheck className="mt-0.5 size-5 shrink-0 text-ok" aria-hidden />
+            <ShieldCheck className="mt-0.5 size-5 shrink-0 text-ok" strokeWidth={1.75} aria-hidden />
             <p>
               รูปสลิปถูกอ่านแล้วลบทันที ไม่มีการเก็บรูปไว้ เก็บเพียงยอดเงิน เวลา ชื่อย่อผู้รับ และเลขบัญชี 4 หลักท้าย
               · ระบบไม่ได้ตรวจสอบสลิปกับธนาคาร
@@ -128,7 +128,7 @@ export function SlipSheet({
             role="status"
           >
             <p className="flex items-start gap-2 font-bold">
-              {result.payment ? <Check className="mt-0.5 size-5 shrink-0" aria-hidden /> : <CircleHelp className="mt-0.5 size-5 shrink-0" aria-hidden />}
+              {result.payment ? <Check className="mt-0.5 size-5 shrink-0" strokeWidth={1.75} aria-hidden /> : <CircleHelp className="mt-0.5 size-5 shrink-0" strokeWidth={1.75} aria-hidden />}
               {result.payment ? `บันทึกว่าโอนแล้ว รอ ${to.nickname} ยืนยันว่าได้รับเงิน` : "ยังบันทึกให้อัตโนมัติไม่ได้ โปรดตรวจข้อมูลด้านล่าง"}
             </p>
             {result.match.reasons.length > 0 && (
@@ -144,6 +144,7 @@ export function SlipSheet({
             <Row
               label="ยอดเงิน"
               value={result.summary.amount !== null ? `${result.summary.amount.toLocaleString("en-US", { minimumFractionDigits: 2 })} ฿` : "อ่านไม่ได้"}
+              numeric={result.summary.amount !== null}
               check={result.match.checks.amount}
             />
             <Row
@@ -153,6 +154,7 @@ export function SlipSheet({
                   ? new Date(result.summary.dateTime).toLocaleString("th-TH", { dateStyle: "medium", timeStyle: "short" })
                   : "อ่านไม่ได้"
               }
+              numeric={!!result.summary.dateTime}
               check={result.match.checks.time}
             />
             <Row
@@ -162,7 +164,9 @@ export function SlipSheet({
             />
             {result.summary.bank && <Row label="ธนาคาร" value={result.summary.bank} />}
           </dl>
-          <p className="hint">ความมั่นใจในการอ่าน {Math.round(result.summary.confidence * 100)}%</p>
+          <p className="hint">
+            ความมั่นใจในการอ่าน <span className="num font-num font-semibold text-ink">{Math.round(result.summary.confidence * 100)}%</span>
+          </p>
 
           {!result.payment && result.claimToken && (
             <button className="btn w-full" onClick={() => recordAnyway(result.claimToken!)}>
@@ -199,14 +203,14 @@ function Reading() {
   return (
     <div className="space-y-4" role="status">
       <p className="flex items-center gap-2 text-body font-semibold">
-        <LoaderCircle className="size-5 animate-spin motion-reduce:hidden" aria-hidden />
+        <LoaderCircle className="size-5 animate-spin motion-reduce:hidden" strokeWidth={1.75} aria-hidden />
         {slow ? "ยังอ่านอยู่ บางครั้งอาจใช้เวลาถึงครึ่งนาที" : "กำลังอ่านสลิป…"}
       </p>
       <div className="coupon grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-3 p-4 text-body" aria-hidden>
         {["ยอดเงิน", "วันเวลา", "ผู้รับ"].map((l, i) => (
           <div key={l} className="contents">
             <span className="text-muted">{l}</span>
-            <span className={`reading-bar h-6 rounded-md border-2 border-dashed border-perf ${["w-28", "w-40", "w-32"][i]}`} />
+            <span className={`reading-bar scan-shimmer h-6 rounded-[6px] border-2 border-dashed border-perf ${["w-28", "w-40", "w-32"][i]}`} />
           </div>
         ))}
       </div>
@@ -214,16 +218,16 @@ function Reading() {
   );
 }
 
-function Row({ label, value, check }: { label: string; value: string; check?: keyof typeof CHECK }) {
+function Row({ label, value, check, numeric = false }: { label: string; value: string; check?: keyof typeof CHECK; numeric?: boolean }) {
   const c = check ? CHECK[check] : null;
   return (
     <>
       <dt className="text-muted">{label}</dt>
-      <dd className="font-semibold">{value}</dd>
+      <dd className={`font-semibold ${numeric ? "num font-num" : ""}`}>{value}</dd>
       <dd className={`flex items-center gap-1 text-meta font-semibold ${c?.cls ?? ""}`}>
         {c && (
           <>
-            <c.Icon className="size-5" aria-hidden />
+            <c.Icon className="size-5" strokeWidth={1.75} aria-hidden />
             {c.text}
           </>
         )}

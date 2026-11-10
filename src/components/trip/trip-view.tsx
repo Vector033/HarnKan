@@ -96,19 +96,19 @@ export function TripView({ tripId }: { tripId: string }) {
       <header ref={headerRef} className="sticky top-0 z-20 bg-ink pb-4 pt-[max(0.75rem,env(safe-area-inset-top))] text-white lg:pb-0">
         <div className="flex items-center gap-1 px-4 lg:mx-auto lg:max-w-6xl lg:gap-3 lg:px-8">
           <Link href="/" className="-ml-3 grid size-12 shrink-0 place-items-center rounded-lg hover:bg-white/10" aria-label="ทริปทั้งหมด">
-            <ChevronLeft className="size-6" />
+            <ChevronLeft className="size-6" strokeWidth={1.75} />
           </Link>
           <div className="min-w-0 flex-1">
             <h1 className="line-clamp-2 text-title font-bold leading-[1.3] [overflow-wrap:anywhere]" title={view.trip.name}>
               {view.trip.name}
             </h1>
             <p className="text-meta text-on-ink-muted">
-              {view.members.length} คน{view.trip.locked && " · ล็อกแล้ว"}
+              <span className="num font-num">{view.members.length}</span> คน{view.trip.locked && " · ล็อกแล้ว"}
             </p>
           </div>
           <SyncStatus state={state} />
           <Link href="/settings" className="-mr-3 grid size-12 shrink-0 place-items-center rounded-lg text-on-ink-muted hover:bg-white/10 hover:text-white" aria-label="ตั้งค่า" data-testid="settings-link">
-            <Settings className="size-6" aria-hidden />
+            <Settings className="size-6" strokeWidth={1.75} aria-hidden />
           </Link>
         </div>
         {wide && (
@@ -140,7 +140,7 @@ export function TripView({ tripId }: { tripId: string }) {
         <main className="mx-auto grid w-full max-w-6xl flex-1 grid-cols-[minmax(0,1fr)_minmax(0,25rem)] items-start gap-8 px-8 pb-12 pt-6">
           <div className="flex min-w-0 flex-col">{left === "members" ? members : expenses}</div>
           <aside
-            className="sticky top-[calc(var(--header-h,8rem)+1.5rem)] max-h-[calc(100dvh-var(--header-h,8rem)-3rem)] overflow-y-auto rounded-[var(--radius-coupon)] pb-2"
+            className="relative sticky top-[calc(var(--header-h,8rem)+1.5rem)] -mx-2 max-h-[calc(100dvh-var(--header-h,8rem)-3rem)] overflow-y-auto rounded-[var(--radius-coupon)] px-2 pb-2"
             aria-label="สรุปยอด"
           >
             {settle}
@@ -164,13 +164,13 @@ export function TripView({ tripId }: { tripId: string }) {
                   key={key}
                   onClick={() => setTab(key)}
                   aria-current={on ? "page" : undefined}
-                  className={`relative flex min-h-16 flex-col items-center justify-center gap-1 text-meta font-semibold ${on ? "text-ink" : "text-muted"}`}
+                  className={`relative flex min-h-16 flex-col items-center justify-center gap-1 text-meta font-semibold transition-colors duration-150 active:scale-[0.98] ${on ? "text-ink" : "text-muted"}`}
                 >
                   {on && <span className="absolute inset-x-6 top-0 h-[3px] rounded-b bg-ink" aria-hidden />}
-                  <Icon className="size-[22px]" strokeWidth={on ? 2.4 : 1.9} aria-hidden />
+                  <Icon className="size-[22px]" strokeWidth={on ? 2.25 : 1.75} aria-hidden />
                   {label}
                   {key === "settle" && badge > 0 && (
-                    <span className="num absolute right-[calc(50%-1.9rem)] top-2 min-w-5 rounded-md bg-ink px-1 text-center text-meta leading-5 text-white">
+                    <span className="num font-num absolute right-[calc(50%-1.9rem)] top-2 min-w-5 rounded-md bg-ink px-1 text-center text-meta leading-5 text-white">
                       {badge}
                       <span className="sr-only"> รายการรอคุณยืนยัน</span>
                     </span>
@@ -204,8 +204,8 @@ function SyncStatus({ state }: { state: TripState }) {
     );
   if (state.live)
     return (
-      <span className={`${base} bg-t1 text-ink`} role="status" title="เห็นการแก้ไขของเพื่อนทันที">
-        <span className="live-dot size-1.5 rounded-full bg-ok" aria-hidden />
+      <span className={`${base} paper-tint bg-t1 text-ink`} role="status" title="เห็นการแก้ไขของเพื่อนทันที">
+        <span className="live-dot animate-live-pulse size-1.5 rounded-full bg-ok" aria-hidden />
         ออนไลน์
       </span>
     );

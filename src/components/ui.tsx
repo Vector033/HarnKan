@@ -21,6 +21,7 @@ export function Sheet({
   footer,
   dismissible = true,
   onRequestClose,
+  fluted = false,
 }: {
   open: boolean;
   onClose: () => void;
@@ -31,6 +32,8 @@ export function Sheet({
   dismissible?: boolean;
   /** Called instead of onClose for Escape, backdrop and X, e.g. to ask before dropping a draft. */
   onRequestClose?: () => void;
+  /** Upgrades the sheet backdrop to #2 Fluted Glass (vertical ribbed refraction + blur). */
+  fluted?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -55,17 +58,17 @@ export function Sheet({
       }}
       onClick={(e) => e.target === ref.current && requestClose()}
       aria-labelledby={titleId}
-      className="m-0 mt-auto max-h-[92dvh] w-full max-w-none overflow-hidden rounded-t-[var(--radius-coupon)] bg-ground p-0 text-ink sm:m-auto sm:max-w-lg sm:rounded-[var(--radius-coupon)]"
+      className={`m-0 mt-auto max-h-[92dvh] w-full max-w-none overflow-hidden rounded-t-[var(--radius-coupon)] bg-ground p-0 text-ink sm:m-auto sm:max-w-lg sm:rounded-[var(--radius-coupon)] ${fluted ? "sheet-fluted" : ""}`}
     >
       {open && (
-        <div className="flex max-h-[92dvh] flex-col">
+        <div className="paper-tint flex max-h-[92dvh] flex-col">
           <div className="flex items-center justify-between gap-3 bg-paper px-5 pb-3.5 pt-4">
             <h2 id={titleId} className="text-body font-bold leading-tight">
               {title}
             </h2>
             {dismissible && (
               <button type="button" onClick={requestClose} className="-my-1 -mr-3 grid size-12 place-items-center rounded-lg hover:bg-ground" aria-label="ปิด">
-                <X className="size-5" strokeWidth={2.2} />
+                <X className="size-5" strokeWidth={2} />
               </button>
             )}
           </div>
@@ -85,7 +88,7 @@ export function MemberTile({ name, tint, size = 36 }: { name: string; tint: stri
   return (
     <span
       aria-hidden
-      className="inline-grid shrink-0 place-items-center rounded-lg font-bold text-ink shadow-[inset_0_0_0_1.5px_rgb(20_48_43/0.16)]"
+      className="paper-tint inline-grid shrink-0 place-items-center rounded-lg font-bold text-ink shadow-[inset_0_0_0_1.5px_rgb(20_48_43/0.16)]"
       style={{ width: size, height: size, background: tint, fontSize: size * 0.44 }}
     >
       {initial(name)}
@@ -95,7 +98,7 @@ export function MemberTile({ name, tint, size = 36 }: { name: string; tint: stri
 
 export function Baht({ satang, className = "" }: { satang: number; className?: string }) {
   return (
-    <span className={`num ${className}`}>
+    <span className={`num font-num tabular-nums ${className}`}>
       {formatBaht(satang)}
       <span className="ml-1 text-[0.72em] font-medium">฿</span>
     </span>
@@ -125,10 +128,10 @@ export function SettleStrip({ settled, total, label = "โอนแล้ว", c
     <div>
       <p className="flex items-baseline justify-between gap-3 text-meta">
         <span className={`inline-flex min-w-0 items-center gap-1 font-semibold ${done ? "text-ok" : "text-muted"}`}>
-          {done && <Check className="size-4 shrink-0" aria-hidden />}
+          {done && <Check className="size-4 shrink-0" strokeWidth={2} aria-hidden />}
           {done ? (compact ? "โอนครบแล้ว" : "ทุกคนโอนกันครบแล้ว") : label}
         </span>
-        <span className={`num shrink-0 whitespace-nowrap text-muted ${done && compact ? "hidden" : ""}`}>
+        <span className={`num font-num tabular-nums shrink-0 whitespace-nowrap text-muted ${done && compact ? "hidden" : ""}`}>
           <span className="font-semibold text-ink">{formatBaht(settled)}</span> / {formatBaht(total)} ฿
         </span>
       </p>

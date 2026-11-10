@@ -62,7 +62,7 @@ export function ExpensesTab({
       {myPayments.length > 0 && (
         <button
           onClick={onOpenSettle}
-          className="coupon coupon-press mt-2.5 flex w-full items-stretch text-left lg:hidden"
+          className="coupon coupon-press paper-tint mt-2.5 flex w-full items-stretch text-left lg:hidden"
           style={{ background: memberTint(view.members, myPayments[0].to) }}
         >
           <span className="flex-1 px-4 py-3">
@@ -71,11 +71,12 @@ export function ExpensesTab({
               {myPayments.length === 1 && <span className="serial">{couponNo(view.trip.id, myPayments[0].from, myPayments[0].to)}</span>}
             </span>
             <span className="mt-0.5 flex items-center gap-1 text-body font-bold">
-              {allHavePromptPay ? "ดู QR พร้อมเพย์และแนบสลิป" : "ดูยอดที่ต้องโอนและแนบสลิป"} <ChevronRight className="size-4" aria-hidden />
+              {allHavePromptPay ? "ดู QR พร้อมเพย์และแนบสลิป" : "ดูยอดที่ต้องโอนและแนบสลิป"} <ChevronRight className="size-4" strokeWidth={1.75} aria-hidden />
             </span>
           </span>
-          <span className="perf-y flex items-center border-ink/30 px-4">
-            <Baht satang={myPayments.reduce((s, t) => s + t.amount - t.claimedAmount, 0)} className="text-title font-semibold" />
+          <span className="perf-y relative flex items-center border-ink/30 px-4">
+            <span className="halftone-stub absolute inset-y-0 left-0 w-9" aria-hidden />
+            <Baht satang={myPayments.reduce((s, t) => s + t.amount - t.claimedAmount, 0)} className="relative text-title font-semibold" />
           </span>
         </button>
       )}
@@ -89,9 +90,9 @@ export function ExpensesTab({
           {[...byDay].map(([day, items]) => (
             <section key={day} aria-label={day}>
               {/* Guide row: stays pinned under the header while its day is in view. */}
-              <h2 className="sticky top-[var(--header-h,76px)] z-10 -mx-4 lg:-mx-2 lg:px-2 flex justify-between bg-ground/95 px-4 py-2 text-meta font-semibold text-muted">
+              <h2 className="sticky top-[var(--header-h,76px)] z-10 -mx-4 flex justify-between bg-ground/95 px-4 py-2 text-meta font-semibold text-muted backdrop-blur-[2px] lg:-mx-2 lg:px-2">
                 <span>{day}</span>
-                <span className="num font-medium">
+                <span className="num font-num tabular-nums font-medium">
                   {items.length} รายการ · {formatBaht(items.reduce((s, e) => s + e.amount, 0))} ฿
                 </span>
               </h2>
@@ -109,7 +110,7 @@ export function ExpensesTab({
         onClick={() => setEditing("new")}
         className="btn-primary fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-[max(1rem,calc(50%-15.5rem))] z-20 h-14 rounded-[var(--radius-coupon)] px-5 shadow-[0_6px_18px_-6px_rgb(20_48_43/0.55)] lg:static lg:order-first lg:mb-4 lg:self-end lg:shadow-none"
       >
-        <Plus className="size-5" strokeWidth={2.6} aria-hidden /> เพิ่มรายจ่าย
+        <Plus className="size-5" strokeWidth={2.5} aria-hidden /> เพิ่มรายจ่าย
       </button>
 
       {editing && (
@@ -127,7 +128,7 @@ export function ExpensesTab({
 
 function TotalRow({ label, satang, tint }: { label: string; satang: number; tint?: string }) {
   return (
-    <p className="flex items-baseline justify-between gap-3 px-4 py-3" style={tint ? { background: tint } : undefined}>
+    <p className={`flex items-baseline justify-between gap-3 px-4 py-3 ${tint ? "paper-tint" : ""}`} style={tint ? { background: tint } : undefined}>
       <span className="text-body font-medium">{label}</span>
       <Baht satang={satang} className="text-title font-semibold leading-tight" />
     </p>
@@ -147,7 +148,7 @@ function ExpenseRow({ e, state, onOpen }: { e: Pending<Expense>; state: TripStat
 
   return (
     <li>
-      <button onClick={onOpen} className="flex w-full items-center gap-3 px-3.5 py-3 text-left hover:bg-ground/60" data-testid="expense-row">
+      <button onClick={onOpen} className="flex w-full items-center gap-3 px-3.5 py-3 text-left transition-colors duration-150 hover:bg-ground/60" data-testid="expense-row">
         <MemberTile name={payer?.nickname ?? "?"} tint={memberTint(members, e.paid_by)} />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-body font-semibold" title={e.title}>
@@ -163,7 +164,7 @@ function ExpenseRow({ e, state, onOpen }: { e: Pending<Expense>; state: TripStat
           {e.pending ? (
             <PendingMark />
           ) : (
-            mine !== undefined && <span className="num block text-meta text-muted">ส่วนคุณ {formatBaht(mine)}</span>
+            mine !== undefined && <span className="num font-num tabular-nums block text-meta text-muted">ส่วนคุณ {formatBaht(mine)}</span>
           )}
         </span>
       </button>

@@ -32,34 +32,41 @@ export function QrSheet({
   return (
     <Sheet
       open
+      fluted
       onClose={onClose}
       title={`โอนให้ ${receiver.nickname}`}
       footer={
         <button className="btn-primary w-full" onClick={onUploadSlip}>
-          <FileImage className="size-5" aria-hidden /> โอนแล้ว แนบสลิป
+          <FileImage className="size-5" strokeWidth={1.75} aria-hidden /> โอนแล้ว แนบสลิป
         </button>
       }
     >
       <div className="flex flex-col items-center text-center">
         {/* PromptPay's own colours: the QR keeps the scheme people recognise at every shop counter. */}
-        <div className="w-full rounded-[var(--radius-coupon)] bg-pp px-4 pb-5 pt-3.5 text-white">
-          <p className="text-meta font-semibold">PromptPay · พร้อมเพย์</p>
-          <div
-            className="mx-auto mt-3 aspect-square w-60 max-w-full rounded-lg bg-white p-2 [&>svg]:h-full [&>svg]:w-full"
-            role="img"
-            aria-label={`QR พร้อมเพย์ ยอด ${formatBaht(amount, { always2dp: true })} บาท`}
-            data-testid="promptpay-qr"
-            data-payload={payload}
-            dangerouslySetInnerHTML={svg ? { __html: svg } : undefined}
-          />
-          <p className="num mt-4 text-display font-semibold leading-none">{formatBaht(amount, { always2dp: true })} ฿</p>
-          <p className="mt-2 text-body text-on-pp-muted">
-            {receiver.payee_name || receiver.nickname} · {maskPromptPay(receiver.promptpay_id!)}
-          </p>
+        <div className="coupon w-full bg-paper text-ink">
+          <div className="w-full bg-pp px-4 pb-5 pt-3.5 text-white">
+            <p className="text-meta font-semibold">PromptPay · พร้อมเพย์</p>
+            {/* Pure #ffffff quiet zone so QR remains 100% crisp and scannable. */}
+            <div
+              className="mx-auto mt-3 aspect-square w-60 max-w-full rounded-[6px] bg-[#ffffff] p-2 [&>svg]:h-full [&>svg]:w-full"
+              role="img"
+              aria-label={`QR พร้อมเพย์ ยอด ${formatBaht(amount, { always2dp: true })} บาท`}
+              data-testid="promptpay-qr"
+              data-payload={payload}
+              dangerouslySetInnerHTML={svg ? { __html: svg } : undefined}
+            />
+            <p className="num font-num mt-4 text-display font-semibold leading-none">{formatBaht(amount, { always2dp: true })} ฿</p>
+            <p className="mt-2 text-body text-on-pp-muted">
+              {receiver.payee_name || receiver.nickname} · <span className="num font-num">{maskPromptPay(receiver.promptpay_id!)}</span>
+            </p>
+          </div>
+          <div className="perf-x relative px-4 py-3 text-left">
+            <span className="halftone-header absolute inset-x-0 top-0 h-8" aria-hidden />
+            <p className="relative text-meta text-ink">
+              สแกนด้วยแอปธนาคารใดก็ได้ ยอดเงินจะขึ้นให้อัตโนมัติ หรือบันทึกภาพหน้าจอแล้วเลือกรูปจากแอปธนาคาร
+            </p>
+          </div>
         </div>
-        <p className="mt-4 max-w-[36ch] text-body text-ink">
-          สแกนด้วยแอปธนาคารใดก็ได้ ยอดเงินจะขึ้นให้อัตโนมัติ หรือบันทึกภาพหน้าจอแล้วเลือกรูปจากแอปธนาคาร
-        </p>
         <p className="hint">โปรดตรวจชื่อผู้รับในแอปธนาคารให้ถูกต้องก่อนกดโอนทุกครั้ง</p>
       </div>
     </Sheet>

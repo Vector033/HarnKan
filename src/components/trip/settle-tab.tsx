@@ -54,21 +54,37 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
           <div className="ledger-dot-grid absolute inset-0" aria-hidden />
           <section className="coupon relative px-4 py-4" data-testid="my-balance">
             <div className="ledger-dot-grid absolute inset-0 opacity-75" aria-hidden />
-            <div className="relative">
-              <p className="flex items-baseline justify-between gap-3 text-body font-semibold">
-                {myNet < 0
-                  ? "คุณต้องโอนรวม"
-                  : myNet > 0
-                    ? "เพื่อนต้องโอนให้คุณรวม"
-                    : settlement.total
-                      ? "คุณไม่มียอดค้างแล้ว"
-                      : "ยังไม่มียอดที่ต้องโอน"}
-              </p>
-              {myNet !== 0 && (
-                <Baht
-                  satang={Math.abs(myNet)}
-                  className={`mt-1 block font-semibold leading-tight ${formatBaht(Math.abs(myNet)).length > 9 ? "text-title" : "text-display"}`}
-                />
+            {myNet === 0 && settlement.total > 0 ? (
+              <div className="halftone-header absolute inset-x-0 top-0 h-10" aria-hidden />
+            ) : myNet !== 0 ? (
+              <div className="halftone-stub absolute inset-y-0 right-0 w-24 rotate-180" aria-hidden />
+            ) : null}
+            <div className="relative flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-body font-semibold">
+                  {myNet < 0
+                    ? "คุณต้องโอนรวม"
+                    : myNet > 0
+                      ? "เพื่อนต้องโอนให้คุณรวม"
+                      : settlement.total
+                        ? "คุณไม่มียอดค้างแล้ว"
+                        : "ยังไม่มียอดที่ต้องโอน"}
+                </p>
+                {myNet === 0 && settlement.total > 0 && (
+                  <p className="mt-0.5 text-meta text-muted">เคลียร์ยอดส่วนตัวในทริปนี้ครบแล้ว</p>
+                )}
+                {myNet !== 0 && (
+                  <Baht
+                    satang={Math.abs(myNet)}
+                    className={`mt-1 block font-semibold leading-tight ${formatBaht(Math.abs(myNet)).length > 9 ? "text-title" : "text-display"}`}
+                  />
+                )}
+              </div>
+              {myNet === 0 && settlement.total > 0 && (
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-[6px] border border-ok/40 bg-ok-soft px-2.5 py-1 text-meta font-bold text-ok">
+                  <Check className="size-4" strokeWidth={2.5} aria-hidden />
+                  <span>ครบแล้ว</span>
+                </span>
               )}
             </div>
           </section>
@@ -124,7 +140,12 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
           <div className="relative -mx-2 mb-2 mt-2 rounded-[calc(var(--radius-coupon)+8px)] p-2">
             <div className="ledger-dot-grid absolute inset-0" aria-hidden />
             <div className="coupon relative px-4 py-3" data-testid="settle-progress">
-              <SettleStrip settled={settlement.settled} total={settlement.toSettle} label="ทั้งทริปโอนแล้ว" />
+              {settlement.settled >= settlement.toSettle && (
+                <div className="halftone-header absolute inset-x-0 top-0 h-8" aria-hidden />
+              )}
+              <div className="relative">
+                <SettleStrip settled={settlement.settled} total={settlement.toSettle} label="ทั้งทริปโอนแล้ว" />
+              </div>
             </div>
           </div>
         )}
@@ -396,7 +417,7 @@ function TransferCoupon({
         )}
       </div>
       {/* The stub: a dashed edge while the money is not settled. */}
-      <div className={`perf-y relative flex shrink-0 items-center justify-end px-3.5 ${waiting ? "border-wait" : "border-ink/30"}`}>
+      <div className={`perf-y perf-notch relative flex shrink-0 items-center justify-end px-3.5 ${waiting ? "border-wait" : "border-ink/30"}`}>
         <span className="halftone-stub absolute inset-y-0 left-0 w-10" aria-hidden />
         <Baht satang={t.amount} className={`relative font-semibold ${formatBaht(t.amount).length > 8 ? "text-body" : "text-title"}`} />
       </div>

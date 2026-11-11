@@ -96,8 +96,8 @@ export default function Home() {
 
   return (
     <div className="mx-auto min-h-dvh max-w-lg lg:grid lg:max-w-none lg:grid-cols-2">
-      <header className="relative overflow-hidden rounded-b-[28px] bg-ink px-5 pb-8 pt-[max(2.25rem,env(safe-area-inset-top))] text-white lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:items-center lg:justify-center lg:overflow-y-auto lg:rounded-none lg:px-12 lg:py-10">
-        <CouponShader className="absolute inset-0 opacity-[0.09] mix-blend-screen" />
+      <header className="ink-band relative overflow-hidden rounded-b-[28px] bg-ink px-5 pb-8 pt-[max(2.25rem,env(safe-area-inset-top))] text-white lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:items-center lg:justify-center lg:overflow-y-auto lg:rounded-none lg:px-12 lg:py-10">
+        <CouponShader className="absolute inset-0 opacity-[0.11] mix-blend-screen" />
         <HeroContourBackdrop />
         {/* Hack 8 Radial Text Scrim: protects Hero headline contrast over contours and GPU shader. */}
         <div
@@ -240,7 +240,7 @@ export default function Home() {
                         </span>
                       )}
                     </span>
-                    <span className="perf-y relative flex items-center gap-2 px-3.5">
+                    <span className="perf-y perf-notch relative flex items-center gap-2 px-3.5">
                       <span className="halftone-stub absolute inset-y-0 left-0 w-10" aria-hidden />
                       <span className="serial relative">{tripSerial(t.id)}</span>
                       <ChevronRight className="relative size-5 text-muted" strokeWidth={1.75} aria-hidden />
@@ -283,7 +283,7 @@ function HeroContourBackdrop() {
       aria-hidden="true"
       viewBox="0 0 800 900"
       preserveAspectRatio="xMidYMid slice"
-      className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.075]"
+      className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.115]"
       style={{
         WebkitMaskImage: "radial-gradient(ellipse 90% 85% at 50% 50%, #000 35%, transparent 100%)",
         maskImage: "radial-gradient(ellipse 90% 85% at 50% 50%, #000 35%, transparent 100%)",
@@ -428,7 +428,13 @@ function ExampleCoupon() {
         <div className="relative h-28 overflow-hidden rounded-[6px] border border-white/12 bg-ink/80">
           {/* Vector terrain & animated dashed route connecting the 3 stops */}
           <svg viewBox="0 0 420 112" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden>
-            <g fill="none" stroke="var(--color-t1)" strokeOpacity="0.12" strokeWidth="1">
+            <g fill="none" stroke="var(--color-t1)" strokeOpacity="0.07" strokeWidth="0.75">
+              <line x1="105" y1="0" x2="105" y2="112" />
+              <line x1="210" y1="0" x2="210" y2="112" />
+              <line x1="315" y1="0" x2="315" y2="112" />
+              <line x1="0" y1="56" x2="420" y2="56" />
+            </g>
+            <g fill="none" stroke="var(--color-t1)" strokeOpacity="0.14" strokeWidth="1">
               <path d="M-20,32 Q110,12 220,44 T440,26" />
               <path d="M-20,86 Q130,62 250,92 T440,74" />
             </g>

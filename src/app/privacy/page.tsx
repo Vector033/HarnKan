@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { InkBandWatermark } from "@/components/ui";
 
 export const metadata: Metadata = { title: "ข้อมูลที่เราเก็บ" };
 
@@ -48,8 +49,9 @@ const SECTIONS: { h: string; p: string[] }[] = [
 export default function PrivacyPage() {
   return (
     <div className="min-h-dvh">
-      <header className="rounded-b-[28px] bg-ink px-5 pb-7 pt-[max(2.5rem,env(safe-area-inset-top))] text-white">
-        <div className="mx-auto max-w-lg lg:max-w-2xl">
+      <header className="ink-band rounded-b-[28px] bg-ink px-5 pb-7 pt-[max(2.5rem,env(safe-area-inset-top))] text-white">
+        <InkBandWatermark variant="bar" />
+        <div className="relative z-10 mx-auto max-w-lg lg:max-w-2xl">
           <Link href="/" className="-ml-2 inline-flex min-h-12 items-center whitespace-nowrap px-2 text-body font-medium text-on-ink-muted underline">
             หารกัน
           </Link>

@@ -74,7 +74,7 @@ export function ExpensesTab({
               {allHavePromptPay ? <>ดู <span className="whitespace-nowrap">QR พร้อมเพย์</span>และแนบสลิป</> : "ดูยอดที่ต้องโอนและแนบสลิป"} <ChevronRight className="size-4" strokeWidth={1.75} aria-hidden />
             </span>
           </span>
-          <span className="perf-y relative flex items-center border-ink/30 px-4">
+          <span className="perf-y perf-notch relative flex items-center border-ink/30 px-4">
             <span className="halftone-stub absolute inset-y-0 left-0 w-9" aria-hidden />
             <Baht satang={myPayments.reduce((s, t) => s + t.amount - t.claimedAmount, 0)} className="relative text-title font-semibold" />
           </span>
@@ -90,8 +90,9 @@ export function ExpensesTab({
           {[...byDay].map(([day, items]) => (
             <section key={day} aria-label={day}>
               {/* Guide row: stays pinned under the header while its day is in view. */}
-              <h2 className="sticky top-[var(--header-h,76px)] z-10 -mx-4 flex justify-between gap-2 bg-ground/95 px-4 py-2 text-meta font-semibold text-muted backdrop-blur-[2px] lg:-mx-2 lg:px-2">
+              <h2 className="sticky top-[var(--header-h,76px)] z-10 -mx-4 flex items-center gap-3 bg-ground/95 px-4 py-2 text-meta font-semibold text-muted backdrop-blur-[2px] lg:-mx-2 lg:px-2">
                 <span className="whitespace-nowrap">{day}</span>
+                <span className="h-px flex-1 border-b border-dashed border-perf/70" aria-hidden />
                 <span className="num font-num tabular-nums whitespace-nowrap font-medium">
                   {items.length} รายการ · {formatBaht(items.reduce((s, e) => s + e.amount, 0))} ฿
                 </span>
@@ -106,12 +107,20 @@ export function ExpensesTab({
         </div>
       )}
 
-      <button
-        onClick={() => setEditing("new")}
-        className="btn-primary fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-[max(1rem,calc(50%-15.5rem))] z-20 h-14 rounded-[var(--radius-coupon)] px-5 shadow-[0_6px_18px_-6px_rgb(20_48_43/0.55)] lg:static lg:order-first lg:mb-4 lg:self-end lg:shadow-none"
-      >
-        <Plus className="size-5" strokeWidth={2.5} aria-hidden /> เพิ่มรายจ่าย
-      </button>
+      <div className="lg:order-first lg:mb-4 lg:flex lg:items-center lg:justify-between lg:gap-3">
+        <div className="hidden lg:flex lg:items-center lg:gap-2.5">
+          <h2 className="text-body font-bold text-ink">สมุดรายจ่าย</h2>
+          <span className="num font-num inline-flex items-center rounded-[6px] border border-line bg-paper px-2 py-0.5 text-meta font-semibold text-muted">
+            {list.length} รายการ
+          </span>
+        </div>
+        <button
+          onClick={() => setEditing("new")}
+          className="btn-primary fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-[max(1rem,calc(50%-15.5rem))] z-20 h-14 rounded-[var(--radius-coupon)] px-5 shadow-[0_6px_18px_-6px_rgb(20_48_43/0.55)] lg:static lg:shadow-none"
+        >
+          <Plus className="size-5" strokeWidth={2.5} aria-hidden /> เพิ่มรายจ่าย
+        </button>
+      </div>
 
       {editing && (
         <ExpenseSheet
@@ -128,9 +137,10 @@ export function ExpensesTab({
 
 function TotalRow({ label, satang, tint }: { label: string; satang: number; tint?: string }) {
   return (
-    <p className={`flex items-baseline justify-between gap-3 px-4 py-3 ${tint ? "paper-tint" : ""}`} style={tint ? { background: tint } : undefined}>
-      <span className="text-body font-medium">{label}</span>
-      <Baht satang={satang} className="text-title font-semibold leading-tight" />
+    <p className={`relative flex items-baseline justify-between gap-3 px-4 py-3 ${tint ? "paper-tint" : ""}`} style={tint ? { background: tint } : undefined}>
+      <span className="halftone-stub absolute inset-y-0 right-0 w-24 rotate-180" aria-hidden />
+      <span className="relative text-body font-medium">{label}</span>
+      <Baht satang={satang} className="relative text-title font-semibold leading-tight" />
     </p>
   );
 }

@@ -1,10 +1,10 @@
 "use client";
 
-import { Clock, Lock } from "lucide-react";
+import { Clock, Lock, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { MemberTile, memberTint } from "@/components/ui";
+import { InkBandWatermark, MemberTile, memberTint } from "@/components/ui";
 import { ensureUser, supabase } from "@/lib/supabase/client";
 
 interface Preview {
@@ -93,8 +93,16 @@ export default function JoinPage() {
 
   return (
     <div className="mx-auto min-h-dvh max-w-lg lg:grid lg:max-w-none lg:grid-cols-2">
-      <header className="bg-ink px-5 pb-7 pt-[max(2.5rem,env(safe-area-inset-top))] text-white rounded-b-[28px] lg:rounded-none lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:items-end lg:justify-center lg:px-16 lg:py-16">
-        <div className="lg:w-full lg:max-w-md">
+      <header className="ink-band rounded-b-[28px] bg-ink px-5 pb-7 pt-[max(2.5rem,env(safe-area-inset-top))] text-white lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:items-end lg:justify-center lg:rounded-none lg:px-16 lg:py-16">
+        <InkBandWatermark variant="panel" />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background: "radial-gradient(ellipse 85% 60% at 50% 42%, rgb(20 48 43 / 0.7) 0%, transparent 100%)",
+          }}
+        />
+        <div className="relative z-10 lg:w-full lg:max-w-md">
           <h1 className={`text-balance break-words font-bold ${[...preview.name].length > 24 ? "text-title" : "text-display"}`}>{preview.name}</h1>
           <p className="mt-2 text-body text-on-ink-muted">คุณได้รับเชิญเข้าทริปนี้</p>
           {!preview.locked && preview.members.length > 0 && (
@@ -173,8 +181,9 @@ export default function JoinPage() {
               </div>
             )}
             {error && (
-              <p className="text-body text-owe" role="alert">
-                {error}
+              <p className="flex items-start gap-2 rounded-lg bg-owe-soft px-3.5 py-2.5 text-body text-owe" role="alert">
+                <TriangleAlert className="mt-0.5 size-5 shrink-0" strokeWidth={1.75} aria-hidden />
+                <span>{error}</span>
               </p>
             )}
             <button className="btn-primary w-full" disabled={busy || (!claim && !nickname.trim())}>

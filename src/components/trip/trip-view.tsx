@@ -5,8 +5,9 @@ import Link from "next/link";
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { settlement } from "@/lib/trip/derive";
 import { useTrip, type TripState } from "@/lib/trip/store";
+import { InkBandWatermark } from "../ui";
 import { ConflictSheet } from "./conflict-sheet";
-import { ExpensesTab } from "./expenses-tab";
+import { ExpensesTab, tripSerial } from "./expenses-tab";
 import { MembersTab } from "./members-tab";
 import { SettleTab } from "./settle-tab";
 
@@ -93,8 +94,9 @@ export function TripView({ tripId }: { tripId: string }) {
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-lg flex-col lg:max-w-none">
-      <header ref={headerRef} className="sticky top-0 z-20 bg-ink pb-4 pt-[max(0.75rem,env(safe-area-inset-top))] text-white lg:pb-0">
-        <div className="flex items-center gap-1 px-4 lg:mx-auto lg:max-w-6xl lg:gap-3 lg:px-8">
+      <header ref={headerRef} className="ink-band sticky top-0 z-20 border-b border-t1/15 bg-ink pb-4 pt-[max(0.75rem,env(safe-area-inset-top))] text-white lg:pb-0">
+        <InkBandWatermark variant="bar" />
+        <div className="relative z-10 flex items-center gap-1 px-4 lg:mx-auto lg:max-w-6xl lg:gap-3 lg:px-8">
           <Link href="/" className="-ml-3 grid size-12 shrink-0 place-items-center rounded-lg hover:bg-white/10" aria-label="ทริปทั้งหมด">
             <ChevronLeft className="size-6" strokeWidth={1.75} />
           </Link>
@@ -102,8 +104,13 @@ export function TripView({ tripId }: { tripId: string }) {
             <h1 className="line-clamp-2 break-words text-title font-bold leading-[1.3]" title={view.trip.name}>
               {view.trip.name}
             </h1>
-            <p className="text-meta text-on-ink-muted">
-              <span className="num font-num">{view.members.length}</span> คน{view.trip.locked && " · ล็อกแล้ว"}
+            <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-meta text-on-ink-muted">
+              <span>
+                <span className="num font-num">{view.members.length}</span> คน{view.trip.locked && " · ล็อกแล้ว"}
+              </span>
+              <span className="num font-num inline-flex items-center rounded-[5px] border border-t1/20 bg-white/[0.08] px-1.5 py-0.5 text-[13px] font-semibold tracking-[0.04em] text-t1">
+                เล่ม {tripSerial(view.trip.id)}
+              </span>
             </p>
           </div>
           <SyncStatus state={state} />
@@ -112,7 +119,7 @@ export function TripView({ tripId }: { tripId: string }) {
           </Link>
         </div>
         {wide && (
-          <nav className="mx-auto mt-2 flex max-w-6xl gap-1 px-8" aria-label="ส่วนของทริป">
+          <nav className="relative z-10 mx-auto mt-2 flex max-w-6xl gap-1 px-8" aria-label="ส่วนของทริป">
             {tabs.map(({ key, label, Icon }) => {
               const on = left === key;
               return (

@@ -4,6 +4,7 @@ import { Check, ShieldCheck, Volume2, VolumeX } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { InkBandWatermark } from "@/components/ui";
 import { promptPayKind } from "@/lib/core/promptpay";
 import { useStampSound } from "@/lib/sound";
 import { ensureUser, supabase } from "@/lib/supabase/client";
@@ -110,8 +111,9 @@ export function Settings() {
 
   return (
     <div className="min-h-dvh">
-      <header className="rounded-b-[28px] bg-ink px-5 pb-7 pt-[max(2.5rem,env(safe-area-inset-top))] text-white">
-        <div className="mx-auto max-w-lg lg:max-w-3xl lg:px-4">
+      <header className="ink-band rounded-b-[28px] bg-ink px-5 pb-7 pt-[max(2.5rem,env(safe-area-inset-top))] text-white">
+        <InkBandWatermark variant="bar" />
+        <div className="relative z-10 mx-auto max-w-lg lg:max-w-3xl lg:px-4">
           <Link href="/" className="-ml-2 inline-flex min-h-12 items-center whitespace-nowrap px-2 text-body font-medium text-on-ink-muted underline">
             หารกัน
           </Link>

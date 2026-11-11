@@ -62,7 +62,7 @@ export function ExpensesTab({
       {myPayments.length > 0 && (
         <button
           onClick={onOpenSettle}
-          className="coupon coupon-press paper-tint mt-2.5 flex w-full items-stretch text-left lg:hidden"
+          className="coupon coupon-press paper-tint mt-4 flex w-full items-stretch text-left lg:hidden"
           style={{ background: memberTint(view.members, myPayments[0].to) }}
         >
           <span className="flex-1 px-4 py-3">
@@ -82,11 +82,11 @@ export function ExpensesTab({
       )}
 
       {list.length === 0 ? (
-        <div className="mt-6">
+        <div className="mt-8">
           <Empty title="ยังไม่มีรายจ่าย">กดปุ่ม “เพิ่มรายจ่าย” เพื่อบันทึกรายการแรก ทุกคนในทริปจะเห็นทันที</Empty>
         </div>
       ) : (
-        <div className="mt-5 space-y-4">
+        <div className="mt-8 space-y-6">
           {[...byDay].map(([day, items]) => (
             <section key={day} aria-label={day}>
               {/* Guide row: stays pinned under the header while its day is in view. */}
@@ -148,7 +148,7 @@ function ExpenseRow({ e, state, onOpen }: { e: Pending<Expense>; state: TripStat
 
   return (
     <li>
-      <button onClick={onOpen} className="flex w-full items-center gap-3 px-3.5 py-3 text-left transition-colors duration-150 hover:bg-ground/60" data-testid="expense-row">
+      <button onClick={onOpen} className="flex w-full items-center gap-3.5 px-4 py-3.5 text-left transition-colors duration-150 hover:bg-ground/60" data-testid="expense-row">
         <MemberTile name={payer?.nickname ?? "?"} tint={memberTint(members, e.paid_by)} />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-body font-semibold" title={e.title}>

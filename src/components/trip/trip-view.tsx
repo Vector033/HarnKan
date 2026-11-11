@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeftRight, ChevronLeft, CloudOff, ReceiptText, Settings, Users, X } from "lucide-react";
+import { ArrowLeftRight, ChevronLeft, Clock, CloudOff, ReceiptText, Settings, TriangleAlert, Users, X } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { settlement } from "@/lib/trip/derive";
@@ -199,7 +199,8 @@ function SyncStatus({ state }: { state: TripState }) {
   if (state.queued)
     return (
       <span className={`${base} border border-dashed border-t3 text-t3`} role="status">
-        กำลังส่ง {state.queued} รายการ
+        <Clock className="size-3.5 shrink-0" strokeWidth={1.75} aria-hidden />
+        กำลังส่ง <span className="num font-num">{state.queued}</span> รายการ
       </span>
     );
   if (state.live)
@@ -233,9 +234,10 @@ function Notices({ state, onDismissError }: { state: TripState; onDismissError: 
       )}
       {state.errors.map((e, i) => (
         <div key={i} className="flex items-start gap-2 rounded-lg bg-owe-soft px-3.5 py-3 text-body text-owe" role="alert">
+          <TriangleAlert className="mt-0.5 size-5 shrink-0" strokeWidth={1.75} aria-hidden />
           <span className="flex-1">บันทึกไม่สำเร็จ: {friendlyError(e)} รายการนี้ยังไม่ถูกบันทึก</span>
           <button className="-my-2 -mr-2 grid size-12 shrink-0 place-items-center rounded-md" onClick={() => onDismissError(i)} aria-label="ปิดข้อความ">
-            <X className="size-4" />
+            <X className="size-4" strokeWidth={1.75} />
           </button>
         </div>
       ))}

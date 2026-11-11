@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronRight, MapPin, Pause, Play, RotateCcw, Settings, ShieldCheck } from "lucide-react";
+import { Check, ChevronRight, MapPin, Pause, Play, RotateCcw, Settings, ShieldCheck, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -8,6 +8,7 @@ import { tripSerial } from "@/components/trip/expenses-tab";
 import { CouponShader } from "@/components/coupon-shader";
 import { Baht, MemberTile, SettleStrip } from "@/components/ui";
 import { formatBaht } from "@/lib/core/money";
+import { playStampThud } from "@/lib/sound";
 import { settlement } from "@/lib/trip/derive";
 import { ensureUser, supabase } from "@/lib/supabase/client";
 import { allSnapshots } from "@/lib/trip/idb";
@@ -98,6 +99,14 @@ export default function Home() {
       <header className="relative overflow-hidden rounded-b-[28px] bg-ink px-5 pb-8 pt-[max(2.25rem,env(safe-area-inset-top))] text-white lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col lg:items-center lg:justify-center lg:overflow-y-auto lg:rounded-none lg:px-12 lg:py-10">
         <CouponShader className="absolute inset-0 opacity-[0.09] mix-blend-screen" />
         <HeroContourBackdrop />
+        {/* Hack 8 Radial Text Scrim: protects Hero headline contrast over contours and GPU shader. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background: "radial-gradient(ellipse 85% 60% at 50% 24%, rgb(20 48 43 / 0.72) 0%, transparent 100%)",
+          }}
+        />
         <div className="relative z-10 w-full lg:max-w-lg">
           <div className="flex items-center justify-between gap-4">
             <span className="text-title font-bold tracking-tight text-white">หารกัน</span>
@@ -116,7 +125,7 @@ export default function Home() {
             <span className="whitespace-nowrap">สลิปเดียวรู้เรื่อง</span>
           </h1>
           <p className="mt-2 max-w-[38ch] text-body leading-relaxed text-on-ink-muted">
-            จดค่าใช้จ่ายร่วมกันจากมือถือทุกคน สรุปยอดโอน<span className="whitespace-nowrap">ให้น้อยครั้งที่สุด</span>{" "}
+            ไม่ต้องทวงเพื่อนให้เกรงใจ ไม่ต้องคิดเลขเอง สรุปยอดโอน<span className="whitespace-nowrap">ให้น้อยครั้งที่สุด</span>{" "}
             พร้อม <span className="whitespace-nowrap">QR พร้อมเพย์</span>
           </p>
           <div className={showMobileDemo ? "block" : "hidden lg:block"}>
@@ -127,7 +136,7 @@ export default function Home() {
 
       <main className="flex flex-col gap-8 px-4 pb-12 pt-5 lg:mx-auto lg:w-full lg:max-w-xl lg:self-center lg:px-12 lg:py-14">
         <form onSubmit={create} className="coupon" aria-labelledby="create-h">
-          <div className="relative space-y-5 p-4">
+          <div className="relative space-y-4 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2 id="create-h" className="text-body font-bold">
                 สร้างทริปใหม่
@@ -157,13 +166,13 @@ export default function Home() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
-              <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label="ตัวอย่างคำที่ใช้บ่อย">
+              <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="ตัวอย่างคำที่ใช้บ่อย">
                 {QUICK_TRIPS.map((preset) => (
                   <button
                     key={preset}
                     type="button"
                     onClick={() => setName(preset)}
-                    className={`rounded-[6px] border px-2.5 py-1 text-meta font-medium transition-[background-color,border-color,transform] duration-150 active:scale-[0.98] ${
+                    className={`min-h-11 rounded-[6px] border px-3 py-1.5 text-meta font-medium transition-[background-color,border-color,transform] duration-150 active:scale-[0.98] ${
                       name === preset
                         ? "border-ink bg-ink text-white"
                         : "border-line bg-ground/70 text-ink hover:border-ink/40"
@@ -190,8 +199,9 @@ export default function Home() {
               />
             </div>
             {error && (
-              <p className="text-body text-owe" role="alert">
-                {error}
+              <p className="flex items-start gap-2 rounded-lg bg-owe-soft px-3.5 py-2.5 text-body text-owe" role="alert">
+                <TriangleAlert className="mt-0.5 size-5 shrink-0" strokeWidth={1.75} aria-hidden />
+                <span>{error}</span>
               </p>
             )}
             <button className="btn-primary w-full" disabled={busy || !name.trim() || !nickname.trim()}>
@@ -199,7 +209,9 @@ export default function Home() {
             </button>
           </div>
           <p className="perf-x px-4 py-3 text-meta text-muted">
-            ไม่ต้องสมัครสมาชิก เพื่อนเข้าผ่านลิงก์หรือ QR แล้วใส่<span className="whitespace-nowrap">ชื่อเล่นได้เลย</span>
+            <span className="whitespace-nowrap font-semibold text-ink">สร้างทริปใน 2 แตะ</span> ·{" "}
+            <span className="whitespace-nowrap">ไม่ต้องล็อกอิน</span> ·{" "}
+            <span className="whitespace-nowrap">ใช้ได้แม้ออฟไลน์</span> — เพื่อนเข้าลิงก์แล้วใส่<span className="whitespace-nowrap">ชื่อเล่นได้เลย</span>
           </p>
         </form>
 
@@ -385,6 +397,7 @@ function ExampleCoupon() {
     } else {
       setStampCount((c) => c + 1);
       setStamped(true);
+      playStampThud();
     }
   }
 
@@ -542,7 +555,7 @@ function ExampleCoupon() {
                   type="button"
                   onClick={() => selectFriends(count)}
                   aria-pressed={active}
-                  className={`num font-num min-h-10 rounded-[6px] px-2.5 text-meta font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.97] ${
+                  className={`num font-num min-h-12 rounded-[6px] px-3 text-meta font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.97] ${
                     active ? "bg-ink text-white" : "bg-paper text-ink ring-1 ring-line hover:ring-ink/35"
                   }`}
                 >
@@ -554,7 +567,7 @@ function ExampleCoupon() {
           <button
             type="button"
             onClick={toggleStamp}
-            className={`inline-flex min-h-10 items-center gap-1.5 rounded-[6px] px-2.5 text-meta font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.97] ${
+            className={`inline-flex min-h-12 items-center gap-1.5 rounded-[6px] px-3 text-meta font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.97] ${
               stamped
                 ? "bg-paper text-muted ring-1 ring-line hover:text-ink"
                 : "bg-ok text-white hover:bg-ok/90"

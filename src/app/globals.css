@@ -74,6 +74,7 @@ body {
   background: var(--color-ground);
   color: var(--color-ink);
   caret-color: var(--color-ink);
+  letter-spacing: 0;
 }
 
 /* Paper stock canvas: lightweight #12 Paper Texture + #5 Speckled Graphite over --color-ground. */

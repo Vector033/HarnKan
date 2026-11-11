@@ -37,7 +37,7 @@ export function QrSheet({
       title={`โอนให้ ${receiver.nickname}`}
       footer={
         <button className="btn-primary w-full" onClick={onUploadSlip}>
-          <FileImage className="size-5" strokeWidth={1.75} aria-hidden /> โอนแล้ว แนบสลิป
+          <FileImage className="size-5" strokeWidth={1.75} aria-hidden /> โอนแล้ว แนบสลิป · <span className="num font-num">฿{formatBaht(amount)}</span>
         </button>
       }
     >

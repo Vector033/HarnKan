@@ -1,10 +1,11 @@
 "use client";
 
-import { Check, ShieldCheck } from "lucide-react";
+import { Check, ShieldCheck, Volume2, VolumeX } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { promptPayKind } from "@/lib/core/promptpay";
+import { useStampSound } from "@/lib/sound";
 import { ensureUser, supabase } from "@/lib/supabase/client";
 import { forgetAll } from "@/lib/trip/idb";
 
@@ -26,6 +27,7 @@ export function Settings() {
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
   const [others, setOthers] = useState<string | null>(null);
   const [confirmWipe, setConfirmWipe] = useState(false);
+  const [soundOn, setSoundOn] = useStampSound();
 
   useEffect(() => {
     let cancelled = false;
@@ -247,6 +249,20 @@ export function Settings() {
             </Section>
 
             <Section id="device-h" title="เครื่องนี้">
+              <Row
+                title="เสียงตราประทับ PAID"
+                hint="เล่นเสียงประทับตราเบาๆ เมื่อยืนยันว่าได้รับเงินแล้ว (ปิดเป็นค่าเริ่มต้น)"
+              >
+                <button
+                  type="button"
+                  onClick={() => setSoundOn(!soundOn)}
+                  aria-pressed={soundOn}
+                  className={`btn w-full lg:w-auto ${soundOn ? "border-ok/45 text-ok" : ""}`}
+                >
+                  {soundOn ? <Volume2 className="size-4" strokeWidth={1.75} aria-hidden /> : <VolumeX className="size-4" strokeWidth={1.75} aria-hidden />}
+                  {soundOn ? "เปิดเสียงตราประทับอยู่" : "ปิดเสียงตราประทับ"}
+                </button>
+              </Row>
               <Row
                 title={account.email !== null ? "ออกจากระบบ" : "ล้างข้อมูลบนเครื่องนี้"}
                 hint={

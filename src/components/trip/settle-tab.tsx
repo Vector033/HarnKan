@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowRight, Check, Clock, FileImage, QrCode, Undo2, X } from "lucide-react";
+import { ArrowRight, Check, Clock, FileImage, QrCode, Undo2, Volume2, VolumeX, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { formatBaht } from "@/lib/core/money";
 import { maskPromptPay } from "@/lib/core/promptpay";
+import { playStampThud, useStampSound } from "@/lib/sound";
 import type { PlannedTransfer, Settlement } from "@/lib/trip/derive";
 import type { Pending } from "@/lib/trip/outbox";
 import type { TripState, TripStore } from "@/lib/trip/store";
@@ -25,6 +26,7 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
   const name = (id: string) => byId.get(id)?.nickname ?? "?";
   const [qr, setQr] = useState<PlannedTransfer | null>(null);
   const [slip, setSlip] = useState<PlannedTransfer | null>(null);
+  const [soundOn, setSoundOn] = useStampSound();
   const myNet = me ? (settlement.net.get(me.id) ?? 0) : 0;
   const tripCreator = view.trip.created_by === state.userId;
 
@@ -45,7 +47,7 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
   }
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-8">
       {me && (
         <div className="relative -mx-2 rounded-[calc(var(--radius-coupon)+8px)] p-2">
           {/* #18 Square-Dot Grid: classic printed ledger paper behind settlement balance summary. */}
@@ -65,7 +67,7 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
               {myNet !== 0 && (
                 <Baht
                   satang={Math.abs(myNet)}
-                  className={`mt-0.5 block font-semibold leading-tight ${formatBaht(Math.abs(myNet)).length > 9 ? "text-title" : "text-display"}`}
+                  className={`mt-1 block font-semibold leading-tight ${formatBaht(Math.abs(myNet)).length > 9 ? "text-title" : "text-display"}`}
                 />
               )}
             </div>
@@ -75,10 +77,10 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
 
       {settlement.awaitingMe.length > 0 && (
         <section aria-labelledby="awaiting-h">
-          <h2 id="awaiting-h" className="mb-2.5 text-body font-bold">
+          <h2 id="awaiting-h" className="mb-3 text-body font-bold">
             รอคุณยืนยันว่าได้รับเงิน
           </h2>
-          <ul className="space-y-2.5">
+          <ul className="space-y-4">
             {settlement.awaitingMe.map((p) => (
               <ClaimCoupon
                 key={p.id}
@@ -94,23 +96,39 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
       )}
 
       <section aria-labelledby="transfers-h">
-        <h2 id="transfers-h" className="text-body font-bold">
-          ใครโอนให้ใคร
-        </h2>
-        {transfers.length > 0 && (
-          <p className="mt-0.5 text-meta text-muted">
-            จัดให้โอนน้อยครั้งที่สุดแล้ว รวม <span className="num font-num font-semibold text-ink">{settlement.transfers.length}</span> ครั้ง
-          </p>
-        )}
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h2 id="transfers-h" className="text-body font-bold">
+              ใครโอนให้ใคร
+            </h2>
+            {transfers.length > 0 && (
+              <p className="mt-0.5 text-meta text-muted">
+                จัดให้โอนน้อยครั้งที่สุดแล้ว รวม <span className="num font-num font-semibold text-ink">{settlement.transfers.length}</span> ครั้ง
+              </p>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => setSoundOn(!soundOn)}
+            aria-pressed={soundOn}
+            title="เปิด/ปิดเสียงตราประทับ PAID"
+            className={`-mr-2 -mt-2 inline-flex min-h-12 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-meta font-semibold transition-colors duration-150 active:scale-[0.98] ${
+              soundOn ? "bg-ok-soft text-ok" : "text-muted hover:bg-paper hover:text-ink"
+            }`}
+          >
+            {soundOn ? <Volume2 className="size-4" strokeWidth={1.75} aria-hidden /> : <VolumeX className="size-4" strokeWidth={1.75} aria-hidden />}
+            <span>เสียงตราประทับ</span>
+          </button>
+        </div>
         {settlement.toSettle > 0 && (
-          <div className="relative -mx-2 mb-1 mt-0.5 rounded-[calc(var(--radius-coupon)+8px)] p-2">
+          <div className="relative -mx-2 mb-2 mt-2 rounded-[calc(var(--radius-coupon)+8px)] p-2">
             <div className="ledger-dot-grid absolute inset-0" aria-hidden />
             <div className="coupon relative px-4 py-3" data-testid="settle-progress">
               <SettleStrip settled={settlement.settled} total={settlement.toSettle} label="ทั้งทริปโอนแล้ว" />
             </div>
           </div>
         )}
-        {settlement.toSettle === 0 && <div className="mb-3" />}
+        {settlement.toSettle === 0 && <div className="mb-4" />}
         {transfers.length === 0 ? (
           settlement.transfers.length > 0 ? (
             <Empty title="ไม่มียอดอื่นที่ค้างอยู่">รายการที่เหลือรอคุณยืนยันด้านบน</Empty>
@@ -124,7 +142,7 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
             )
           )
         ) : (
-          <ul className="space-y-2.5">
+          <ul className="space-y-4">
             {[...mine, ...others].map((t) => (
               <TransferCoupon
                 key={`${t.from}-${t.to}`}
@@ -144,10 +162,10 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
 
       {waitingOthers.length > 0 && (
         <section aria-labelledby="waiting-h">
-          <h2 id="waiting-h" className="mb-2.5 text-body font-bold">
+          <h2 id="waiting-h" className="mb-3 text-body font-bold">
             รอผู้รับยืนยัน
           </h2>
-          <ul className="space-y-2.5">
+          <ul className="space-y-4">
             {waitingOthers.map((p) => (
               <ClaimCoupon
                 key={p.id}
@@ -165,10 +183,10 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
 
       {history.length > 0 && (
         <section aria-labelledby="history-h">
-          <h2 id="history-h" className="mb-2.5 text-body font-bold">
+          <h2 id="history-h" className="mb-3 text-body font-bold">
             ประวัติการโอน
           </h2>
-          <ul className="space-y-2">
+          <ul className="space-y-2.5">
             {history.map((p) => {
               const settled = p.status === "confirmed";
               const fresh = settled && !seen.has(p.id);
@@ -178,7 +196,7 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
                   className={`coupon relative flex items-stretch text-body ${seen.has(p.id) ? "" : "arrive"} ${settled ? "" : "bg-paper/60"}`}
                 >
                   {settled && <span className="halftone-header absolute inset-x-0 top-0 h-10" aria-hidden />}
-                  <span className="relative min-w-0 flex-1 px-3.5 py-3">
+                  <span className="relative min-w-0 flex-1 px-4 py-3.5">
                     <span className="flex flex-wrap items-center justify-between gap-2">
                       <span className="flex flex-wrap items-center gap-x-1.5 break-words font-semibold">
                         {name(p.from_member)} <ArrowRight className="size-4 shrink-0" strokeWidth={1.75} aria-label="โอนให้" /> {name(p.to_member)}
@@ -270,6 +288,7 @@ function TransferCoupon({
   const iPay = me?.id === t.from;
   const iReceive = me?.id === t.to;
   const waiting = t.claimedAmount >= t.amount;
+  const remaining = Math.max(0, t.amount - t.claimedAmount);
   const [stamping, setStamping] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => {
@@ -282,6 +301,7 @@ function TransferCoupon({
     if (stamping) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     setStamping(true);
+    playStampThud();
     timerRef.current = setTimeout(() => {
       onPay();
       setStamping(false);
@@ -294,7 +314,7 @@ function TransferCoupon({
       style={{ background: iPay ? memberTint(members, t.to) : undefined }}
       data-testid="transfer"
     >
-      <div className="relative min-w-0 flex-1 px-3.5 py-3">
+      <div className="relative min-w-0 flex-1 px-4 py-3.5">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-body font-semibold">
           <span className="flex min-w-0 items-center gap-2">
             <MemberTile name={from?.nickname ?? "?"} tint={memberTint(members, t.from)} size={28} />
@@ -319,10 +339,13 @@ function TransferCoupon({
         )}
 
         {iPay && !waiting && (
-          <div className="mt-3 grid gap-2">
+          <div className="mt-4 grid gap-2.5">
             {to?.promptpay_id ? (
               <button className="btn w-full border-pp/40 text-pp" onClick={onQr}>
-                <QrCode className="size-4" strokeWidth={1.75} aria-hidden /> QR พร้อมเพย์
+                <QrCode className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
+                <span>
+                  โอน <span className="num font-num">฿{formatBaht(remaining)}</span> · QR พร้อมเพย์
+                </span>
               </button>
             ) : (
               <span className="text-meta text-ink/85">
@@ -330,7 +353,10 @@ function TransferCoupon({
               </span>
             )}
             <button className="btn w-full" onClick={onSlip} data-testid="upload-slip">
-              <FileImage className="size-4" strokeWidth={1.75} aria-hidden /> แนบสลิป
+              <FileImage className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
+              <span>
+                {to?.promptpay_id ? "แนบสลิป" : <>โอน <span className="num font-num">฿{formatBaht(remaining)}</span> แล้ว · แนบสลิป</>}
+              </span>
             </button>
             <button className="btn-quiet -ml-3 justify-self-start" onClick={onPay}>
               โอนแล้ว (ไม่มีสลิป)
@@ -339,13 +365,16 @@ function TransferCoupon({
         )}
         {iPay && to?.promptpay_id && !waiting && (
           <p className="mt-2 text-meta text-ink/85">
-            พร้อมเพย์ <span className="num font-num">{maskPromptPay(to.promptpay_id)}</span>
+            พร้อมเพย์ <span className="num font-num whitespace-nowrap">{maskPromptPay(to.promptpay_id)}</span>
           </p>
         )}
         {iReceive && !waiting && (
-          <div className="mt-3">
+          <div className="mt-4">
             <button className="btn" onClick={confirmDirectPay} disabled={stamping}>
-              <Check className="size-4" strokeWidth={1.75} aria-hidden /> ได้รับเงินแล้ว
+              <Check className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
+              <span>
+                ได้รับเงิน <span className="num font-num">฿{formatBaht(remaining)}</span> แล้ว
+              </span>
             </button>
           </div>
         )}
@@ -408,6 +437,7 @@ function ClaimCoupon({
         setStage("idle");
       });
     setStage("stamp");
+    playStampThud();
     if (reduce) {
       at(STAMP_MS, () => setStage("tear"));
       at(STAMP_MS + 200, send);
@@ -435,7 +465,7 @@ function ClaimCoupon({
     >
       <div className={`coupon min-h-0 ${stage === "tear" ? "tearing" : ""} ${stage === "fold" ? "tearing overflow-hidden" : ""}`}>
         <div className="flex items-stretch">
-          <div className="coupon-body relative min-w-0 flex-1 px-3.5 py-3">
+          <div className="coupon-body relative min-w-0 flex-1 px-4 py-3.5">
             <p className="flex flex-wrap items-center gap-x-1.5 break-words text-body font-semibold">
               {name(p.from_member)} <ArrowRight className="size-4 shrink-0" strokeWidth={1.75} aria-label="โอนให้" /> {name(p.to_member)}
             </p>
@@ -471,7 +501,7 @@ function ClaimCoupon({
           </p>
         )}
         {(canDecide || canCancel) && (
-          <div className="coupon-actions perf-x flex flex-wrap gap-2 px-3.5 py-3">
+          <div className="coupon-actions perf-x flex flex-wrap gap-2 px-4 py-3">
             {canDecide &&
               (confirmReject ? (
                 <>
@@ -486,7 +516,10 @@ function ClaimCoupon({
               ) : (
                 <>
                   <button className="btn-primary flex-1" onClick={() => decide("confirmed")} disabled={busy} data-testid="confirm-payment">
-                    <Check className="size-5" strokeWidth={1.75} aria-hidden /> ได้รับเงินแล้ว
+                    <Check className="size-5 shrink-0" strokeWidth={1.75} aria-hidden />
+                    <span>
+                      ได้รับ <span className="num font-num">฿{formatBaht(p.amount)}</span> แล้ว
+                    </span>
                   </button>
                   <button className="btn" onClick={() => setConfirmReject(true)} disabled={busy}>
                     ยังไม่ได้รับ
@@ -501,7 +534,7 @@ function ClaimCoupon({
           </div>
         )}
         {p.pending && (
-          <div className="coupon-actions px-3.5 pb-3">
+          <div className="coupon-actions px-4 pb-3">
             <PendingMark />
           </div>
         )}

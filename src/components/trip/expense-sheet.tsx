@@ -101,6 +101,21 @@ export function ExpenseSheet({
   }
 
   const editor = live ? members.find((m) => m.user_id === live.updated_by)?.nickname : null;
+  const payerName = members.find((m) => m.id === paidBy)?.nickname ?? "ผู้จ่าย";
+  const meId = state.me?.id;
+  const allEqual = mode === "equal" && members.every((m) => !!equal[m.id]);
+  const noPayerEqual = mode === "equal" && members.length >= 2 && members.every((m) => (m.id === paidBy ? !equal[m.id] : !!equal[m.id]));
+  const twoWayEqual =
+    mode === "equal" &&
+    !!meId &&
+    meId !== paidBy &&
+    members.length > 2 &&
+    members.every((m) => (m.id === meId || m.id === paidBy ? !!equal[m.id] : !equal[m.id]));
+
+  function applyQuickEqual(predicate: (id: string) => boolean) {
+    setMode("equal");
+    setEqual(Object.fromEntries(members.map((m) => [m.id, predicate(m.id)])));
+  }
 
   return (
     <Sheet
@@ -124,11 +139,11 @@ export function ExpenseSheet({
           {base &&
             (confirmDelete ? (
               <button className="btn-danger" onClick={remove} autoFocus>
-                <Trash2 className="size-4" aria-hidden /> ยืนยันการลบ
+                <Trash2 className="size-4" strokeWidth={1.75} aria-hidden /> ยืนยันการลบ
               </button>
             ) : (
               <button className="btn" onClick={() => setConfirmDelete(true)} aria-label="ลบรายการนี้">
-                <Trash2 className="size-4" aria-hidden /> ลบ
+                <Trash2 className="size-4" strokeWidth={1.75} aria-hidden /> ลบ
               </button>
             ))}
           <button
@@ -137,7 +152,7 @@ export function ExpenseSheet({
             disabled={!draft || !!problem || !title.trim() || deletedUnderneath || amountTooBig}
             data-testid="save-expense"
           >
-            <Check className="size-5" aria-hidden /> บันทึก
+            <Check className="size-5" strokeWidth={1.75} aria-hidden /> บันทึก
           </button>
         </div>
         )
@@ -145,7 +160,7 @@ export function ExpenseSheet({
     >
       {(changedUnderneath || deletedUnderneath) && (
         <div className="mb-5 flex gap-2.5 rounded-lg border border-dashed border-wait bg-wait-soft px-3.5 py-3 text-body text-wait" role="alert" data-testid="changed-underneath">
-          <TriangleAlert className="mt-0.5 size-5 shrink-0" aria-hidden />
+          <TriangleAlert className="mt-0.5 size-5 shrink-0" strokeWidth={1.75} aria-hidden />
           <p>
             {deletedUnderneath ? (
               <>รายการนี้ถูกลบไปแล้วระหว่างที่คุณกำลังแก้ไข</>
@@ -159,7 +174,7 @@ export function ExpenseSheet({
         </div>
       )}
 
-      <div className="space-y-5">
+      <div className="space-y-4">
         <div>
           <label className="label" htmlFor="title">
             รายการ
@@ -181,7 +196,7 @@ export function ExpenseSheet({
             </label>
             <input
               id="amount"
-              className="input num text-body"
+              className="input num font-num text-body"
               inputMode="decimal"
               placeholder="0.00"
               value={amountText}
@@ -190,8 +205,9 @@ export function ExpenseSheet({
               onChange={(e) => setAmountText(e.target.value)}
             />
             {(amountInvalid || amountTooBig) && (
-              <p id="amount-error" className="mt-1.5 text-meta text-owe" role="alert">
-                {amountTooBig ? "ยอดต่อรายการต้องไม่เกิน 1,000,000 บาท" : "ใส่ตัวเลข ทศนิยมไม่เกิน 2 ตำแหน่ง"}
+              <p id="amount-error" className="mt-1.5 flex items-start gap-1.5 text-meta text-owe" role="alert">
+                <TriangleAlert className="mt-0.5 size-4 shrink-0" strokeWidth={1.75} aria-hidden />
+                <span>{amountTooBig ? "ยอดต่อรายการต้องไม่เกิน 1,000,000 บาท" : "ใส่ตัวเลข ทศนิยมไม่เกิน 2 ตำแหน่ง"}</span>
               </p>
             )}
           </div>
@@ -209,7 +225,7 @@ export function ExpenseSheet({
           </div>
         </div>
 
-        <fieldset>
+        <fieldset className="space-y-2.5 pt-2">
           <legend className="label">วิธีหาร</legend>
           <div className="grid grid-cols-3 gap-1 rounded-lg bg-paper p-1 ring-1 ring-line">
             {MODES.map(([k, label]) => (
@@ -222,19 +238,55 @@ export function ExpenseSheet({
                   onChange={() => setMode(k)}
                   className="peer sr-only"
                 />
-                <span className="flex min-h-12 cursor-pointer items-center justify-center rounded-md text-body font-semibold text-ink transition-colors duration-150 hover:bg-ground peer-checked:bg-ink peer-checked:text-white peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ink">
+                <span className="flex min-h-12 cursor-pointer items-center justify-center rounded-[8px] text-body font-semibold text-ink transition-colors duration-150 hover:bg-ground peer-checked:bg-ink peer-checked:text-white peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ink">
                   {label}
                 </span>
               </label>
             ))}
           </div>
+          {members.length >= 2 && (
+            <div className="flex flex-wrap gap-2" role="group" aria-label="ตัวเลือกหารด่วน">
+              <button
+                type="button"
+                onClick={() => applyQuickEqual(() => true)}
+                aria-pressed={allEqual}
+                className={`min-h-12 rounded-lg border px-3.5 text-meta font-semibold transition-[background-color,border-color,transform] duration-150 active:scale-[0.98] ${
+                  allEqual ? "border-ink bg-ink text-white" : "border-line bg-paper text-ink hover:border-ink/40"
+                }`}
+              >
+                ทุกคน (<span className="num font-num">{members.length}</span>)
+              </button>
+              <button
+                type="button"
+                onClick={() => applyQuickEqual((id) => id !== paidBy)}
+                aria-pressed={noPayerEqual}
+                className={`min-h-12 rounded-lg border px-3.5 text-meta font-semibold transition-[background-color,border-color,transform] duration-150 active:scale-[0.98] ${
+                  noPayerEqual ? "border-ink bg-ink text-white" : "border-line bg-paper text-ink hover:border-ink/40"
+                }`}
+              >
+                ไม่รวมผู้จ่าย (<span className="num font-num">{members.length - 1}</span>)
+              </button>
+              {meId && meId !== paidBy && members.length > 2 && (
+                <button
+                  type="button"
+                  onClick={() => applyQuickEqual((id) => id === meId || id === paidBy)}
+                  aria-pressed={twoWayEqual}
+                  className={`min-h-12 rounded-lg border px-3.5 text-meta font-semibold transition-[background-color,border-color,transform] duration-150 active:scale-[0.98] ${
+                    twoWayEqual ? "border-ink bg-ink text-white" : "border-line bg-paper text-ink hover:border-ink/40"
+                  }`}
+                >
+                  แค่ฉันกับ{payerName}
+                </button>
+              )}
+            </div>
+          )}
         </fieldset>
 
         <ul className="coupon divide-y divide-line">
           {members.map((m) => {
             const share = preview?.get(m.id);
             return (
-              <li key={m.id} className="flex min-h-14 items-center gap-3 px-3.5 py-2">
+              <li key={m.id} className="flex min-h-14 items-center gap-3 px-4 py-2">
                 {mode === "equal" ? (
                   <label className="flex min-h-12 min-w-0 flex-1 cursor-pointer items-center gap-3 self-stretch">
                     <input
@@ -254,7 +306,7 @@ export function ExpenseSheet({
                     </span>
                     <input
                       aria-label={`${mode === "weights" ? "สัดส่วน" : "ยอด"}ของ ${m.nickname}`}
-                      className="input num w-20 shrink-0 text-right min-[400px]:w-24"
+                      className="input num font-num w-20 shrink-0 text-right min-[400px]:w-24"
                       inputMode="decimal"
                       placeholder="0"
                       value={mode === "weights" ? weights[m.id] : exact[m.id]}
@@ -266,7 +318,7 @@ export function ExpenseSheet({
                     />
                   </>
                 )}
-                <span className={`num min-w-20 shrink-0 text-right text-body ${share ? "text-ink" : "text-muted"}`}>
+                <span className={`num font-num min-w-20 shrink-0 text-right text-body ${share ? "text-ink" : "text-muted"}`}>
                   {share ? formatBaht(share, { always2dp: true }) : "–"}
                 </span>
               </li>
@@ -275,12 +327,26 @@ export function ExpenseSheet({
         </ul>
 
         {mode === "exact" && amount !== null && (
-          <p className={`text-body font-medium ${exactTotal === amount ? "text-ok" : "text-owe"}`} role="status">
-            รวม <Baht satang={exactTotal} /> จาก <Baht satang={amount} />
-            {exactTotal !== amount && ` (${exactTotal < amount ? "ขาด" : "เกิน"} ${formatBaht(Math.abs(amount - exactTotal))} ฿)`}
+          <p className={`flex items-center gap-1.5 text-body font-medium ${exactTotal === amount ? "text-ok" : "text-owe"}`} role="status">
+            {exactTotal === amount ? (
+              <Check className="size-4 shrink-0" strokeWidth={2} aria-hidden />
+            ) : (
+              <TriangleAlert className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
+            )}
+            <span>
+              รวม <Baht satang={exactTotal} /> จาก <Baht satang={amount} />
+              {exactTotal !== amount && ` (${exactTotal < amount ? "ขาด" : "เกิน"} ${formatBaht(Math.abs(amount - exactTotal))} ฿)`}
+            </span>
           </p>
         )}
-        {problem?.kind === "empty" && <p className="text-body text-owe" role="alert">โปรดเลือกอย่างน้อย <span className="whitespace-nowrap">1 คน</span>ที่ร่วมจ่ายรายการนี้</p>}
+        {problem?.kind === "empty" && (
+          <p className="flex items-center gap-1.5 text-body text-owe" role="alert">
+            <TriangleAlert className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
+            <span>
+              โปรดเลือกอย่างน้อย <span className="whitespace-nowrap">1 คน</span>ที่ร่วมจ่ายรายการนี้
+            </span>
+          </p>
+        )}
         {mode !== "exact" && preview && amount !== null && amount % Math.max(1, preview.size) !== 0 && (
           <p className="hint">เศษสตางค์ที่หารไม่ลงตัวจะไปอยู่กับผู้จ่ายก่อน ยอดรวมจึงตรงทุกสตางค์</p>
         )}

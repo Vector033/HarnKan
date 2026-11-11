@@ -283,7 +283,7 @@ function HeroContourBackdrop() {
       aria-hidden="true"
       viewBox="0 0 800 900"
       preserveAspectRatio="xMidYMid slice"
-      className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.115]"
+      className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.18]"
       style={{
         WebkitMaskImage: "radial-gradient(ellipse 90% 85% at 50% 50%, #000 35%, transparent 100%)",
         maskImage: "radial-gradient(ellipse 90% 85% at 50% 50%, #000 35%, transparent 100%)",

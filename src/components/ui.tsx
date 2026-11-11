@@ -171,46 +171,46 @@ export function InkBandWatermark({ variant = "bar" }: { variant?: "bar" | "panel
       viewBox={variant === "bar" ? "0 0 640 140" : "0 0 560 640"}
       preserveAspectRatio="xMaxYMid slice"
       className={`pointer-events-none absolute inset-y-0 right-0 h-full ${
-        variant === "bar" ? "w-[78%] max-w-2xl opacity-[0.11]" : "inset-x-0 w-full opacity-[0.105]"
+        variant === "bar" ? "w-[78%] max-w-2xl opacity-[0.22]" : "inset-x-0 w-full opacity-[0.19]"
       }`}
       style={{
         WebkitMaskImage:
           variant === "bar"
-            ? "linear-gradient(270deg, #000 18%, rgb(0 0 0 / 0.45) 60%, transparent 100%)"
+            ? "linear-gradient(270deg, #000 22%, rgb(0 0 0 / 0.6) 62%, transparent 100%)"
             : "radial-gradient(ellipse 90% 85% at 50% 50%, #000 35%, transparent 100%)",
         maskImage:
           variant === "bar"
-            ? "linear-gradient(270deg, #000 18%, rgb(0 0 0 / 0.45) 60%, transparent 100%)"
+            ? "linear-gradient(270deg, #000 22%, rgb(0 0 0 / 0.6) 62%, transparent 100%)"
             : "radial-gradient(ellipse 90% 85% at 50% 50%, #000 35%, transparent 100%)",
       }}
     >
       <g fill="none" stroke="var(--color-t1)">
         {variant === "bar" ? (
           <>
-            <path d="M60,108 C190,48 320,122 470,56 C545,22 605,40 650,28" strokeWidth="1.2" strokeOpacity="0.45" />
-            <path d="M90,128 C220,76 340,136 495,78 C565,50 612,64 650,54" strokeWidth="1" strokeOpacity="0.3" />
-            <circle cx="496" cy="68" r="48" strokeWidth="1.2" strokeDasharray="3 3" strokeOpacity="0.65" />
-            <circle cx="496" cy="68" r="36" strokeWidth="0.9" strokeOpacity="0.45" />
-            <circle cx="496" cy="68" r="22" strokeWidth="0.9" strokeDasharray="2 3" strokeOpacity="0.4" />
+            <path d="M60,108 C190,48 320,122 470,56 C545,22 605,40 650,28" strokeWidth="1.4" strokeOpacity="0.55" />
+            <path d="M90,128 C220,76 340,136 495,78 C565,50 612,64 650,54" strokeWidth="1.15" strokeOpacity="0.4" />
+            <circle cx="496" cy="68" r="48" strokeWidth="1.4" strokeDasharray="3 3" strokeOpacity="0.75" />
+            <circle cx="496" cy="68" r="36" strokeWidth="1.1" strokeOpacity="0.55" />
+            <circle cx="496" cy="68" r="22" strokeWidth="1" strokeDasharray="2 3" strokeOpacity="0.5" />
             <g transform="translate(278 24) rotate(-7)">
-              <rect x="0" y="0" width="132" height="68" rx="10" strokeWidth="1.2" strokeOpacity="0.55" />
-              <line x1="90" y1="0" x2="90" y2="68" strokeWidth="1.2" strokeDasharray="4 4" strokeOpacity="0.6" />
-              <circle cx="90" cy="0" r="4.5" fill="var(--color-ink)" strokeOpacity="0.55" />
-              <circle cx="90" cy="68" r="4.5" fill="var(--color-ink)" strokeOpacity="0.55" />
-              <line x1="14" y1="22" x2="66" y2="22" strokeWidth="1.5" strokeLinecap="round" strokeOpacity="0.45" />
-              <line x1="14" y1="36" x2="52" y2="36" strokeWidth="1.2" strokeLinecap="round" strokeOpacity="0.35" />
-              <line x1="14" y1="50" x2="40" y2="50" strokeWidth="1.2" strokeLinecap="round" strokeOpacity="0.3" />
-              <line x1="102" y1="34" x2="120" y2="34" strokeWidth="2" strokeLinecap="round" strokeOpacity="0.5" />
+              <rect x="0" y="0" width="132" height="68" rx="10" strokeWidth="1.4" strokeOpacity="0.65" />
+              <line x1="90" y1="0" x2="90" y2="68" strokeWidth="1.4" strokeDasharray="4 4" strokeOpacity="0.7" />
+              <circle cx="90" cy="0" r="4.5" fill="var(--color-ink)" strokeOpacity="0.65" />
+              <circle cx="90" cy="68" r="4.5" fill="var(--color-ink)" strokeOpacity="0.65" />
+              <line x1="14" y1="22" x2="66" y2="22" strokeWidth="1.75" strokeLinecap="round" strokeOpacity="0.55" />
+              <line x1="14" y1="36" x2="52" y2="36" strokeWidth="1.35" strokeLinecap="round" strokeOpacity="0.45" />
+              <line x1="14" y1="50" x2="40" y2="50" strokeWidth="1.35" strokeLinecap="round" strokeOpacity="0.4" />
+              <line x1="102" y1="34" x2="120" y2="34" strokeWidth="2.2" strokeLinecap="round" strokeOpacity="0.6" />
             </g>
           </>
         ) : (
           <>
-            <path d="M-40,120 C120,55 240,185 400,125 C500,88 560,140 600,115" strokeWidth="1.2" strokeOpacity="0.45" />
-            <path d="M-30,260 C130,195 250,320 420,260 C515,225 560,285 600,260" strokeWidth="1.1" strokeOpacity="0.38" />
-            <path d="M-50,430 C110,365 260,490 430,430 C520,395 565,455 600,430" strokeWidth="1.1" strokeOpacity="0.35" />
-            <path d="M-20,560 C140,500 280,610 440,555 C525,525 565,575 600,555" strokeWidth="1" strokeOpacity="0.3" />
-            <circle cx="430" cy="140" r="56" strokeWidth="1.2" strokeDasharray="3 3" strokeOpacity="0.5" />
-            <circle cx="430" cy="140" r="38" strokeWidth="0.9" strokeOpacity="0.35" />
+            <path d="M-40,120 C120,55 240,185 400,125 C500,88 560,140 600,115" strokeWidth="1.4" strokeOpacity="0.55" />
+            <path d="M-30,260 C130,195 250,320 420,260 C515,225 560,285 600,260" strokeWidth="1.25" strokeOpacity="0.45" />
+            <path d="M-50,430 C110,365 260,490 430,430 C520,395 565,455 600,430" strokeWidth="1.25" strokeOpacity="0.42" />
+            <path d="M-20,560 C140,500 280,610 440,555 C525,525 565,575 600,555" strokeWidth="1.1" strokeOpacity="0.36" />
+            <circle cx="430" cy="140" r="56" strokeWidth="1.4" strokeDasharray="3 3" strokeOpacity="0.6" />
+            <circle cx="430" cy="140" r="38" strokeWidth="1.1" strokeOpacity="0.45" />
           </>
         )}
       </g>

@@ -108,7 +108,7 @@ export function TripView({ tripId }: { tripId: string }) {
               <span>
                 <span className="num font-num">{view.members.length}</span> คน{view.trip.locked && " · ล็อกแล้ว"}
               </span>
-              <span className="num font-num inline-flex items-center rounded-[5px] border border-t1/20 bg-white/[0.08] px-1.5 py-0.5 text-[13px] font-semibold tracking-[0.04em] text-t1">
+              <span className="num font-num inline-flex items-center rounded-[5px] border border-t1/20 bg-white/[0.08] px-1.5 py-0.5 text-meta font-semibold tracking-[0.04em] text-t1">
                 เล่ม {tripSerial(view.trip.id)}
               </span>
             </p>

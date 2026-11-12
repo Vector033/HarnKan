@@ -224,7 +224,7 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
                       </span>
                       {settled && (
                         <span
-                          className={`inline-flex items-center gap-1 rounded-[6px] border border-ok/45 bg-ok-soft px-2 py-0.5 text-[13px] font-bold text-ok ${
+                          className={`inline-flex items-center gap-1 rounded-[6px] border border-ok/45 bg-ok-soft px-2 py-0.5 text-meta font-bold text-ok ${
                             fresh ? "animate-stamp" : ""
                           }`}
                         >

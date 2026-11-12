@@ -65,7 +65,7 @@ export function ExpensesTab({
           className="coupon coupon-press paper-tint mt-4 flex w-full items-stretch text-left lg:hidden"
           style={{ background: memberTint(view.members, myPayments[0].to) }}
         >
-          <span className="flex-1 px-4 py-3">
+          <span className="min-w-0 flex-1 px-4 py-3">
             <span className="flex items-baseline justify-between gap-2 text-meta font-medium">
               <span className="min-w-0 break-words">คุณต้องโอนให้ {myPayments.map((t) => names.get(t.to)).join(", ")}</span>
               {myPayments.length === 1 && <span className="serial">{couponNo(view.trip.id, myPayments[0].from, myPayments[0].to)}</span>}

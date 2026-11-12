@@ -144,7 +144,7 @@ export default function Home() {
               <ol className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-meta text-muted" aria-label="ขั้นตอนใช้งาน">
                 {ONBOARDING_STEPS.map((step) => (
                   <li key={step.n} className="inline-flex items-center gap-1">
-                    <span className="num font-num inline-grid size-5 place-items-center rounded-[4px] bg-ground text-[13px] font-semibold text-ink">
+                    <span className="num font-num inline-grid size-5 place-items-center rounded-[4px] bg-ground text-meta leading-none font-semibold text-ink">
                       {step.n}
                     </span>
                     <span>{step.label}</span>
@@ -172,7 +172,7 @@ export default function Home() {
                     key={preset}
                     type="button"
                     onClick={() => setName(preset)}
-                    className={`min-h-11 rounded-[6px] border px-3 py-1.5 text-meta font-medium transition-[background-color,border-color,transform] duration-150 active:scale-[0.98] ${
+                    className={`min-h-12 rounded-[6px] border px-3 py-1.5 text-meta font-medium transition-[background-color,border-color,transform] duration-150 active:scale-[0.98] ${
                       name === preset
                         ? "border-ink bg-ink text-white"
                         : "border-line bg-ground/70 text-ink hover:border-ink/40"
@@ -418,7 +418,7 @@ function ExampleCoupon() {
               type="button"
               onClick={() => setAutoPlay((v) => !v)}
               aria-label={autoPlay ? "หยุดเล่นอัตโนมัติ" : "เล่นอัตโนมัติ"}
-              className="grid size-8 place-items-center rounded-[6px] border border-white/15 bg-white/10 text-white transition-transform duration-150 hover:bg-white/15 active:scale-95"
+              className="relative grid size-8 place-items-center rounded-[6px] border border-white/15 bg-white/10 after:absolute after:-inset-2 after:content-[''] text-white transition-transform duration-150 hover:bg-white/15 active:scale-95"
             >
               {autoPlay ? <Pause className="size-3.5" strokeWidth={1.75} aria-hidden /> : <Play className="size-3.5" strokeWidth={1.75} aria-hidden />}
             </button>
@@ -477,14 +477,14 @@ function ExampleCoupon() {
                 type="button"
                 onClick={() => selectStop(idx)}
                 aria-pressed={active}
-                className={`absolute ${item.posClass} inline-flex min-h-9 items-center gap-1.5 rounded-[6px] px-2 py-1 text-meta font-semibold shadow-sm transition-[transform,background-color,box-shadow] duration-200 active:scale-95 ${
+                className={`absolute ${item.posClass} inline-flex min-h-9 items-center gap-1.5 rounded-[6px] px-2 py-1 text-meta font-semibold shadow-sm after:absolute after:-inset-1.5 after:content-[''] transition-[transform,background-color,box-shadow] duration-200 active:scale-95 ${
                   active
                     ? "z-10 scale-[1.03] bg-paper text-ink ring-2 ring-t1"
                     : "bg-ink-2/95 text-white ring-1 ring-white/25 hover:bg-ink-2"
                 }`}
               >
                 <span
-                  className="paper-tint inline-grid size-5 shrink-0 place-items-center rounded-[4px] text-[13px] font-bold text-ink"
+                  className="paper-tint inline-grid size-5 shrink-0 place-items-center rounded-[4px] text-meta leading-none font-bold text-ink"
                   style={{ background: item.payerTint }}
                 >
                   {idx + 1}

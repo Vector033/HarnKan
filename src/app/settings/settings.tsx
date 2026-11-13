@@ -217,7 +217,7 @@ export function Settings() {
                   <p className="flex-1 text-meta text-muted" role="status">
                     {status?.ok && !dirty && (
                       <span className="inline-flex items-center gap-1.5 text-ok">
-                        <Check className="size-4" aria-hidden /> {status.text}
+                        <Check className="size-4" strokeWidth={1.75} aria-hidden /> {status.text}
                       </span>
                     )}
                     {status && !status.ok && <span className="text-owe">{status.text}</span>}
@@ -232,7 +232,7 @@ export function Settings() {
             <Section id="security-h" title="ความปลอดภัย">
               <Row title="รหัสผ่าน" hint="หารกันไม่ใช้รหัสผ่าน จึงไม่มีรหัสให้หลุดหรือต้องจำ">
                 <p className="flex items-center gap-2 text-body">
-                  <ShieldCheck className="size-5 shrink-0 text-ok" aria-hidden />
+                  <ShieldCheck className="size-5 shrink-0 text-ok" strokeWidth={1.75} aria-hidden />
                   {account.email !== null ? "เข้าด้วย Google ความปลอดภัยของบัญชีตามที่ตั้งไว้ใน Google" : "เข้าได้เฉพาะจากเบราว์เซอร์นี้"}
                 </p>
               </Row>
@@ -252,17 +252,18 @@ export function Settings() {
 
             <Section id="device-h" title="เครื่องนี้">
               <Row
-                title="เสียงตราประทับ PAID"
+                title="เสียงตราประทับ"
                 hint="เล่นเสียงประทับตราเบาๆ เมื่อยืนยันว่าได้รับเงินแล้ว (ปิดเป็นค่าเริ่มต้น)"
               >
                 <button
                   type="button"
                   onClick={() => setSoundOn(!soundOn)}
                   aria-pressed={soundOn}
+                  aria-label="เสียงตราประทับ"
                   className={`btn w-full lg:w-auto ${soundOn ? "border-ok/45 text-ok" : ""}`}
                 >
                   {soundOn ? <Volume2 className="size-4" strokeWidth={1.75} aria-hidden /> : <VolumeX className="size-4" strokeWidth={1.75} aria-hidden />}
-                  {soundOn ? "เปิดเสียงตราประทับอยู่" : "ปิดเสียงตราประทับ"}
+                  {soundOn ? "เสียงเปิดอยู่" : "เสียงปิดอยู่"}
                 </button>
               </Row>
               <Row

@@ -68,7 +68,7 @@ export function Sheet({
             </h2>
             {dismissible && (
               <button type="button" onClick={requestClose} className="-my-1 -mr-3 grid size-12 place-items-center rounded-lg hover:bg-ground" aria-label="ปิด">
-                <X className="size-5" strokeWidth={2} />
+                <X className="size-5" strokeWidth={1.75} />
               </button>
             )}
           </div>
@@ -154,8 +154,8 @@ export function Empty({ title, children }: { title: string; children?: ReactNode
     <div className="relative overflow-hidden rounded-[var(--radius-coupon)] border-2 border-dashed border-perf bg-paper/45 px-5 py-9 text-center">
       <div className="ledger-dot-grid absolute inset-0 opacity-75" aria-hidden />
       <div className="relative">
-        <span className="mx-auto mb-3 inline-grid size-11 place-items-center rounded-[10px] border border-dashed border-perf bg-paper text-muted" aria-hidden>
-          <Ticket className="size-5" strokeWidth={1.5} />
+        <span className="mx-auto mb-3 inline-grid size-11 place-items-center rounded-lg border border-dashed border-perf bg-paper text-muted" aria-hidden>
+          <Ticket className="size-5" strokeWidth={1.75} />
         </span>
         <p className="text-body font-semibold">{title}</p>
         {children && <div className="mx-auto mt-1.5 max-w-[32ch] text-body text-muted">{children}</div>}

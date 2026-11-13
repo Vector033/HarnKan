@@ -120,7 +120,7 @@ export default function Home() {
             </Link>
           </div>
           <h1 className="mt-2 text-display font-bold text-balance">
-            หารค่างวด <span className="whitespace-nowrap">ค่ากินเที่ยว</span>กับเพื่อน
+            หารค่ากิน <span className="whitespace-nowrap">ค่าเที่ยว</span>กับเพื่อน
             <span className="whitespace-nowrap">ได้ทันที</span>{" "}
             <span className="whitespace-nowrap">สลิปเดียวรู้เรื่อง</span>
           </h1>
@@ -172,7 +172,7 @@ export default function Home() {
                     key={preset}
                     type="button"
                     onClick={() => setName(preset)}
-                    className={`min-h-12 rounded-[6px] border px-3 py-1.5 text-meta font-medium transition-[background-color,border-color,transform] duration-150 active:scale-[0.98] ${
+                    className={`min-h-12 rounded-lg border px-3 py-1.5 text-meta font-medium transition-[background-color,border-color,transform] duration-150 active:scale-[0.98] ${
                       name === preset
                         ? "border-ink bg-ink text-white"
                         : "border-line bg-ground/70 text-ink hover:border-ink/40"
@@ -418,14 +418,14 @@ function ExampleCoupon() {
               type="button"
               onClick={() => setAutoPlay((v) => !v)}
               aria-label={autoPlay ? "หยุดเล่นอัตโนมัติ" : "เล่นอัตโนมัติ"}
-              className="relative grid size-8 place-items-center rounded-[6px] border border-white/15 bg-white/10 after:absolute after:-inset-2 after:content-[''] text-white transition-transform duration-150 hover:bg-white/15 active:scale-95"
+              className="relative grid size-8 place-items-center rounded-md border border-white/15 bg-white/10 after:absolute after:-inset-[9px] after:content-[''] text-white transition-transform duration-150 hover:bg-white/15 active:scale-95"
             >
               {autoPlay ? <Pause className="size-3.5" strokeWidth={1.75} aria-hidden /> : <Play className="size-3.5" strokeWidth={1.75} aria-hidden />}
             </button>
           </div>
         </div>
 
-        <div className="relative h-28 overflow-hidden rounded-[6px] border border-white/12 bg-ink/80">
+        <div className="relative h-28 overflow-hidden rounded-md border border-white/12 bg-ink/80">
           {/* Vector terrain & animated dashed route connecting the 3 stops */}
           <svg viewBox="0 0 420 112" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden>
             <g fill="none" stroke="var(--color-t1)" strokeOpacity="0.07" strokeWidth="0.75">
@@ -477,7 +477,7 @@ function ExampleCoupon() {
                 type="button"
                 onClick={() => selectStop(idx)}
                 aria-pressed={active}
-                className={`absolute ${item.posClass} inline-flex min-h-9 items-center gap-1.5 rounded-[6px] px-2 py-1 text-meta font-semibold shadow-sm after:absolute after:-inset-1.5 after:content-[''] transition-[transform,background-color,box-shadow] duration-200 active:scale-95 ${
+                className={`absolute ${item.posClass} inline-flex min-h-9 items-center gap-1.5 rounded-md px-2 py-1 text-meta font-semibold shadow-sm after:absolute after:-inset-1.5 after:content-[''] transition-[transform,background-color,box-shadow] duration-200 active:scale-95 ${
                   active
                     ? "z-10 scale-[1.03] bg-paper text-ink ring-2 ring-t1"
                     : "bg-ink-2/95 text-white ring-1 ring-white/25 hover:bg-ink-2"
@@ -524,16 +524,16 @@ function ExampleCoupon() {
               {stamped ? (
                 <span
                   key={stampCount}
-                  className={`animate-stamp pointer-events-none inline-flex items-center gap-1 rounded-[6px] border-[2.5px] border-ok bg-paper/95 px-2 py-0.5 text-meta font-bold text-ok ${
+                  className={`animate-stamp pointer-events-none inline-flex items-center gap-1 rounded-md border-[2.5px] border-ok bg-paper/95 px-2 py-0.5 text-meta font-bold text-ok ${
                     stampCount === 0 ? "stamp-delayed" : ""
                   }`}
                 >
                   <Check className="size-4" strokeWidth={2.5} aria-hidden />
-                  <span>PAID · ได้รับเงินแล้ว</span>
+                  <span>ได้รับเงินแล้ว</span>
                 </span>
               ) : (
                 <span className="chip border border-dashed border-wait bg-wait-soft text-wait">
-                  รอประทับตรา PAID
+                  รอประทับตรา
                 </span>
               )}
             </div>
@@ -561,7 +561,7 @@ function ExampleCoupon() {
                   type="button"
                   onClick={() => selectFriends(count)}
                   aria-pressed={active}
-                  className={`num font-num min-h-12 rounded-[6px] px-3 text-meta font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.97] ${
+                  className={`num font-num min-h-12 rounded-md px-3 text-meta font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.97] ${
                     active ? "bg-ink text-white" : "bg-paper text-ink ring-1 ring-line hover:ring-ink/35"
                   }`}
                 >
@@ -573,7 +573,7 @@ function ExampleCoupon() {
           <button
             type="button"
             onClick={toggleStamp}
-            className={`inline-flex min-h-12 items-center gap-1.5 rounded-[6px] px-3 text-meta font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.97] ${
+            className={`inline-flex min-h-12 items-center gap-1.5 rounded-md px-3 text-meta font-semibold transition-[background-color,color,transform] duration-150 active:scale-[0.97] ${
               stamped
                 ? "bg-paper text-muted ring-1 ring-line hover:text-ink"
                 : "bg-ok text-white hover:bg-ok/90"
@@ -587,7 +587,7 @@ function ExampleCoupon() {
             ) : (
               <>
                 <Check className="size-3.5" strokeWidth={2} aria-hidden />
-                ประทับตรา PAID
+                ประทับตรา
               </>
             )}
           </button>

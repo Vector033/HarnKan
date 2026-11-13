@@ -7,7 +7,7 @@ import { formatBaht } from "@/lib/core/money";
 import { maskPromptPay, promptPayPayload } from "@/lib/core/promptpay";
 import type { PlannedTransfer } from "@/lib/trip/derive";
 import type { Member } from "@/lib/trip/types";
-import { Sheet } from "../ui";
+import { Baht, Sheet } from "../ui";
 
 export function QrSheet({
   transfer,
@@ -37,7 +37,7 @@ export function QrSheet({
       title={`โอนให้ ${receiver.nickname}`}
       footer={
         <button className="btn-primary w-full" onClick={onUploadSlip}>
-          <FileImage className="size-5" strokeWidth={1.75} aria-hidden /> โอนแล้ว แนบสลิป · <span className="num font-num">฿{formatBaht(amount)}</span>
+          <FileImage className="size-5" strokeWidth={1.75} aria-hidden /> โอนแล้ว แนบสลิป · <Baht satang={amount} />
         </button>
       }
     >
@@ -48,7 +48,7 @@ export function QrSheet({
             <p className="text-meta font-semibold">PromptPay · พร้อมเพย์</p>
             {/* Pure #ffffff quiet zone so QR remains 100% crisp and scannable. */}
             <div
-              className="mx-auto mt-3 aspect-square w-60 max-w-full rounded-[6px] bg-[#ffffff] p-2 [&>svg]:h-full [&>svg]:w-full"
+              className="mx-auto mt-3 aspect-square w-60 max-w-full rounded-md bg-[#ffffff] p-2 [&>svg]:h-full [&>svg]:w-full"
               role="img"
               aria-label={`QR พร้อมเพย์ ยอด ${formatBaht(amount, { always2dp: true })} บาท`}
               data-testid="promptpay-qr"
@@ -60,9 +60,8 @@ export function QrSheet({
               {receiver.payee_name || receiver.nickname} · <span className="num font-num">{maskPromptPay(receiver.promptpay_id!)}</span>
             </p>
           </div>
-          <div className="perf-x relative px-4 py-3 text-left">
-            <span className="halftone-header absolute inset-x-0 top-0 h-8" aria-hidden />
-            <p className="relative text-meta text-ink">
+          <div className="perf-x px-4 py-3 text-left">
+            <p className="text-meta text-ink">
               สแกนด้วยแอปธนาคารใดก็ได้ ยอดเงินจะขึ้นให้อัตโนมัติ หรือบันทึกภาพหน้าจอแล้วเลือกรูปจากแอปธนาคาร
             </p>
           </div>

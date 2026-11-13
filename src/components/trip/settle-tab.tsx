@@ -53,7 +53,6 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
           {/* #18 Square-Dot Grid: classic printed ledger paper behind settlement balance summary. */}
           <div className="ledger-dot-grid absolute inset-0" aria-hidden />
           <section className="coupon relative px-4 py-4" data-testid="my-balance">
-            <div className="ledger-dot-grid absolute inset-0 opacity-75" aria-hidden />
             {myNet === 0 && settlement.total > 0 ? (
               <div className="halftone-header absolute inset-x-0 top-0 h-10" aria-hidden />
             ) : myNet !== 0 ? (
@@ -71,7 +70,7 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
                         : "ยังไม่มียอดที่ต้องโอน"}
                 </p>
                 {myNet === 0 && settlement.total > 0 && (
-                  <p className="mt-0.5 text-meta text-muted">เคลียร์ยอดส่วนตัวในทริปนี้ครบแล้ว</p>
+                  <p className="mt-0.5 text-meta text-muted">ยอดของคุณในทริปนี้โอนและรับครบแล้ว</p>
                 )}
                 {myNet !== 0 && (
                   <Baht
@@ -81,7 +80,7 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
                 )}
               </div>
               {myNet === 0 && settlement.total > 0 && (
-                <span className="inline-flex shrink-0 items-center gap-1 rounded-[6px] border border-ok/40 bg-ok-soft px-2.5 py-1 text-meta font-bold text-ok">
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-ok/40 bg-ok-soft px-2.5 py-1 text-meta font-bold text-ok">
                   <Check className="size-4" strokeWidth={2.5} aria-hidden />
                   <span>ครบแล้ว</span>
                 </span>
@@ -93,7 +92,7 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
 
       {settlement.awaitingMe.length > 0 && (
         <section aria-labelledby="awaiting-h">
-          <h2 id="awaiting-h" className="mb-3 text-body font-bold">
+          <h2 id="awaiting-h" className="mb-2.5 text-body font-bold">
             รอคุณยืนยันว่าได้รับเงิน
           </h2>
           <ul className="space-y-4">
@@ -127,7 +126,7 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
             type="button"
             onClick={() => setSoundOn(!soundOn)}
             aria-pressed={soundOn}
-            title="เปิด/ปิดเสียงตราประทับ PAID"
+            title="เปิด/ปิดเสียงตราประทับ"
             className={`-mr-2 -mt-2 inline-flex min-h-12 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-meta font-semibold transition-colors duration-150 active:scale-[0.98] ${
               soundOn ? "bg-ok-soft text-ok" : "text-muted hover:bg-paper hover:text-ink"
             }`}
@@ -183,7 +182,7 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
 
       {waitingOthers.length > 0 && (
         <section aria-labelledby="waiting-h">
-          <h2 id="waiting-h" className="mb-3 text-body font-bold">
+          <h2 id="waiting-h" className="mb-2.5 text-body font-bold">
             รอผู้รับยืนยัน
           </h2>
           <ul className="space-y-4">
@@ -204,7 +203,7 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
 
       {history.length > 0 && (
         <section aria-labelledby="history-h">
-          <h2 id="history-h" className="mb-3 text-body font-bold">
+          <h2 id="history-h" className="mb-2.5 text-body font-bold">
             ประวัติการโอน
           </h2>
           <ul className="space-y-2.5">
@@ -220,24 +219,27 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
                   <span className="relative min-w-0 flex-1 px-4 py-3.5">
                     <span className="flex flex-wrap items-center justify-between gap-2">
                       <span className="flex flex-wrap items-center gap-x-1.5 break-words font-semibold">
-                        {name(p.from_member)} <ArrowRight className="size-4 shrink-0" strokeWidth={1.75} aria-label="โอนให้" /> {name(p.to_member)}
+                        <span className="min-w-0">{name(p.from_member)}</span> <ArrowRight className="size-4 shrink-0" strokeWidth={1.75} aria-label="โอนให้" /> <span className="min-w-0">{name(p.to_member)}</span>
                       </span>
                       {settled && (
                         <span
-                          className={`inline-flex items-center gap-1 rounded-[6px] border border-ok/45 bg-ok-soft px-2 py-0.5 text-meta font-bold text-ok ${
+                          className={`inline-flex items-center gap-1 rounded-md border border-ok/45 bg-ok-soft px-2 py-0.5 text-meta font-bold text-ok ${
                             fresh ? "animate-stamp" : ""
                           }`}
                         >
                           <Check className="size-3.5" strokeWidth={2.5} aria-hidden />
-                          <span className="font-num tracking-[0.04em]">PAID</span>
+                          ได้รับเงินแล้ว
                         </span>
                       )}
                     </span>
                     <span className="mt-1 flex flex-wrap items-center gap-x-2 text-meta text-muted">
-                      <span className={`inline-flex items-center gap-1 ${settled ? "font-semibold text-ok" : ""}`}>
-                        {settled ? <Check className="size-4" strokeWidth={1.75} aria-hidden /> : <X className="size-4" strokeWidth={1.75} aria-hidden />}
-                        {statusLabel(p)}
-                      </span>
+                      {/* The stamp already says the money arrived; a settled row adds only where the proof came from. */}
+                      {(!settled || p.source === "slip") && (
+                        <span className="inline-flex items-center gap-1">
+                          {settled ? <FileImage className="size-4" strokeWidth={1.75} aria-hidden /> : <X className="size-4" strokeWidth={1.75} aria-hidden />}
+                          {statusLabel(p)}
+                        </span>
+                      )}
                       <span className="serial">{couponNo(view.trip.id, p.from_member, p.to_member)}</span>
                     </span>
                   </span>
@@ -278,7 +280,7 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
 
 function statusLabel(p: Payment) {
   return {
-    confirmed: p.source === "slip" ? "ยืนยันแล้ว · มีสลิป" : "ยืนยันแล้ว",
+    confirmed: "มีสลิป",
     rejected: "ผู้รับแจ้งว่ายังไม่ได้รับ",
     cancelled: "ยกเลิกแล้ว",
     claimed: "รอยืนยัน",
@@ -339,12 +341,12 @@ function TransferCoupon({
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-body font-semibold">
           <span className="flex min-w-0 items-center gap-2">
             <MemberTile name={from?.nickname ?? "?"} tint={memberTint(members, t.from)} size={28} />
-            <span className="break-words">{label(from, iPay)}</span>
+            <span className="min-w-0 break-words">{label(from, iPay)}</span>
           </span>
           <span className="flex min-w-0 items-center gap-2">
             <ArrowRight className="size-4 shrink-0" strokeWidth={1.75} aria-label="โอนให้" />
             <MemberTile name={to?.nickname ?? "?"} tint={memberTint(members, t.to)} size={28} />
-            <span className="break-words">{label(to, iReceive)}</span>
+            <span className="min-w-0 break-words">{label(to, iReceive)}</span>
           </span>
         </div>
 
@@ -365,18 +367,18 @@ function TransferCoupon({
               <button className="btn w-full border-pp/40 text-pp" onClick={onQr}>
                 <QrCode className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
                 <span>
-                  โอน <span className="num font-num">฿{formatBaht(remaining)}</span> · QR พร้อมเพย์
+                  โอน <Baht satang={remaining} /> <span className="whitespace-nowrap">· QR พร้อมเพย์</span>
                 </span>
               </button>
             ) : (
-              <span className="text-meta text-ink/85">
+              <span className="min-w-0 break-words text-meta text-ink/85">
                 {to?.nickname} ยังไม่ได้ใส่เลขพร้อมเพย์ โปรดขอเลขบัญชีจาก {to?.nickname} แล้วแนบสลิปเมื่อโอนเสร็จ
               </span>
             )}
             <button className="btn w-full" onClick={onSlip} data-testid="upload-slip">
               <FileImage className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
               <span>
-                {to?.promptpay_id ? "แนบสลิป" : <>โอน <span className="num font-num">฿{formatBaht(remaining)}</span> แล้ว · แนบสลิป</>}
+                {to?.promptpay_id ? "แนบสลิป" : <>โอน <Baht satang={remaining} /> แล้ว · แนบสลิป</>}
               </span>
             </button>
             <button className="btn-quiet -ml-3 justify-self-start" onClick={onPay}>
@@ -394,14 +396,14 @@ function TransferCoupon({
             <button className="btn" onClick={confirmDirectPay} disabled={stamping}>
               <Check className="size-4 shrink-0" strokeWidth={1.75} aria-hidden />
               <span>
-                ได้รับเงิน <span className="num font-num">฿{formatBaht(remaining)}</span> แล้ว
+                ได้รับเงิน <Baht satang={remaining} /> แล้ว
               </span>
             </button>
           </div>
         )}
         {!iPay && !iReceive && !from?.user_id && !waiting && (
           <div className="mt-2">
-            <button className="btn-quiet -ml-3" onClick={onPay}>
+            <button className="btn-quiet -ml-3 max-w-full text-left [overflow-wrap:anywhere]" onClick={onPay}>
               แจ้งแทน {from?.nickname} ว่าโอนแล้ว
             </button>
           </div>
@@ -409,9 +411,9 @@ function TransferCoupon({
 
         {stamping && (
           <span className="pointer-events-none absolute inset-0 flex items-center justify-end pr-2" aria-hidden>
-            <span className="animate-stamp inline-flex items-center gap-1 rounded-[6px] border-[2.5px] border-ok bg-paper/95 px-2.5 py-1 text-body font-bold text-ok">
+            <span className="animate-stamp inline-flex items-center gap-1 rounded-md border-[2.5px] border-ok bg-paper/95 px-2.5 py-1 text-body font-bold text-ok">
               <Check className="size-5" strokeWidth={2.5} aria-hidden />
-              <span>PAID · ได้รับเงินแล้ว</span>
+              <span>ได้รับเงินแล้ว</span>
             </span>
           </span>
         )}
@@ -488,7 +490,7 @@ function ClaimCoupon({
         <div className="flex items-stretch">
           <div className="coupon-body relative min-w-0 flex-1 px-4 py-3.5">
             <p className="flex flex-wrap items-center gap-x-1.5 break-words text-body font-semibold">
-              {name(p.from_member)} <ArrowRight className="size-4 shrink-0" strokeWidth={1.75} aria-label="โอนให้" /> {name(p.to_member)}
+              <span className="min-w-0">{name(p.from_member)}</span> <ArrowRight className="size-4 shrink-0" strokeWidth={1.75} aria-label="โอนให้" /> <span className="min-w-0">{name(p.to_member)}</span>
             </p>
             <p className="serial mt-1">{no}</p>
             {p.slip ? (
@@ -504,9 +506,9 @@ function ClaimCoupon({
             )}
             {busy && (
               <span className="pointer-events-none absolute inset-0 flex items-center justify-end pr-2" aria-hidden>
-                <span className="animate-stamp inline-flex items-center gap-1 rounded-[6px] border-[2.5px] border-ok bg-paper/95 px-2.5 py-1 text-body font-bold text-ok">
+                <span className="animate-stamp inline-flex items-center gap-1 rounded-md border-[2.5px] border-ok bg-paper/95 px-2.5 py-1 text-body font-bold text-ok">
                   <Check className="size-5" strokeWidth={2.5} aria-hidden />
-                  <span>PAID · ได้รับเงินแล้ว</span>
+                  <span>ได้รับเงินแล้ว</span>
                 </span>
               </span>
             )}
@@ -539,7 +541,7 @@ function ClaimCoupon({
                   <button className="btn-primary flex-1" onClick={() => decide("confirmed")} disabled={busy} data-testid="confirm-payment">
                     <Check className="size-5 shrink-0" strokeWidth={1.75} aria-hidden />
                     <span>
-                      ได้รับ <span className="num font-num">฿{formatBaht(p.amount)}</span> แล้ว
+                      ได้รับ <Baht satang={p.amount} /> แล้ว
                     </span>
                   </button>
                   <button className="btn" onClick={() => setConfirmReject(true)} disabled={busy}>

@@ -67,7 +67,7 @@ export function TripView({ tripId }: { tripId: string }) {
   if ((!state.view || !s) && !state.online)
     return (
       <main className="mx-auto flex min-h-dvh max-w-lg flex-col items-center justify-center gap-3 px-6 text-center">
-        <CloudOff className="size-6 text-muted" aria-hidden />
+        <CloudOff className="size-6 text-muted" strokeWidth={1.75} aria-hidden />
         <p className="text-body font-bold">ต้องเชื่อมต่ออินเทอร์เน็ตเพื่อเปิดทริปนี้ครั้งแรก</p>
         <p className="max-w-[34ch] text-body text-muted">ทริปที่เคยเปิดในเครื่องนี้แล้วจะใช้ได้แม้ไม่มีสัญญาณ</p>
         <Link href="/" className="btn mt-2 whitespace-nowrap">
@@ -108,7 +108,7 @@ export function TripView({ tripId }: { tripId: string }) {
               <span>
                 <span className="num font-num">{view.members.length}</span> คน{view.trip.locked && " · ล็อกแล้ว"}
               </span>
-              <span className="num font-num inline-flex items-center rounded-[5px] border border-t1/20 bg-white/[0.08] px-1.5 py-0.5 text-meta font-semibold tracking-[0.04em] text-t1">
+              <span className="num font-num inline-flex items-center rounded-md border border-t1/20 bg-white/[0.08] px-1.5 py-0.5 text-meta font-semibold tracking-[0.04em] text-t1">
                 เล่ม {tripSerial(view.trip.id)}
               </span>
             </p>
@@ -129,7 +129,7 @@ export function TripView({ tripId }: { tripId: string }) {
                   aria-current={on ? "page" : undefined}
                   className={`relative flex min-h-12 items-center gap-2 rounded-t-lg px-4 text-body font-semibold transition-colors duration-150 ${on ? "text-white" : "text-on-ink-muted hover:bg-white/10 hover:text-white"}`}
                 >
-                  <Icon className="size-5" strokeWidth={on ? 2.4 : 1.9} aria-hidden />
+                  <Icon className="size-5" strokeWidth={on ? 2.25 : 1.75} aria-hidden />
                   {label}
                   {on && <span className="absolute inset-x-3 bottom-0 h-[3px] rounded-t bg-t1" aria-hidden />}
                 </button>
@@ -147,7 +147,7 @@ export function TripView({ tripId }: { tripId: string }) {
         <main className="mx-auto grid w-full max-w-6xl flex-1 grid-cols-[minmax(0,1fr)_minmax(0,25rem)] items-start gap-8 px-8 pb-12 pt-6">
           <div className="flex min-w-0 flex-col">{left === "members" ? members : expenses}</div>
           <aside
-            className="relative sticky top-[calc(var(--header-h,8rem)+1.5rem)] -mx-2 max-h-[calc(100dvh-var(--header-h,8rem)-3rem)] overflow-y-auto rounded-[var(--radius-coupon)] px-2 pb-2"
+            className="sticky top-[calc(var(--header-h,8rem)+1.5rem)] -mx-2 max-h-[calc(100dvh-var(--header-h,8rem)-3rem)] overflow-y-auto rounded-[var(--radius-coupon)] px-2 pb-2"
             aria-label="สรุปยอด"
           >
             {settle}
@@ -199,7 +199,7 @@ function SyncStatus({ state }: { state: TripState }) {
   if (!state.online)
     return (
       <span className={`${base} bg-white/12 text-white`} role="status">
-        <CloudOff className="size-3.5" aria-hidden />
+        <CloudOff className="size-3.5" strokeWidth={1.75} aria-hidden />
         ออฟไลน์{state.queued ? ` · รอส่ง ${state.queued} รายการ` : ""}
       </span>
     );
@@ -213,7 +213,7 @@ function SyncStatus({ state }: { state: TripState }) {
   if (state.live)
     return (
       <span className={`${base} paper-tint bg-t1 text-ink`} role="status" title="เห็นการแก้ไขของเพื่อนทันที">
-        <span className="live-dot animate-live-pulse size-1.5 rounded-full bg-ok" aria-hidden />
+        <span className="live-dot size-1.5 rounded-full bg-ok" aria-hidden />
         ออนไลน์
       </span>
     );

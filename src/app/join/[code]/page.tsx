@@ -124,7 +124,7 @@ export default function JoinPage() {
       <main className="px-4 pt-5 lg:w-full lg:max-w-xl lg:self-center lg:px-12 lg:py-16">
         {preview.pending_member ? (
           <div className="coupon flex gap-3 p-4" role="status">
-            <Clock className="mt-0.5 size-5 shrink-0" aria-hidden />
+            <Clock className="mt-0.5 size-5 shrink-0" strokeWidth={1.75} aria-hidden />
             <div>
               <p className="font-bold">ส่งคำขอเป็น “{pendingName}” แล้ว</p>
               <p className="mt-1 text-body text-muted">
@@ -134,7 +134,7 @@ export default function JoinPage() {
           </div>
         ) : preview.locked ? (
           <div className="coupon flex gap-3 p-4">
-            <Lock className="mt-0.5 size-5 shrink-0" aria-hidden />
+            <Lock className="mt-0.5 size-5 shrink-0" strokeWidth={1.75} aria-hidden />
             <div>
               <p className="font-bold">ทริปนี้ปิดรับสมาชิกใหม่แล้ว</p>
               <p className="mt-1 text-body text-muted">

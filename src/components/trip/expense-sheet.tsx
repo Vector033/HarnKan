@@ -238,7 +238,7 @@ export function ExpenseSheet({
                   onChange={() => setMode(k)}
                   className="peer sr-only"
                 />
-                <span className="flex min-h-12 cursor-pointer items-center justify-center rounded-[8px] text-body font-semibold text-ink transition-colors duration-150 hover:bg-ground peer-checked:bg-ink peer-checked:text-white peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ink">
+                <span className="flex min-h-12 cursor-pointer items-center justify-center rounded-[8px] text-body font-semibold text-ink transition-colors duration-150 hover:bg-ground peer-checked:bg-ink peer-checked:text-white peer-checked:hover:bg-ink-2 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ink">
                   {label}
                 </span>
               </label>

@@ -69,11 +69,11 @@ export function MembersTab({ state, store, settlement }: { state: TripState; sto
           />
           <div className="min-w-0 flex-1 space-y-2">
             <p className="flex items-center gap-1.5 truncate rounded-md bg-ground px-2.5 py-2 text-meta" data-testid="invite-link">
-              <Link2 className="size-3.5 shrink-0" aria-hidden />
+              <Link2 className="size-3.5 shrink-0" strokeWidth={1.75} aria-hidden />
               <span className="truncate">{link}</span>
             </p>
             <button className="btn-primary w-full" onClick={share} disabled={closed}>
-              <Share2 className="size-4" aria-hidden /> {copied ? "คัดลอกลิงก์แล้ว" : "ส่งลิงก์เชิญ"}
+              <Share2 className="size-4" strokeWidth={1.75} aria-hidden /> {copied ? "คัดลอกลิงก์แล้ว" : "ส่งลิงก์เชิญ"}
             </button>
           </div>
         </div>
@@ -115,7 +115,7 @@ export function MembersTab({ state, store, settlement }: { state: TripState; sto
             onChange={(e) => setNewName(e.target.value)}
           />
           <button className="btn shrink-0" disabled={!newName.trim()}>
-            <UserPlus className="size-4" aria-hidden /> เพิ่ม
+            <UserPlus className="size-4" strokeWidth={1.75} aria-hidden /> เพิ่ม
           </button>
         </form>
         <p className="hint">เพิ่มชื่อไว้ก่อนเพื่อบันทึกรายจ่ายได้ทันที เมื่อเพื่อนเปิดลิงก์ จะเลือกชื่อนี้และใส่พร้อมเพย์ของตัวเองได้</p>
@@ -161,7 +161,7 @@ function OwnerControls({ state, store }: { state: TripState; store: TripStore })
             run("lock", "set_trip_locked", { p_trip: trip.id, p_locked: !trip.locked }, trip.locked ? "เปิดรับสมาชิกใหม่แล้ว" : "ล็อกทริปแล้ว")
           }
         >
-          {trip.locked ? <LockOpen className="size-4" aria-hidden /> : <Lock className="size-4" aria-hidden />}
+          {trip.locked ? <LockOpen className="size-4" strokeWidth={1.75} aria-hidden /> : <Lock className="size-4" strokeWidth={1.75} aria-hidden />}
           {trip.locked ? "เปิดรับสมาชิกใหม่" : "ล็อกทริป"}
         </button>
         {confirmRotate ? (
@@ -174,7 +174,7 @@ function OwnerControls({ state, store }: { state: TripState; store: TripStore })
               void run("rotate", "rotate_invite", { p_trip: trip.id }, "สร้างลิงก์ใหม่แล้ว ลิงก์เดิมใช้ไม่ได้อีก");
             }}
           >
-            <RefreshCw className="size-4" aria-hidden /> ยืนยัน ลิงก์เดิมจะใช้ไม่ได้
+            <RefreshCw className="size-4" strokeWidth={1.75} aria-hidden /> ยืนยัน ลิงก์เดิมจะใช้ไม่ได้
           </button>
         ) : null}
         {confirmRotate ? (
@@ -183,7 +183,7 @@ function OwnerControls({ state, store }: { state: TripState; store: TripStore })
           </button>
         ) : (
           <button className="btn" disabled={!!busy} onClick={() => setConfirmRotate(true)}>
-            <RefreshCw className="size-4" aria-hidden /> สร้างลิงก์ใหม่
+            <RefreshCw className="size-4" strokeWidth={1.75} aria-hidden /> สร้างลิงก์ใหม่
           </button>
         )}
       </div>
@@ -202,7 +202,7 @@ function OwnerControls({ state, store }: { state: TripState; store: TripStore })
         </div>
       ) : (
         <button className="btn-quiet -ml-3 text-owe" onClick={() => setConfirmDelete(true)}>
-          <Trash2 className="size-4" aria-hidden /> ลบทริปนี้
+          <Trash2 className="size-4" strokeWidth={1.75} aria-hidden /> ลบทริปนี้
         </button>
       )}
     </div>
@@ -229,10 +229,10 @@ function ClaimRequest({ m, state, store }: { m: Member; state: TripState; store:
       <p className="hint">ยืนยันเมื่อแน่ใจเท่านั้น ผู้ที่ได้ชื่อนี้จะเห็นทริปและใส่พร้อมเพย์รับเงินแทน {m.nickname} ได้</p>
       <div className="mt-3 flex gap-2">
         <button className="btn-primary flex-1" disabled={busy} onClick={() => decide(true)} data-testid="approve-claim">
-          <Check className="size-5" aria-hidden /> ใช่ ให้เข้าทริป
+          <Check className="size-5" strokeWidth={1.75} aria-hidden /> ใช่ ให้เข้าทริป
         </button>
         <button className="btn" disabled={busy} onClick={() => decide(false)}>
-          <X className="size-4" aria-hidden /> ไม่ใช่
+          <X className="size-4" strokeWidth={1.75} aria-hidden /> ไม่ใช่
         </button>
       </div>
       {err && (
@@ -300,7 +300,7 @@ function MemberRow({
         {m.pending && <PendingMark />}
         {canRemove && !confirm && (
           <button className="-mr-2 grid size-12 place-items-center rounded-lg text-muted hover:bg-ground hover:text-owe" onClick={() => setConfirm(true)} aria-label={`นำ ${m.nickname} ออกจากทริป`}>
-            <UserMinus className="size-[18px]" />
+            <UserMinus className="size-[18px]" strokeWidth={1.75} />
           </button>
         )}
       </div>

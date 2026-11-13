@@ -54,7 +54,8 @@ test("review captures", async ({ browser }) => {
   await a.waitForTimeout(250); // the stamp has landed, the stub has not torn yet
   await a.screenshot({ path: ".impeccable/review/mobile-stamp.png" });
   await expect(a.getByText("ประวัติการโอน")).toBeVisible();
-  await expect(a.getByText("ยืนยันแล้ว")).toBeVisible();
+  await expect(a.getByTestId("claim")).toHaveCount(0); // stamped, torn and filed into history
+  await expect(a.getByText("ได้รับเงินแล้ว", { exact: true })).toBeVisible();
   await a.screenshot({ path: ".impeccable/review/mobile-history.png", fullPage: true });
   await a.getByRole("button", { name: /สมาชิก/ }).click();
   await a.screenshot({ path: ".impeccable/review/mobile-members.png", fullPage: true });

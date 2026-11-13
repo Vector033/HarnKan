@@ -188,7 +188,7 @@ export function SlipSheet({
             <div className="flex items-center justify-between gap-3 px-4 pb-3 pt-4">
               <div className="flex min-w-0 items-center gap-3">
                 {previewUrl && previewOk && (
-                  <div className="relative size-12 shrink-0 overflow-hidden rounded-[6px] bg-ground ring-1 ring-line">
+                  <div className="relative size-12 shrink-0 overflow-hidden rounded-md bg-ground ring-1 ring-line">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={previewUrl}
@@ -211,7 +211,7 @@ export function SlipSheet({
                 </p>
               </div>
               {amountCheck && (
-                <span className={`inline-flex shrink-0 items-center gap-1 rounded-[6px] bg-ground px-2 py-1 text-meta font-semibold ${amountCheck.cls}`}>
+                <span className={`inline-flex shrink-0 items-center gap-1 rounded-md bg-ground px-2 py-1 text-meta font-semibold ${amountCheck.cls}`}>
                   <amountCheck.Icon className="size-4" strokeWidth={2} aria-hidden />
                   {amountCheck.text}
                 </span>
@@ -297,7 +297,7 @@ function Reading({
             className="h-full w-full object-cover opacity-80"
           />
           <div className="scan-shimmer pointer-events-none absolute inset-0" aria-hidden />
-          <span className="absolute bottom-2.5 left-2.5 inline-flex items-center gap-1.5 rounded-[6px] bg-ink/90 px-2.5 py-1 text-meta font-semibold text-white shadow-sm backdrop-blur-sm">
+          <span className="absolute bottom-2.5 left-2.5 inline-flex items-center gap-1.5 rounded-md bg-ink/90 px-2.5 py-1 text-meta font-semibold text-white shadow-sm backdrop-blur-sm">
             <ReceiptText className="size-4" strokeWidth={1.75} aria-hidden />
             <span>กำลังสแกนสลิป</span>
           </span>
@@ -307,7 +307,7 @@ function Reading({
         {["ยอดโอน", "วันเวลา", "ผู้รับ"].map((l, i) => (
           <div key={l} className="contents">
             <span className="text-muted">{l}</span>
-            <span className={`reading-bar scan-shimmer h-6 rounded-[6px] border-2 border-dashed border-perf ${["w-28", "w-40", "w-32"][i]}`} />
+            <span className={`reading-bar h-6 rounded-md border-2 border-dashed border-perf ${["w-28", "w-40", "w-32"][i]}`} />
           </div>
         ))}
       </div>

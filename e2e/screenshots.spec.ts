@@ -1,5 +1,6 @@
 // Regenerates the README screenshots from a demo trip with made-up people:
 //   SCREENSHOTS=1 npx playwright test screenshots
+// Run it on the dev server (not E2E_PROD): the slip shot needs SLIP_READER=fake, which production refuses.
 import { expect, test, type Browser, type Page } from "@playwright/test";
 
 test.skip(!process.env.SCREENSHOTS, "set SCREENSHOTS=1 to regenerate docs/screenshots");
@@ -95,10 +96,79 @@ test("README screenshots", async ({ browser }) => {
 
   await ton.getByRole("button", { name: /สรุปยอด/ }).click();
   await shot(ton, "05-settle");
-  const qr = ton.getByRole("button", { name: "QR พร้อมเพย์" }).first();
-  if (await qr.count()) {
-    await qr.click();
-    await expect(ton.getByTestId("promptpay-qr").locator("svg")).toBeVisible();
-    await shot(ton, "06-promptpay-qr");
-  }
+  await ton.getByRole("button", { name: /QR พร้อมเพย์/ }).first().click();
+  await expect(ton.getByTestId("promptpay-qr").locator("svg")).toBeVisible();
+  await shot(ton, "06-promptpay-qr");
+
+  // ต้น pays and attaches the slip; with SLIP_READER=fake the file's bytes are the model's answer.
+  await ton.getByRole("button", { name: /โอนแล้ว แนบสลิป/ }).click();
+  const now = new Date();
+  const month = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."][now.getMonth()];
+  const party = (name: string, bank: string, account: string) => ({
+    name,
+    name_confidence: 0.95,
+    bank,
+    bank_confidence: 0.95,
+    account_masked: account,
+    account_confidence: 0.95,
+  });
+  await ton.getByTestId("slip-input").setInputFiles({
+    name: "slip.png",
+    mimeType: "image/png",
+    buffer: Buffer.from(
+      JSON.stringify({
+        is_transfer_slip: true,
+        amount: 220,
+        amount_confidence: 0.98,
+        date_text: `${now.getDate()} ${month} ${(now.getFullYear() + 543) % 100} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`,
+        datetime_iso: null,
+        datetime_confidence: 0.95,
+        sender: party("นาย ต้น ก.", "KBANK", "xxx-x-x1111-x"),
+        receiver: party("น.ส. มินตรา ส.", "SCB", "xxx-xxx-5678"),
+        reference: `DEMO${Date.now()}`,
+        reference_confidence: 0.95,
+        memo: null,
+        memo_confidence: 0,
+      }),
+    ),
+  });
+  await expect(ton.getByTestId("slip-result")).toContainText("บันทึกว่าโอนแล้ว");
+  await shot(ton, "07-slip-read");
+  await ton.getByRole("button", { name: "เสร็จ" }).click();
+
+  // มิ้นต์ sees what the slip said and has the final say.
+  await mint.getByRole("button", { name: /สรุปยอด/ }).click();
+  await expect(mint.getByTestId("claim")).toContainText("AI อ่านจากสลิป");
+  await shot(mint, "08-confirm");
+  await mint.getByTestId("confirm-payment").click();
+  await expect(mint.getByTestId("claim")).toHaveCount(0);
+
+  await mint.getByRole("button", { name: /สมาชิก/ }).click();
+  // Show the deployed origin rather than the test server's in the visible link text (the QR is unchanged).
+  await mint.getByTestId("invite-link").locator("span").evaluate((el) => {
+    el.textContent = el.textContent!.replace(location.origin, "https://harnkan-ten.vercel.app");
+  });
+  await shot(mint, "09-members");
+
+  // Both edit หมูกระทะ at once: the second save becomes a choice, not an overwrite.
+  await mint.getByRole("button", { name: /รายจ่าย/ }).click();
+  await ton.getByRole("button", { name: /รายจ่าย/ }).click();
+  await mint.getByTestId("expense-row").filter({ hasText: "หมูกระทะ" }).click();
+  await ton.getByTestId("expense-row").filter({ hasText: "หมูกระทะ" }).click();
+  await mint.getByLabel("จำนวนเงิน (บาท)").fill("1300");
+  await mint.getByTestId("save-expense").click();
+  await expect(ton.getByTestId("changed-underneath")).toBeVisible();
+  await ton.getByLabel("จำนวนเงิน (บาท)").fill("1280");
+  await ton.getByTestId("save-expense").click();
+  await expect(ton.getByText("มีคนแก้ไขรายการเดียวกัน")).toBeVisible();
+  await ton.mouse.move(0, 0);
+  await shot(ton, "10-conflict");
+  await ton.getByTestId("keep-theirs").click();
+
+  // The wide layout: the list on the left, the settlement always on the right.
+  await mint.setViewportSize({ width: 1440, height: 900 });
+  await expect(mint.getByRole("complementary", { name: "สรุปยอด" })).toBeVisible();
+  await mint.mouse.move(0, 0);
+  await mint.waitForTimeout(400);
+  await mint.screenshot({ path: "docs/screenshots/11-desktop.png", scale: "css" });
 });

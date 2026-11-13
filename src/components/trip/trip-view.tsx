@@ -85,7 +85,7 @@ export function TripView({ tripId }: { tripId: string }) {
   const view = state.view;
   const badge = s.awaitingMe.length;
   // On a wide screen the settlement is always on the right, so the left shows expenses or members.
-  const left = wide && tab === "settle" ? "expenses" : tab;
+  const left = tab === "settle" ? "expenses" : tab;
   const tabs = wide ? TABS.filter((t) => t.key !== "settle") : TABS;
 
   const expenses = <ExpensesTab state={state} store={store} settlement={s} onOpenSettle={() => setTab("settle")} />;
@@ -143,23 +143,17 @@ export function TripView({ tripId }: { tripId: string }) {
         <Notices state={state} onDismissError={(i) => store.dismissError(i)} />
       </div>
 
-      {wide ? (
-        <main className="mx-auto grid w-full max-w-6xl flex-1 grid-cols-[minmax(0,1fr)_minmax(0,25rem)] items-start gap-8 px-8 pb-12 pt-6">
-          <div className="flex min-w-0 flex-col">{left === "members" ? members : expenses}</div>
-          <aside
-            className="sticky top-[calc(var(--header-h,8rem)+1.5rem)] -mx-2 max-h-[calc(100dvh-var(--header-h,8rem)-3rem)] overflow-y-auto rounded-[var(--radius-coupon)] px-2 pb-2"
-            aria-label="สรุปยอด"
-          >
-            {settle}
-          </aside>
-        </main>
-      ) : (
-        <main className="flex-1 px-4 pb-32 pt-4">
-          {tab === "expenses" && expenses}
-          {tab === "settle" && settle}
-          {tab === "members" && members}
-        </main>
-      )}
+      {/* One tree at every width, with CSS hiding a column: if the width crossed 1024px and the tree
+          changed, React would remount the tabs and an open sheet would close and drop its draft. */}
+      <main className="mx-auto w-full flex-1 px-4 pb-32 pt-4 lg:grid lg:max-w-6xl lg:grid-cols-[minmax(0,1fr)_minmax(0,25rem)] lg:items-start lg:gap-8 lg:px-8 lg:pb-12 lg:pt-6">
+        <div className={`min-w-0 flex-col lg:flex ${tab === "settle" ? "hidden" : "flex"}`}>{left === "members" ? members : expenses}</div>
+        <aside
+          className={`lg:sticky lg:top-[calc(var(--header-h,8rem)+1.5rem)] lg:-mx-2 lg:block lg:max-h-[calc(100dvh-var(--header-h,8rem)-3rem)] lg:overflow-y-auto lg:rounded-[var(--radius-coupon)] lg:px-2 lg:pb-2 ${tab === "settle" ? "" : "hidden"}`}
+          aria-label="สรุปยอด"
+        >
+          {settle}
+        </aside>
+      </main>
 
       {!wide && (
         <nav className="fixed inset-x-0 bottom-0 z-20 pb-[env(safe-area-inset-bottom)]" aria-label="ส่วนของทริป">

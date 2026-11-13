@@ -64,6 +64,32 @@ test("friends see each other's expenses live and get a minimal settlement", asyn
   await expect(b.page.getByText("ทุกคนโอนกันครบแล้ว")).toBeVisible();
 });
 
+test("an open sheet and its draft survive resizing across the wide layout", async ({ browser }) => {
+  const { page } = await friend(browser);
+  await createTrip(page, "ระยอง", "เอ");
+  const narrow = page.viewportSize()!;
+  const title = page.getByLabel("รายการ");
+
+  await page.getByRole("button", { name: /เพิ่มรายจ่าย/ }).click();
+  await title.fill("ค่าทางด่วน");
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(title).toHaveValue("ค่าทางด่วน");
+  await page.setViewportSize(narrow);
+  await expect(title).toHaveValue("ค่าทางด่วน");
+  await page.getByRole("button", { name: "ปิด" }).click();
+  await page.getByRole("button", { name: "ทิ้ง", exact: true }).click();
+
+  // Opened from the expense column on a wide screen, then the screen narrows onto the settle tab,
+  // which hides that column: the sheet must still show and take input.
+  await page.getByRole("button", { name: /สรุปยอด/ }).click();
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.getByRole("button", { name: /เพิ่มรายจ่าย/ }).click();
+  await title.fill("ค่าที่จอด");
+  await page.setViewportSize(narrow);
+  await expect(title).toBeVisible();
+  await expect(title).toHaveValue("ค่าที่จอด");
+});
+
 test("two people editing the same expense get a conflict instead of a silent overwrite", async ({ browser }) => {
   const a = await friend(browser);
   const b = await friend(browser);

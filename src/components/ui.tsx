@@ -2,6 +2,7 @@
 
 import { Check, Ticket, X } from "lucide-react";
 import { useEffect, useId, useRef, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { formatBaht } from "@/lib/core/money";
 
 const TINTS = ["--color-t0", "--color-t1", "--color-t2", "--color-t3", "--color-t4", "--color-t5"];
@@ -47,7 +48,8 @@ export function Sheet({
     if (dismissible) (onRequestClose ?? onClose)();
   };
 
-  return (
+  // In <body>: its owner may sit in a column CSS hides at this width, and a modal under display:none is invisible yet still blocks the page.
+  return createPortal(
     <dialog
       ref={ref}
       onClose={onClose}
@@ -79,7 +81,8 @@ export function Sheet({
           )}
         </div>
       )}
-    </dialog>
+    </dialog>,
+    document.body,
   );
 }
 

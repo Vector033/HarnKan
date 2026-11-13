@@ -37,7 +37,7 @@ export function ExpensesTab({
   onOpenSettle: () => void;
 }) {
   const view = state.view!;
-  const [editing, setEditing] = useState<Expense | "new" | null>(null);
+  const [editing, setEditing] = useState<Pending<Expense> | "new" | null>(null);
   const names = new Map(view.members.map((m) => [m.id, m.nickname]));
   const list = view.expenses.filter((e) => !e.deleted);
   const me = state.me;

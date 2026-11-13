@@ -357,7 +357,6 @@ a {
     transform: scale(1) rotate(-6deg);
   }
 }
-.stamp,
 .animate-stamp {
   transform: rotate(-6deg);
   animation: stampIn 350ms var(--ease-out-expo) both;
@@ -374,17 +373,6 @@ a {
     opacity: 0;
   }
 }
-@keyframes livePulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.4);
-    opacity: 0.35;
-  }
-}
 .live-dot {
   position: relative;
 }
@@ -395,9 +383,6 @@ a {
   border-radius: inherit;
   background: var(--color-ok);
   animation: live-ring 2.4s var(--ease-out-expo) infinite;
-}
-.animate-live-pulse {
-  animation: livePulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 /* Slip being read: dashed placeholder values with a faint sweep. */
@@ -546,7 +531,8 @@ dialog[open]::backdrop {
   *::after {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 1ms !important;
+    /* 0s, not 1ms: with the default transition-property (all), 1ms made every element show its old style for a frame. */
+    transition-duration: 0s !important;
   }
   /* Reduced motion keeps the moment as a plain fade, no travel. */
   .tearing .stub-half {
@@ -556,7 +542,6 @@ dialog[open]::backdrop {
   .reading-bar::after {
     display: none;
   }
-  .animate-live-pulse,
   .scan-shimmer,
   .route-flow,
   .pin-ripple {

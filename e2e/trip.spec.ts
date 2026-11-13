@@ -134,7 +134,24 @@ test("expenses added offline sync when the connection returns", async ({ browser
   await expect(b.page.getByText("รอส่ง", { exact: true })).toHaveCount(0);
 });
 
+test("my own queued expense landing is not reported as someone else's edit", async ({ browser }) => {
+  const a = await friend(browser);
+  await createTrip(a.page, "บางแสน", "เอ");
+  await a.context.setOffline(true);
+  await addExpense(a.page, "ค่าเรือ", "300");
+  await a.page.getByTestId("expense-row").first().click(); // opened while still queued
+
+  await a.context.setOffline(false);
+  await expect(a.page.getByText("รอส่ง", { exact: true })).toHaveCount(0, { timeout: 30_000 });
+  await expect(a.page.getByTestId("changed-underneath")).toHaveCount(0);
+  await a.page.getByLabel("จำนวนเงิน (บาท)").fill("350");
+  await a.page.getByTestId("save-expense").click();
+  await expect(a.page.getByText("350", { exact: false }).first()).toBeVisible();
+  await expect(a.page.getByText("มีคนแก้ไขรายการเดียวกัน")).toHaveCount(0);
+});
+
 test("a matching slip ticks the payment and the receiver confirms", async ({ browser }) => {
+  test.skip(!!process.env.E2E_PROD, "the fake slip reader is refused in production builds");
   const a = await friend(browser);
   const b = await friend(browser);
   const link = await createTrip(a.page, "ภูเก็ต", "เอ");

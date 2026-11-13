@@ -119,6 +119,15 @@ export function enqueue(queue: QueuedOp[], item: QueuedOp, inflight: number | nu
   return [...queue, item];
 }
 
+/**
+ * The server version an edit of this expense should start from. A queued save of
+ * my own still shows the old version, but it bumps the version by one when it lands,
+ * so that newer version is mine, not a friend's change underneath.
+ */
+export function expectedVersion(e: Pending<Expense>): number {
+  return e.version + (e.pending ? 1 : 0);
+}
+
 /** Whether two versions of an expense say the same thing. */
 export function sameContent(a: ExpenseDraft, b: ExpenseDraft): boolean {
   if (a.title.trim() !== b.title.trim() || a.amount !== b.amount || a.paid_by !== b.paid_by) return false;

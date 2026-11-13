@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { formatBaht, parseBaht } from "@/lib/core/money";
 import { shares, validateSplit, type Split, type SplitMode } from "@/lib/core/split";
 import type { TripState, TripStore } from "@/lib/trip/store";
+import { expectedVersion, type Pending } from "@/lib/trip/outbox";
 import type { Expense, ExpenseDraft } from "@/lib/trip/types";
 import { Baht, MemberTile, Sheet, memberTint } from "../ui";
 
@@ -28,7 +29,7 @@ export function ExpenseSheet({
   store,
   onClose,
 }: {
-  initial: Expense | null;
+  initial: Pending<Expense> | null;
   state: TripState;
   store: TripStore;
   onClose: () => void;
@@ -85,18 +86,19 @@ export function ExpenseSheet({
 
   // Someone else changed this expense while the sheet was open.
   const live = base ? view.expenses.find((e) => e.id === base.id) : null;
-  const changedUnderneath = !!(base && live && !live.pending && live.version > base.version);
+  const baseVersion = base ? expectedVersion(base) : 0;
+  const changedUnderneath = !!(base && live && !live.pending && live.version > baseVersion);
   const deletedUnderneath = !!(base && live?.deleted && !live.pending);
 
   async function save() {
     if (!draft || problem || !draft.title || amountTooBig) return;
-    await store.do({ kind: "save_expense", expense: draft, baseVersion: base ? Math.max(1, base.version) : null });
+    await store.do({ kind: "save_expense", expense: draft, baseVersion: base ? Math.max(1, baseVersion) : null });
     onClose();
   }
 
   async function remove() {
     if (!base) return;
-    await store.do({ kind: "delete_expense", id: base.id, baseVersion: Math.max(1, base.version) });
+    await store.do({ kind: "delete_expense", id: base.id, baseVersion: Math.max(1, baseVersion) });
     onClose();
   }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { enqueue, judgeConflict, overlay, sameContent } from "./outbox";
+import { enqueue, expectedVersion, judgeConflict, overlay, sameContent } from "./outbox";
 import type { Expense, ExpenseDraft, Op, QueuedOp, Snapshot } from "./types";
 
 const draft = (o: Partial<ExpenseDraft> = {}): ExpenseDraft => ({
@@ -108,5 +108,15 @@ describe("conflicts", () => {
   it("treats a split with zero entries the same as one without them", () => {
     expect(sameContent(draft({ split: { a: 1, b: 1, c: 0 } }), draft())).toBe(true);
     expect(sameContent(draft({ split: { a: 1 } }), draft())).toBe(false);
+  });
+});
+
+describe("expectedVersion", () => {
+  it("is the row's version when nothing of mine is queued", () => {
+    expect(expectedVersion(row({ version: 3 }))).toBe(3);
+  });
+  it("counts my queued save, so its echo is not mistaken for a friend's edit", () => {
+    expect(expectedVersion({ ...row({ version: 3 }), pending: true })).toBe(4);
+    expect(expectedVersion({ ...row({ version: 0 }), pending: true })).toBe(1); // a new expense lands as version 1
   });
 });

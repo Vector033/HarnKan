@@ -401,3 +401,55 @@ describe("profiles", () => {
     for (const m of data!) expect(m).toMatchObject({ promptpay_id: "0899999999", payee_name: "ทดสอบ ท." });
   });
 });
+
+describe("merge_guest (guest trips into an existing account, 2026-11-14)", () => {
+  const admin = () =>
+    createClient<Database>(url, process.env.SUPABASE_SECRET_KEY!, { auth: { persistSession: false, autoRefreshToken: false } });
+  async function account() {
+    const { data, error } = await admin().auth.admin.createUser({
+      email: `merge-${randomUUID()}@example.test`,
+      password: randomUUID(),
+      email_confirm: true,
+    });
+    if (error) throw error;
+    return data.user.id;
+  }
+  async function guestWithTrip() {
+    const guest = await user();
+    const guestId = (await guest.auth.getUser()).data.user!.id;
+    const t = await rpc<{ trip_id: string; member_id: string }>(guest, "create_trip", { p_name: "ย้ายบัญชี", p_nickname: "เกสต์" });
+    return { guest, guestId, t };
+  }
+
+  it("moves the guest's membership and ownership; only the service role may call it", async () => {
+    const { guest, guestId, t } = await guestWithTrip();
+    const accountId = await account();
+    await expect(rpc(guest, "merge_guest", { p_guest: guestId, p_user: accountId })).rejects.toThrow();
+
+    const { data: moved, error } = await admin().rpc("merge_guest", { p_guest: guestId, p_user: accountId });
+    expect(error).toBeNull();
+    expect(moved).toBe(1);
+    const { data: m } = await admin().from("members").select("user_id").eq("id", t.member_id).single();
+    expect(m!.user_id).toBe(accountId);
+    const { data: trip } = await admin().from("trips").select("created_by").eq("id", t.trip_id).single();
+    expect(trip!.created_by).toBe(accountId);
+  });
+
+  it("in a trip the account is already in, the guest's member stays as an unclaimed name", async () => {
+    const { guestId, t } = await guestWithTrip();
+    const accountId = await account();
+    await admin().from("members").insert({ trip_id: t.trip_id, user_id: accountId, nickname: "บัญชีเดิม" });
+
+    const { data: moved } = await admin().rpc("merge_guest", { p_guest: guestId, p_user: accountId });
+    expect(moved).toBe(0);
+    const { data: m } = await admin().from("members").select("user_id,promptpay_id").eq("id", t.member_id).single();
+    expect(m).toEqual({ user_id: null, promptpay_id: null });
+  });
+
+  it("refuses a source that is not a guest", async () => {
+    const { guestId } = await guestWithTrip();
+    const accountId = await account();
+    const { error } = await admin().rpc("merge_guest", { p_guest: accountId, p_user: guestId });
+    expect(error?.message).toMatch(/not_guest/);
+  });
+});

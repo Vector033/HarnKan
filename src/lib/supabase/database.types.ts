@@ -187,6 +187,9 @@ isOneToOne: false
 "join_trip":
 { Args: { "p_code": string,"p_member_id"?: string,"p_nickname"?: string }; Returns: Json
                            },
+"merge_guest":
+{ Args: { "p_guest": string,"p_user": string }; Returns: number
+                           },
 "new_invite_code":
 { Args: Record<PropertyKey, never>; Returns: string
                            },

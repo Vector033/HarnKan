@@ -12,6 +12,8 @@ import { forgetAll } from "@/lib/trip/idb";
 
 /** Google sign-in shows only where the provider is set up (README "Google sign-in"). */
 const GOOGLE = process.env.NEXT_PUBLIC_GOOGLE_AUTH === "true";
+/** Holds the guest's access token across the Google redirect, so its trips can follow into the account. */
+const MERGE_KEY = "harnkan-merge-guest";
 
 interface Me {
   id: string;
@@ -29,6 +31,7 @@ export function Settings() {
   const [others, setOthers] = useState<string | null>(null);
   const [confirmWipe, setConfirmWipe] = useState(false);
   const [soundOn, setSoundOn] = useStampSound();
+  const [merged, setMerged] = useState<number | "failed" | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -41,6 +44,20 @@ export function Settings() {
       if (back.get("error_code") === "identity_already_exists") setAuthError("taken");
       else if (back.get("error")) setAuthError("failed");
       const sb = supabase();
+      // Back from signing in to an existing account: move this device's guest trips into it.
+      const guestToken = sessionStorage.getItem(MERGE_KEY);
+      const { data: now } = await sb.auth.getSession();
+      if (guestToken && now.session && !now.session.user.is_anonymous) {
+        const res = await fetch("/api/merge-guest", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ token: guestToken }),
+        }).catch(() => null);
+        const body = res?.ok ? ((await res.json()) as { moved: number }) : null;
+        // Kept on failure, so reloading the page tries again.
+        if (body) sessionStorage.removeItem(MERGE_KEY);
+        if (!cancelled) setMerged(body ? body.moved : "failed");
+      }
       const [{ data: s }, { count }, { data: p }] = await Promise.all([
         sb.auth.getSession(),
         sb.from("members").select("id", { count: "exact", head: true }).eq("user_id", id),
@@ -64,8 +81,11 @@ export function Settings() {
     setAuthError(null);
     const auth = supabase().auth;
     const options = { redirectTo: `${location.origin}/settings` };
-    // Switching to another account: this browser's guest trips will not open under it.
-    if (signIn && me.hasTrips) await forgetAll();
+    // Switching to an account that already exists: carry this guest's proof across the redirect.
+    if (signIn && me.hasTrips) {
+      const { data } = await auth.getSession();
+      if (data.session?.user.is_anonymous) sessionStorage.setItem(MERGE_KEY, data.session.access_token);
+    }
     const { error } =
       signIn || !me.hasTrips
         ? await auth.signInWithOAuth({ provider: "google", options })
@@ -133,20 +153,30 @@ export function Settings() {
                 hint={account.email !== null ? "เข้าสู่ระบบที่เครื่องอื่นด้วยบัญชีนี้ เพื่อเปิดทริปเดิมได้" : "ทริปผูกกับเบราว์เซอร์นี้เท่านั้น ถ้าล้างข้อมูลเบราว์เซอร์หรือเปลี่ยนเครื่องจะเปิดไม่ได้"}
               >
                 {account.email !== null ? (
-                  <p className="flex items-center gap-2.5 text-body" data-testid="signed-in">
-                    <GoogleMark />
-                    <span className="min-w-0 break-all font-semibold">{account.email}</span>
-                  </p>
+                  <div className="space-y-2">
+                    <p className="flex items-center gap-2.5 text-body" data-testid="signed-in">
+                      <GoogleMark />
+                      <span className="min-w-0 break-all font-semibold">{account.email}</span>
+                    </p>
+                    {merged !== null && merged !== 0 && (
+                      <p className={`flex items-start gap-1.5 text-meta ${merged === "failed" ? "text-owe" : "text-ok"}`} role="status">
+                        {merged !== "failed" && <Check className="mt-0.5 size-4 shrink-0" strokeWidth={1.75} aria-hidden />}
+                        {merged === "failed"
+                          ? "ย้ายทริปจากเครื่องนี้เข้าบัญชีนี้ไม่สำเร็จ โปรดโหลดหน้านี้ใหม่เพื่อลองอีกครั้ง"
+                          : `ย้าย ${merged} ทริปจากเครื่องนี้เข้าบัญชีนี้แล้ว`}
+                      </p>
+                    )}
+                  </div>
                 ) : (
                   <div className="space-y-3">
                     <p className="text-body font-semibold">ไม่มีบัญชี (ใช้แบบ guest)</p>
                     {GOOGLE && authError === "taken" ? (
                       <div className="space-y-2.5 rounded-lg bg-owe-soft px-3.5 py-3" role="alert">
                         <p className="text-body text-owe">
-                          บัญชี Google นี้ใช้กับเครื่องอื่นอยู่แล้ว เข้าสู่ระบบด้วยบัญชีนั้นได้ แต่ทริปที่เปิดไว้บนเครื่องนี้แบบไม่มีบัญชีจะเปิดไม่ได้อีก
+                          บัญชี Google นี้ใช้กับเครื่องอื่นอยู่แล้ว เข้าสู่ระบบด้วยบัญชีนั้นได้ ทริปที่เปิดไว้บนเครื่องนี้จะย้ายเข้าไปอยู่ในบัญชีนั้นด้วย
                         </p>
                         <div className="flex flex-wrap gap-2">
-                          <button className="btn-danger" onClick={() => google(true)}>
+                          <button className="btn-primary" onClick={() => google(true)}>
                             เข้าสู่ระบบด้วยบัญชีนั้น
                           </button>
                           <button className="btn-quiet" onClick={() => setAuthError(null)}>

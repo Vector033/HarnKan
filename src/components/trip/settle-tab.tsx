@@ -1,11 +1,11 @@
 "use client";
 
-import { ArrowRight, Check, Clock, FileImage, QrCode, Undo2, Volume2, VolumeX, X } from "lucide-react";
+import { ArrowRight, Check, Clock, FileImage, MessageCircle, QrCode, Share2, Undo2, Volume2, VolumeX, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { formatBaht } from "@/lib/core/money";
 import { maskPromptPay } from "@/lib/core/promptpay";
 import { playStampThud, useStampSound } from "@/lib/sound";
-import type { PlannedTransfer, Settlement } from "@/lib/trip/derive";
+import { settlementText, type PlannedTransfer, type Settlement } from "@/lib/trip/derive";
 import type { Pending } from "@/lib/trip/outbox";
 import type { TripState, TripStore } from "@/lib/trip/store";
 import type { Member, Payment } from "@/lib/trip/types";
@@ -180,6 +180,10 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
         )}
       </section>
 
+      {settlement.total > 0 && view.members.length > 1 && (
+        <ShareSummary text={settlementText(view.trip.name, settlement.transfers, name, `${location.origin}/t/${view.trip.id}`)} />
+      )}
+
       {waitingOthers.length > 0 && (
         <section aria-labelledby="waiting-h">
           <h2 id="waiting-h" className="mb-2.5 text-body font-bold">
@@ -275,6 +279,27 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
       )}
       {slip && <SlipSheet transfer={slip} state={state} store={store} onClose={() => setSlip(null)} />}
     </div>
+  );
+}
+
+/** Sends who-pays-whom to the group chat: LINE directly, anything else through the phone's share sheet. */
+function ShareSummary({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  async function share() {
+    if (navigator.share) return void (await navigator.share({ text }).catch(() => {}));
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+  return (
+    <section aria-label="ส่งสรุปยอดให้เพื่อน" className="-mt-4 grid grid-cols-2 gap-2">
+      <a className="btn" href={`https://line.me/R/share?text=${encodeURIComponent(text)}`} target="_blank" rel="noopener noreferrer">
+        <MessageCircle className="size-4 shrink-0" strokeWidth={1.75} aria-hidden /> ส่งสรุปเข้า LINE
+      </a>
+      <button type="button" className="btn" onClick={share}>
+        <Share2 className="size-4 shrink-0" strokeWidth={1.75} aria-hidden /> {copied ? "คัดลอกแล้ว" : "แชร์ทางอื่น"}
+      </button>
+    </section>
   );
 }
 

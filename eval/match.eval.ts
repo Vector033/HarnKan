@@ -1,4 +1,6 @@
-// Slip → debt matching eval: npm run eval:match [-- --provider gemini]
+// Slip → debt matching eval: npm run eval:match (EVAL_PROVIDER=gemini to use Gemini)
+// Real slips: put them with a labels.json in eval/slips-private/ (git-ignored), then
+// EVAL_DIR=eval/slips-private EVAL_PROVIDER=gemini npm run eval:match
 //
 // For each synthetic slip (fictional names, see fixtures/synthetic) it reads
 // the image with the real slip reader, then asks matchSlip four questions:
@@ -12,7 +14,7 @@
 // so the eval fails if any happen. Missed ticks only cost the user one tap.
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { extname, join } from "node:path";
+import { extname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readSlip, type SlipReadResult } from "@harnkan/slip-reader";
 import { terminateOcr } from "@harnkan/slip-reader/image";
@@ -20,8 +22,11 @@ import { expect, test } from "vitest";
 import { matchSlip, type MatchCandidate } from "@/lib/core/slip-match";
 
 const provider = (process.env.EVAL_PROVIDER ?? "ocr") as "ocr" | "gemini";
-const dir = fileURLToPath(new URL("./fixtures/synthetic/", import.meta.url));
-const now = new Date("2026-11-04T12:00:00+07:00"); // the synthetic slips are dated in the 60 days before
+const real = process.env.EVAL_DIR;
+const dir = real ? resolve(real) : fileURLToPath(new URL("./fixtures/synthetic/", import.meta.url));
+// The synthetic slips are dated in the 60 days before this; real slips are checked against today.
+const now = real ? new Date() : new Date("2026-11-04T12:00:00+07:00");
+const kind = real ? "real" : "synthetic";
 
 interface Label {
   file: string;
@@ -87,8 +92,9 @@ test(`slip matching (${provider})`, { timeout: 30 * 60_000 }, async () => {
 
   const out = fileURLToPath(new URL("./results/", import.meta.url));
   await mkdir(out, { recursive: true });
-  await writeFile(join(out, `match-${provider}.md`), `provider: ${provider}, synthetic slips: ${tally.n}\n\n${table}\n`);
-  await writeFile(join(out, `match-${provider}.json`), JSON.stringify({ provider, ranAt: new Date().toISOString(), ...tally }, null, 2) + "\n");
+  const name = `match-${provider}${real ? "-real" : ""}`;
+  await writeFile(join(out, `${name}.md`), `provider: ${provider}, ${kind} slips: ${tally.n}\n\n${table}\n`);
+  await writeFile(join(out, `${name}.json`), JSON.stringify({ provider, kind, ranAt: new Date().toISOString(), ...tally }, null, 2) + "\n");
 
   expect(tally.n).toBeGreaterThan(0);
   expect(tally.falseAmount + tally.falsePerson + tally.wrongTarget).toBe(0);

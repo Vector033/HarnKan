@@ -54,7 +54,8 @@ test("friends see each other's expenses live and get a minimal settlement", asyn
   await expect(b.page.getByTestId("my-balance")).toContainText("คุณต้องโอนรวม");
   await expect(b.page.getByTestId("my-balance")).toContainText("500");
   await expect(b.page.getByTestId("transfer")).toHaveCount(1);
-
+  const line = await b.page.getByRole("link", { name: "ส่งสรุปเข้า LINE" }).getAttribute("href");
+  expect(decodeURIComponent(line!.split("text=")[1])).toContain("• บี โอนให้ เอ 500 บาท");
   // B says they paid; A confirms; both end square.
   await b.page.getByRole("button", { name: "โอนแล้ว (ไม่มีสลิป)" }).click();
   await expect(b.page.getByText(/รอ เอ ยืนยัน/)).toBeVisible();

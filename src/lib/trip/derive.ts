@@ -1,3 +1,4 @@
+import { formatBaht } from "@/lib/core/money";
 import { balances, settle, type Transfer } from "@/lib/core/settle";
 import { shares } from "@/lib/core/split";
 import type { TripView } from "./outbox";
@@ -55,4 +56,19 @@ export function progress(payments: Payment[], transfers: { amount: number }[]) {
   const settled = payments.filter((p) => p.status === "confirmed").reduce((s, p) => s + p.amount, 0);
   const outstanding = transfers.reduce((s, t) => s + t.amount, 0);
   return { settled, toSettle: settled + outstanding };
+}
+
+/** The settlement as a message for the group chat: who still pays whom, and a link back to the trip. */
+export function settlementText(tripName: string, transfers: PlannedTransfer[], name: (id: string) => string, url: string) {
+  const lines = transfers.map((t) => {
+    const left = t.amount - t.claimedAmount;
+    return left > 0
+      ? `• ${name(t.from)} โอนให้ ${name(t.to)} ${formatBaht(left)} บาท`
+      : `• ${name(t.from)} โอนให้ ${name(t.to)} ${formatBaht(t.amount)} บาท (แจ้งโอนแล้ว รอ ${name(t.to)} ยืนยัน)`;
+  });
+  return [
+    `หารกัน · ${tripName}`,
+    ...(lines.length ? ["ใครโอนให้ใคร", ...lines] : ["ทุกคนโอนกันครบแล้ว"]),
+    `ดูรายละเอียดและ QR พร้อมเพย์: ${url}`,
+  ].join("\n");
 }

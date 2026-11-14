@@ -63,3 +63,7 @@ deploy/supabase/.temp/
 
 # Google OAuth client downloads hold the secret
 client_secret_*.json
+
+# working notes for coding sessions, kept out of the repo
+HANDOFF.md
+CLAUDE_DESIGN_GUIDE.md

@@ -23,6 +23,7 @@ Thai first: PromptPay QR (EMVCo) and Thai bank slip reading are the parts that o
 - **Works offline.** It installs as a PWA. A trip opened before still opens with no signal (service worker plus an IndexedDB copy). Changes made offline queue up and sync in order when the connection is back. Replayed creates are idempotent (client-generated UUIDs).
 - **Fewest transfers.** See [the algorithm](#settlement-algorithm).
 - **PromptPay QR** with the amount filled in, built to the EMVCo spec and tested field by field against `promptpay-qr`.
+- **Send the summary to the group.** One tap sends who pays whom, with a link back to the trip, to LINE or any app on the phone's share sheet.
 - **Slip reading.** Upload the slip. HarnKan reads the amount, time and receiver, and if they match an outstanding debt it marks it **paid, waiting for the receiver to confirm**. The image is never stored.
 
 ## Settlement algorithm
@@ -54,7 +55,9 @@ slip image ─▶ @harnkan/slip-reader ─▶ { amount, dateTime, receiver{name,
 | wrong person, same amount: falsely ticked | **0%** |
 | ticked the wrong member | **0** |
 
-A false tick, where a debt shows as paid when it isn't, is the expensive mistake, so the eval fails if any happen. The remaining 8% go to "needs a look": the date was unreadable or confidence was low, and the user taps once to record it. Field-level reader accuracy is in the SlipJot README. Numbers on real slips and with Gemini are still to come; see the roadmap.
+A false tick, where a debt shows as paid when it isn't, is the expensive mistake, so the eval fails if any happen. The remaining 8% go to "needs a look": the date was unreadable or confidence was low, and the user taps once to record it. Field-level reader accuracy is in the SlipJot README. Numbers on real slips and with Gemini are still to come; see the roadmap. To run it on real slips, put the images and a
+`labels.json` (amount, time, receiver for each file; see `eval/match.eval.ts`) in `eval/slips-private/`, which git ignores, then
+`EVAL_DIR=eval/slips-private EVAL_PROVIDER=gemini npm run eval:match`.
 
 ## Security and privacy (PDPA)
 
@@ -126,7 +129,9 @@ E2E_BASE_URL=https://harnkan-ten.vercel.app npx playwright test live   # smoke t
 Everyone still starts as a guest (an anonymous Supabase user). On the settings page (`/settings`) a guest with trips can
 *link* Google to that same user (`linkIdentity`), so the trips open on any device signed in to that account;
 a browser with no trips just signs in. If the Google account already belongs to another user, the guest
-session stays and the page asks before switching. The section shows only when `NEXT_PUBLIC_GOOGLE_AUTH=true`.
+session stays and the page asks before switching; if they switch, the guest's trips move into that account
+(`/api/merge-guest` checks both sessions, then the service-role function `merge_guest` moves memberships,
+ownership and history). The section shows only when `NEXT_PUBLIC_GOOGLE_AUTH=true`.
 
 1. Google Cloud Console → Credentials → OAuth client ID (Web application). Authorised redirect URI:
    `https://<project-ref>.supabase.co/auth/v1/callback`.
@@ -162,5 +167,5 @@ CI runs all of these except the eval.
 - [x] Deploy (Vercel + hosted Supabase)
 - [ ] Use it on a real trip with friends
 - [ ] Eval with Gemini and on real, consented, redacted slips (kept outside git)
-- [ ] Move to another device (link an anonymous user to a new phone)
+- [x] Move to another device: link Google to the guest, or sign in to an existing account and bring the trips along
 - [ ] Presence ("Bam is editing this item")

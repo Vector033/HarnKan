@@ -168,4 +168,3 @@ CI runs all of these except the eval.
 - [ ] Use it on a real trip with friends
 - [ ] Eval with Gemini and on real, consented, redacted slips (kept outside git)
 - [x] Move to another device: link Google to the guest, or sign in to an existing account and bring the trips along
-- [ ] Presence ("Bam is editing this item")

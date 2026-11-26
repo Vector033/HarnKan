@@ -2,7 +2,7 @@
 
 import { ArrowLeftRight, ChevronLeft, Clock, CloudOff, ReceiptText, Settings, TriangleAlert, Users, X } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { settlement } from "@/lib/trip/derive";
 import { useTrip, type TripState } from "@/lib/trip/store";
 import { InkBandWatermark } from "../ui";
@@ -19,19 +19,7 @@ const TABS = [
   { key: "members", label: "สมาชิก", Icon: Users },
 ] as const;
 
-/** Wide screens (1024px and up) show the settlement beside the list instead of in its own tab. */
-const WIDE = "(min-width: 1024px)";
-function useWide() {
-  return useSyncExternalStore(
-    (cb) => {
-      const m = window.matchMedia(WIDE);
-      m.addEventListener("change", cb);
-      return () => m.removeEventListener("change", cb);
-    },
-    () => window.matchMedia(WIDE).matches,
-    () => false,
-  );
-}
+const DESKTOP_TABS = TABS.filter((t) => t.key !== "settle");
 
 /** Publishes the sticky header's height so rows that stick under it never slide beneath it. */
 function useHeaderHeight() {
@@ -48,7 +36,6 @@ function useHeaderHeight() {
 export function TripView({ tripId }: { tripId: string }) {
   const [state, store] = useTrip(tripId);
   const [tab, setTab] = useState<Tab>("expenses");
-  const wide = useWide();
   const headerRef = useHeaderHeight();
   const s = useMemo(() => (state.view ? settlement(state.view, state.me?.id ?? null) : null), [state.view, state.me]);
 
@@ -86,7 +73,6 @@ export function TripView({ tripId }: { tripId: string }) {
   const badge = s.awaitingMe.length;
   // On a wide screen the settlement is always on the right, so the left shows expenses or members.
   const left = tab === "settle" ? "expenses" : tab;
-  const tabs = wide ? TABS.filter((t) => t.key !== "settle") : TABS;
 
   const expenses = <ExpensesTab state={state} store={store} settlement={s} onOpenSettle={() => setTab("settle")} />;
   const settle = <SettleTab state={state} store={store} settlement={s} />;
@@ -118,25 +104,23 @@ export function TripView({ tripId }: { tripId: string }) {
             <Settings className="size-6" strokeWidth={1.75} aria-hidden />
           </Link>
         </div>
-        {wide && (
-          <nav className="relative z-10 mx-auto mt-2 flex max-w-6xl gap-1 px-8" aria-label="ส่วนของทริป">
-            {tabs.map(({ key, label, Icon }) => {
-              const on = left === key;
-              return (
-                <button
-                  key={key}
-                  onClick={() => setTab(key)}
-                  aria-current={on ? "page" : undefined}
-                  className={`relative flex min-h-12 items-center gap-2 rounded-t-lg px-4 text-body font-semibold transition-colors duration-150 ${on ? "text-white" : "text-on-ink-muted hover:bg-white/10 hover:text-white"}`}
-                >
-                  <Icon className="size-5" strokeWidth={on ? 2.25 : 1.75} aria-hidden />
-                  {label}
-                  {on && <span className="absolute inset-x-3 bottom-0 h-[3px] rounded-t bg-t1" aria-hidden />}
-                </button>
-              );
-            })}
-          </nav>
-        )}
+        <nav className="relative z-10 mx-auto mt-2 hidden max-w-6xl gap-1 px-8 lg:flex" aria-label="ส่วนของทริป">
+          {DESKTOP_TABS.map(({ key, label, Icon }) => {
+            const on = left === key;
+            return (
+              <button
+                key={key}
+                onClick={() => setTab(key)}
+                aria-current={on ? "page" : undefined}
+                className={`relative flex min-h-12 items-center gap-2 rounded-t-lg px-4 text-body font-semibold transition-colors duration-150 ${on ? "text-white" : "text-on-ink-muted hover:bg-white/10 hover:text-white"}`}
+              >
+                <Icon className="size-5" strokeWidth={on ? 2.25 : 1.75} aria-hidden />
+                {label}
+                {on && <span className="absolute inset-x-3 bottom-0 h-[3px] rounded-t bg-t1" aria-hidden />}
+              </button>
+            );
+          })}
+        </nav>
       </header>
 
       <div className="lg:mx-auto lg:w-full lg:max-w-6xl lg:px-4">
@@ -148,40 +132,38 @@ export function TripView({ tripId }: { tripId: string }) {
       <main className="mx-auto w-full flex-1 px-4 pb-32 pt-4 lg:grid lg:max-w-6xl lg:grid-cols-[minmax(0,1fr)_minmax(0,25rem)] lg:items-start lg:gap-8 lg:px-8 lg:pb-12 lg:pt-6">
         <div className={`min-w-0 flex-col lg:flex ${tab === "settle" ? "hidden" : "flex"}`}>{left === "members" ? members : expenses}</div>
         <aside
-          className={`lg:sticky lg:top-[calc(var(--header-h,8rem)+1.5rem)] lg:-mx-2 lg:block lg:max-h-[calc(100dvh-var(--header-h,8rem)-3rem)] lg:overflow-y-auto lg:rounded-[var(--radius-coupon)] lg:px-2 lg:pb-2 ${tab === "settle" ? "" : "hidden"}`}
+          className={`min-w-0 lg:sticky lg:top-[calc(var(--header-h,8rem)+1.5rem)] lg:block ${tab === "settle" ? "" : "hidden"}`}
           aria-label="สรุปยอด"
         >
           {settle}
         </aside>
       </main>
 
-      {!wide && (
-        <nav className="fixed inset-x-0 bottom-0 z-20 pb-[env(safe-area-inset-bottom)]" aria-label="ส่วนของทริป">
-          <div className="mx-auto grid max-w-lg grid-cols-3 border-t border-line bg-paper sm:border-x">
-            {TABS.map(({ key, label, Icon }) => {
-              const on = tab === key;
-              return (
-                <button
-                  key={key}
-                  onClick={() => setTab(key)}
-                  aria-current={on ? "page" : undefined}
-                  className={`relative flex min-h-16 flex-col items-center justify-center gap-1 text-meta font-semibold transition-colors duration-150 active:scale-[0.98] ${on ? "text-ink" : "text-muted"}`}
-                >
-                  {on && <span className="absolute inset-x-6 top-0 h-[3px] rounded-b bg-ink" aria-hidden />}
-                  <Icon className="size-[22px]" strokeWidth={on ? 2.25 : 1.75} aria-hidden />
-                  {label}
-                  {key === "settle" && badge > 0 && (
-                    <span className="num font-num absolute right-[calc(50%-1.9rem)] top-2 min-w-5 rounded-md bg-ink px-1 text-center text-meta leading-5 text-white">
-                      {badge}
-                      <span className="sr-only"> รายการรอคุณยืนยัน</span>
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </nav>
-      )}
+      <nav className="fixed inset-x-0 bottom-0 z-20 pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label="ส่วนของทริป">
+        <div className="mx-auto grid max-w-lg grid-cols-3 border-t border-line bg-paper sm:border-x">
+          {TABS.map(({ key, label, Icon }) => {
+            const on = tab === key;
+            return (
+              <button
+                key={key}
+                onClick={() => setTab(key)}
+                aria-current={on ? "page" : undefined}
+                className={`relative flex min-h-16 flex-col items-center justify-center gap-1 text-meta font-semibold transition-colors duration-150 active:scale-[0.98] ${on ? "text-ink" : "text-muted"}`}
+              >
+                {on && <span className="absolute inset-x-6 top-0 h-[3px] rounded-b bg-ink" aria-hidden />}
+                <Icon className="size-[22px]" strokeWidth={on ? 2.25 : 1.75} aria-hidden />
+                {label}
+                {key === "settle" && badge > 0 && (
+                  <span className="num font-num absolute right-[calc(50%-1.9rem)] top-2 min-w-5 rounded-md bg-ink px-1 text-center text-meta leading-5 text-white">
+                    {badge}
+                    <span className="sr-only"> รายการรอคุณยืนยัน</span>
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </nav>
 
       {state.conflicts[0] && <ConflictSheet conflict={state.conflicts[0]} state={state} store={store} />}
     </div>

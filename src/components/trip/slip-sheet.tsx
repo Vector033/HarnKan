@@ -105,6 +105,21 @@ export function SlipSheet({
     }
   }
 
+  function recordWithoutSlip() {
+    void store.do({
+      kind: "record_payment",
+      payment: {
+        id: crypto.randomUUID(),
+        trip_id: view.trip.id,
+        from_member: transfer.from,
+        to_member: transfer.to,
+        amount: owed,
+        source: "manual",
+      },
+    });
+    onClose();
+  }
+
   const amountCheck = result ? CHECK[result.match.checks.amount] : null;
 
   return (
@@ -146,15 +161,21 @@ export function SlipSheet({
             <TriangleAlert className="mt-0.5 size-5 shrink-0" strokeWidth={1.75} aria-hidden />
             <span>{error}</span>
           </p>
-          <button
-            className="btn w-full"
-            onClick={() => {
-              setLocalPreview(null);
-              setPhase("pick");
-            }}
-          >
-            ลองอีกครั้ง
-          </button>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <button
+              type="button"
+              className="btn-primary sm:min-w-[8.5rem]"
+              onClick={() => {
+                setLocalPreview(null);
+                setPhase("pick");
+              }}
+            >
+              ลองอีกครั้ง
+            </button>
+            <button type="button" className="btn flex-1 whitespace-nowrap" onClick={recordWithoutSlip}>
+              บันทึกว่าโอนแล้ว (ไม่มีสลิป)
+            </button>
+          </div>
         </div>
       )}
 
@@ -288,15 +309,15 @@ function Reading({
         {slow ? "ยังอ่านอยู่ บางครั้งอาจใช้เวลาถึงครึ่งนาที" : "กำลังอ่านสลิป…"}
       </p>
       {previewUrl && previewOk && (
-        <div className="coupon relative h-32 overflow-hidden bg-ground">
+        <div className="coupon relative h-36 overflow-hidden border-2 border-dashed border-ok/45 bg-ground">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={previewUrl}
             alt=""
             onError={onPreviewError}
-            className="h-full w-full object-cover opacity-80"
+            className="h-full w-full object-cover opacity-85"
           />
-          <div className="scan-shimmer pointer-events-none absolute inset-0" aria-hidden />
+          <div className="slip-scan-sweep" aria-hidden />
           <span className="absolute bottom-2.5 left-2.5 inline-flex items-center gap-1.5 rounded-md bg-ink/90 px-2.5 py-1 text-meta font-semibold text-white shadow-sm backdrop-blur-sm">
             <ReceiptText className="size-4" strokeWidth={1.75} aria-hidden />
             <span>กำลังสแกนสลิป</span>

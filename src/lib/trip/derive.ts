@@ -10,12 +10,23 @@ export interface PlannedTransfer extends Transfer {
   claimedAmount: number;
 }
 
+export interface DebtPair extends Transfer {
+  /** Number of expense shares between `from` and `to` before debt minimization. */
+  count: number;
+}
+
 export interface Settlement {
   net: Map<string, number>;
   /** What each member's share of all expenses came to (their "cost" of the trip). */
   spentBy: Map<string, number>;
   total: number;
   transfers: PlannedTransfer[];
+  /** Individual expense-level debt pairs count before debt minimization. */
+  rawDebtCount: number;
+  /** Directed pairs from expenses before netting/minimization. */
+  rawPairs: DebtPair[];
+  /** Minimized transfer plan from expenses alone (before confirmed payments). */
+  minTransfers: Transfer[];
   awaitingMe: Payment[];
   /** Money confirmed as received so far, and what that plus every planned transfer adds up to. */
   settled: number;
@@ -23,14 +34,31 @@ export interface Settlement {
 }
 
 export function settlement(view: TripView, meId: string | null): Settlement {
+  const memberIds = view.members.map((m) => m.id);
   const expenses = view.expenses.filter((e) => !e.deleted);
-  const net = balances(
-    view.members.map((m) => m.id),
-    expenses,
-    view.payments,
-  );
+  const net = balances(memberIds, expenses, view.payments);
   const spentBy = new Map<string, number>();
-  for (const e of expenses) for (const [id, v] of shares(e)) spentBy.set(id, (spentBy.get(id) ?? 0) + v);
+  let rawDebtCount = 0;
+  const pairMap = new Map<string, DebtPair>();
+  for (const e of expenses) {
+    for (const [id, v] of shares(e)) {
+      spentBy.set(id, (spentBy.get(id) ?? 0) + v);
+      if (id === e.paid_by || v <= 0) continue;
+      rawDebtCount++;
+      const key = `${id}\0${e.paid_by}`;
+      const prev = pairMap.get(key);
+      if (prev) {
+        prev.amount += v;
+        prev.count += 1;
+      } else {
+        pairMap.set(key, { from: id, to: e.paid_by, amount: v, count: 1 });
+      }
+    }
+  }
+  const rawPairs = [...pairMap.values()].sort(
+    (a, b) => b.amount - a.amount || (a.from < b.from ? -1 : a.from > b.from ? 1 : a.to < b.to ? -1 : 1),
+  );
+  const minTransfers = settle(balances(memberIds, expenses, []));
 
   const claims = view.payments.filter((p) => p.status === "claimed");
   const transfers = settle(net).map((t) => {
@@ -43,6 +71,9 @@ export function settlement(view: TripView, meId: string | null): Settlement {
     spentBy,
     total: expenses.reduce((s, e) => s + e.amount, 0),
     transfers,
+    rawDebtCount,
+    rawPairs,
+    minTransfers,
     awaitingMe: meId ? claims.filter((p) => p.to_member === meId) : [],
     ...progress(view.payments, transfers),
   };

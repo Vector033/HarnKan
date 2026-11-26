@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Check, Clock, FileImage, MessageCircle, QrCode, Share2, Undo2, Volume2, VolumeX, X } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, Clock, FileImage, MessageCircle, QrCode, Share2, Undo2, Volume2, VolumeX, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { formatBaht } from "@/lib/core/money";
 import { maskPromptPay } from "@/lib/core/promptpay";
@@ -112,7 +112,7 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
 
       <section aria-labelledby="transfers-h">
         <div className="flex items-start justify-between gap-3">
-          <div>
+          <div className="min-w-0 flex-1">
             <h2 id="transfers-h" className="text-body font-bold">
               ใครโอนให้ใคร
             </h2>
@@ -127,7 +127,7 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
             onClick={() => setSoundOn(!soundOn)}
             aria-pressed={soundOn}
             title="เปิด/ปิดเสียงตราประทับ"
-            className={`-mr-2 -mt-2 inline-flex min-h-12 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-meta font-semibold transition-colors duration-150 active:scale-[0.98] ${
+            className={`-mt-2 inline-flex min-h-12 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-meta font-semibold transition-colors duration-150 active:scale-[0.98] ${
               soundOn ? "bg-ok-soft text-ok" : "text-muted hover:bg-paper hover:text-ink"
             }`}
           >
@@ -135,6 +135,9 @@ export function SettleTab({ state, store, settlement }: { state: TripState; stor
             <span>เสียงตราประทับ</span>
           </button>
         </div>
+        {transfers.length > 0 && settlement.rawDebtCount > 0 && (
+          <DebtMinimizationDetail settlement={settlement} byId={byId} members={view.members} />
+        )}
         {settlement.toSettle > 0 && (
           <div className="relative -mx-2 mb-2 mt-2 rounded-[calc(var(--radius-coupon)+8px)] p-2">
             <div className="ledger-dot-grid absolute inset-0" aria-hidden />
@@ -293,13 +296,113 @@ function ShareSummary({ text }: { text: string }) {
   }
   return (
     <section aria-label="ส่งสรุปยอดให้เพื่อน" className="-mt-4 grid grid-cols-2 gap-2">
-      <a className="btn" href={`https://line.me/R/share?text=${encodeURIComponent(text)}`} target="_blank" rel="noopener noreferrer">
-        <MessageCircle className="size-4 shrink-0" strokeWidth={1.75} aria-hidden /> ส่งสรุปเข้า LINE
+      <a className="btn min-w-0 px-3 text-center" href={`https://line.me/R/share?text=${encodeURIComponent(text)}`} target="_blank" rel="noopener noreferrer">
+        <MessageCircle className="size-4 shrink-0" strokeWidth={1.75} aria-hidden /> <span className="truncate">ส่งสรุปเข้า LINE</span>
       </a>
-      <button type="button" className="btn" onClick={share}>
-        <Share2 className="size-4 shrink-0" strokeWidth={1.75} aria-hidden /> {copied ? "คัดลอกแล้ว" : "แชร์ทางอื่น"}
+      <button type="button" className="btn min-w-0 px-3 text-center" onClick={share}>
+        <Share2 className="size-4 shrink-0" strokeWidth={1.75} aria-hidden /> <span className="truncate">{copied ? "คัดลอกแล้ว" : "แชร์ทางอื่น"}</span>
       </button>
     </section>
+  );
+}
+
+/** Collapsible "ก่อนยุบ → หลังยุบ" coupon detail showing how raw expense debts collapse into minimal transfers. */
+function DebtMinimizationDetail({
+  settlement,
+  byId,
+  members,
+}: {
+  settlement: Settlement;
+  byId: Map<string, Member>;
+  members: Member[];
+}) {
+  const [open, setOpen] = useState(false);
+  const reduced = settlement.rawDebtCount > settlement.minTransfers.length;
+  const name = (id: string) => byId.get(id)?.nickname ?? "?";
+
+  return (
+    <div className="mt-2">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex min-h-12 w-full items-center justify-between gap-2 rounded-lg border border-dashed border-perf bg-paper/70 px-3.5 py-2 text-left text-meta text-muted transition-colors duration-150 hover:border-ink/40 hover:text-ink active:scale-[0.99]"
+        data-testid="debt-minimization-toggle"
+      >
+        <span className="min-w-0">
+          จาก <span className="num font-num font-semibold text-ink">{settlement.rawDebtCount}</span> คู่รายการค่าใช้จ่าย{" "}
+          <span className="whitespace-nowrap">
+            → {reduced ? "ยุบเหลือโอนเพียง" : "โอน"}{" "}
+            <span className="num font-num font-semibold text-ink">{settlement.minTransfers.length}</span> ครั้ง
+          </span>
+        </span>
+        <ChevronDown
+          className={`size-4 shrink-0 transition-transform duration-150 ${open ? "rotate-180" : ""}`}
+          strokeWidth={1.75}
+          aria-hidden
+        />
+      </button>
+
+      {open && (
+        <div className="coupon mt-2 text-meta" data-testid="debt-minimization-detail">
+          <div className="px-4 py-3">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-bold text-ink">ก่อนยุบ</span>
+              <span className="chip border border-dashed border-perf bg-ground text-muted">
+                <span className="num font-num">{settlement.rawDebtCount}</span> คู่รายการค่าใช้จ่าย
+              </span>
+            </div>
+            <ul className="mt-2.5 space-y-2">
+              {settlement.rawPairs.map((pair) => (
+                <li key={`${pair.from}-${pair.to}`} className="flex items-center justify-between gap-2">
+                  <span className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-muted">
+                    <MemberTile name={name(pair.from)} tint={memberTint(members, pair.from)} size={22} />
+                    <span className="min-w-0 break-words font-medium text-ink">{name(pair.from)}</span>
+                    <ArrowRight className="size-3.5 shrink-0 text-muted" strokeWidth={1.75} aria-label="จ่ายให้" />
+                    <MemberTile name={name(pair.to)} tint={memberTint(members, pair.to)} size={22} />
+                    <span className="min-w-0 break-words font-medium text-ink">{name(pair.to)}</span>
+                    {pair.count > 1 && (
+                      <span className="text-meta text-muted">
+                        (<span className="num font-num">{pair.count}</span> รายการ)
+                      </span>
+                    )}
+                  </span>
+                  <Baht satang={pair.amount} className="shrink-0 font-medium text-muted" />
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="perf-x px-4 py-3">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-bold text-ink">หลังยุบ</span>
+              <span className="chip border border-ink/35 bg-ground text-ink">
+                โอนเพียง <span className="num font-num">{settlement.minTransfers.length}</span> ครั้ง
+              </span>
+            </div>
+            <ul className="mt-2.5 space-y-2">
+              {settlement.minTransfers.map((t) => (
+                <li key={`${t.from}-${t.to}`} className="flex items-center justify-between gap-2">
+                  <span className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
+                    <MemberTile name={name(t.from)} tint={memberTint(members, t.from)} size={22} />
+                    <span className="min-w-0 break-words font-semibold text-ink">{name(t.from)}</span>
+                    <ArrowRight className="size-3.5 shrink-0 text-ink" strokeWidth={1.75} aria-label="โอนให้" />
+                    <MemberTile name={name(t.to)} tint={memberTint(members, t.to)} size={22} />
+                    <span className="min-w-0 break-words font-semibold text-ink">{name(t.to)}</span>
+                  </span>
+                  <Baht satang={t.amount} className="shrink-0 font-semibold text-ink" />
+                </li>
+              ))}
+            </ul>
+            {settlement.transfers.length < settlement.minTransfers.length && (
+              <p className="mt-2 text-meta text-muted">
+                ยืนยันรับเงินแล้วบางส่วน คงเหลือโอนอีก <span className="num font-num font-semibold text-ink">{settlement.transfers.length}</span> ครั้ง
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -337,6 +440,8 @@ function TransferCoupon({
   const iReceive = me?.id === t.to;
   const waiting = t.claimedAmount >= t.amount;
   const remaining = Math.max(0, t.amount - t.claimedAmount);
+  const partial = t.claimedAmount > 0 && remaining > 0;
+  const stubAmount = partial ? remaining : t.amount;
   const [stamping, setStamping] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => {
@@ -377,13 +482,21 @@ function TransferCoupon({
 
         <p className="serial mt-1.5">{no}</p>
         {t.claims.length > 0 && (
-          <p className="mt-2 flex items-start gap-1.5 text-meta font-medium text-wait">
+          <div className="mt-2 flex items-start gap-1.5 text-meta font-medium text-wait">
             <Clock className="mt-0.5 size-4 shrink-0" strokeWidth={1.75} aria-hidden />
-            <span>
-              {waiting ? "แจ้งว่าโอนแล้ว" : "แจ้งว่าโอนแล้วบางส่วน"} · รอ {iReceive ? "คุณ" : (to?.nickname ?? "?")} ยืนยัน
-              {t.claims.some((c) => c.source === "slip") && " (แนบสลิปแล้ว)"}
-            </span>
-          </p>
+            <div className="min-w-0">
+              <p>
+                {waiting ? "แจ้งว่าโอนแล้ว" : "แจ้งว่าโอนแล้วบางส่วน"} · รอ {iReceive ? "คุณ" : (to?.nickname ?? "?")} ยืนยัน
+                {t.claims.some((c) => c.source === "slip") && " (แนบสลิปแล้ว)"}
+              </p>
+              {partial && (
+                <p className="mt-0.5 text-muted">
+                  จากยอดเต็ม <Baht satang={t.amount} className="font-medium text-ink" /> · แจ้งโอนแล้ว{" "}
+                  <Baht satang={t.claimedAmount} className="font-medium text-ink" />
+                </p>
+              )}
+            </div>
+          </div>
         )}
 
         {iPay && !waiting && (
@@ -444,9 +557,14 @@ function TransferCoupon({
         )}
       </div>
       {/* The stub: a dashed edge while the money is not settled. */}
-      <div className={`perf-y perf-notch relative flex shrink-0 items-center justify-end px-3.5 ${waiting ? "border-wait" : "border-ink/30"}`}>
+      <div
+        className={`perf-y perf-notch relative flex shrink-0 flex-col items-end justify-center px-3.5 ${
+          t.claims.length > 0 ? "border-wait" : "border-ink/30"
+        }`}
+      >
         <span className="halftone-stub absolute inset-y-0 left-0 w-10" aria-hidden />
-        <Baht satang={t.amount} className={`relative font-semibold ${formatBaht(t.amount).length > 8 ? "text-body" : "text-title"}`} />
+        {partial && <span className="relative text-meta text-muted">คงเหลือ</span>}
+        <Baht satang={stubAmount} className={`relative font-semibold ${formatBaht(stubAmount).length > 8 ? "text-body" : "text-title"}`} />
       </div>
     </li>
   );

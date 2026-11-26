@@ -394,12 +394,13 @@ a {
     transform: translateX(100%);
   }
 }
-@keyframes scanShimmer {
-  0% {
-    background-position: -200% 0;
+/* Slip thumbnail horizontal scan sweep: --ok glow + dashed scan line. */
+@keyframes slip-scan-sweep {
+  from {
+    transform: translateX(-100%);
   }
-  100% {
-    background-position: 200% 0;
+  to {
+    transform: translateX(100%);
   }
 }
 .reading-bar {
@@ -413,10 +414,19 @@ a {
   background: linear-gradient(90deg, transparent, rgb(29 107 74 / 0.14), transparent);
   animation: sweep 1.4s linear infinite;
 }
-.scan-shimmer {
-  background: linear-gradient(90deg, transparent 0%, rgb(29 107 74 / 0.14) 50%, transparent 100%);
-  background-size: 200% 100%;
-  animation: scanShimmer 1.8s infinite;
+.slip-scan-sweep {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.slip-scan-sweep::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-right: 2px dashed var(--color-ok);
+  background: linear-gradient(90deg, transparent 55%, rgb(29 107 74 / 0.12) 85%, rgb(29 107 74 / 0.28) 100%);
+  animation: slip-scan-sweep 1.5s var(--ease-out-expo) infinite;
 }
 
 /* Home map route flow & active pin beacon. */
@@ -501,20 +511,11 @@ dialog[open] {
 dialog::backdrop {
   background: rgb(20 48 43 / 0.45);
 }
-/* #2 Fluted Glass: vertical ribbed refraction lines + backdrop blur for QR and slip sheets. */
+/* Dimmed ink backdrop with soft blur for QR and slip sheets (no stripes to avoid moiré over dotted ground). */
 dialog.sheet-fluted::backdrop {
-  background-color: rgb(20 48 43 / 0.42);
-  background-image: repeating-linear-gradient(
-    90deg,
-    rgb(255 255 255 / 0.06) 0px,
-    rgb(255 255 255 / 0.06) 2px,
-    rgb(20 48 43 / 0.08) 2px,
-    rgb(20 48 43 / 0.08) 7px,
-    transparent 7px,
-    transparent 12px
-  );
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
+  background: rgb(20 48 43 / 0.48);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
 }
 dialog[open]::backdrop {
   animation: fade-in 200ms ease-out;
@@ -539,10 +540,10 @@ dialog[open]::backdrop {
     animation: stub-fade 200ms linear forwards !important;
   }
   .live-dot::after,
-  .reading-bar::after {
+  .reading-bar::after,
+  .slip-scan-sweep::after {
     display: none;
   }
-  .scan-shimmer,
   .route-flow,
   .pin-ripple {
     animation: none !important;

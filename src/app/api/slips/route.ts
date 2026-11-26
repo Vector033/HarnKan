@@ -90,9 +90,20 @@ export async function POST(req: Request) {
   } catch (e) {
     // Log the failure kind only: never the image or anything read from it.
     console.error("slip read failed:", e instanceof SlipReaderError ? e.message.slice(0, 120) : (e as Error)?.name);
-    return json({ error: "read_failed" }, 502);
+    return json({ error: "read_failed" }, isUpstreamSlipError(e) ? 502 : 422);
   } finally {
     image = null; // drop the only reference to the slip image
+  }
+
+  // Image decoded cleanly, yet yielded zero slip fields (e.g. a non-slip photo or blank image).
+  if (
+    slip.amount.value === null &&
+    slip.dateTime.value === null &&
+    slip.receiver.name.value === null &&
+    slip.receiver.accountLast4.value === null &&
+    slip.reference.value === null
+  ) {
+    return json({ error: "read_failed" }, 422);
   }
 
   const ps = (payments.data ?? []) as unknown as Payment[];
@@ -177,6 +188,16 @@ export async function POST(req: Request) {
 
 function json(body: unknown, status: number) {
   return Response.json(body, { status, headers: { "cache-control": "no-store" } });
+}
+
+/** True only when the upstream AI/OCR provider or network failed, not when the image itself is unreadable. */
+function isUpstreamSlipError(e: unknown): boolean {
+  if (e instanceof SlipReaderError) {
+    if (e.status !== undefined) return e.status === 429 || e.status >= 500;
+    return /took over|GEMINI_API_KEY/i.test(e.message);
+  }
+  const name = (e as Error)?.name;
+  return e instanceof TypeError || name === "AbortError" || name === "TimeoutError";
 }
 
 /** A stuck OCR worker must not hold the request open until the platform kills it. */

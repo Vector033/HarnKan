@@ -1,6 +1,6 @@
 # หารกัน · HarnKan
 
-**Live:** https://harnkan-ten.vercel.app (open it on your phone; "Add to Home Screen" installs it)
+**Live:** https://harnkan-ten.vercel.app (open it on your phone; "Add to Home Screen" installs it) · **[▶ Watch 16s Feature Showcase (1920×1080)](docs/demo/harnkan-showcase.mp4)**
 
 Split trip costs with friends in real time. Everyone in the group adds expenses from their own phone and sees each other's changes straight away. HarnKan then works out who pays whom using the **fewest possible transfers**. It makes a PromptPay QR with the amount already filled in, and reads the transfer slip to tick the debt as paid. The receiver confirms with one tap.
 
